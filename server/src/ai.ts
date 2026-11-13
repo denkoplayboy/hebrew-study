@@ -3,11 +3,28 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { BINYANIM, GZAROT, PERSONS, stripNikud, detectLang, type Tense } from "../../shared/lang.js";
 import type { Example, Pack, PackItem, Word, WordDraft, WordForm } from "../../shared/types.js";
+import { db, getSettings, type AIOp } from "./db.js";
 
-// Модель и «усилие» можно поменять переменными окружения на fly.io.
+// Модель по умолчанию — переменная AI_MODEL на fly.io; модель и «усилие» для каждой операции
+// можно поменять в настройках приложения (раздел «ИИ»).
 const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 const EFFORT_OVERRIDE = process.env.AI_EFFORT as "low" | "medium" | "high" | undefined;
 const MOCK = process.env.AI_MOCK === "1";
+// меняй при правке промптов — чтобы не отдавать из кэша ответы старой версии
+const PROMPT_VERSION = 2;
+
+export const AI_MODELS = [
+  { id: "claude-opus-5-5", name: "Opus 5.5", note: "самая сильная" },
+  { id: "claude-sonnet-5-5", name: "Sonnet 5.5", note: "в 2 раза дешевле Opus" },
+  { id: "claude-haiku-5-5", name: "Haiku 5.5", note: "в 40 раз дешевле Opus" },
+];
+
+// $ за миллион токенов: ввод, запись в кэш (5 мин), чтение из кэша, вывод (platform.claude.com/docs/en/about-claude/pricing)
+const PRICES: Record<string, { in: number; write: number; read: number; out: number }> = {
+  "claude-opus-5-5": { in: 4, write: 5, read: 0.2, out: 20 },
+  "claude-sonnet-5-5": { in: 2, write: 2.5, read: 0.1, out: 10 },
+  "claude-haiku-5-5": { in: 0.1, write: 0.125, read: 0.01, out: 0.5 },
+};
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -19,33 +36,108 @@ export function aiEnabled(): boolean {
   return MOCK || !!process.env.ANTHROPIC_API_KEY || !!process.env.ANTHROPIC_AUTH_TOKEN;
 }
 export function aiInfo() {
-  return { enabled: aiEnabled(), model: MOCK ? "mock" : MODEL };
+  const p = getSettings().aiProfile;
+  return { enabled: aiEnabled(), model: MOCK ? "mock" : MODEL, defaultModel: MODEL, models: AI_MODELS, profile: p };
 }
 
 export class AIError extends Error {}
 
+export interface AIConfig {
+  model: string;
+  effort: "low" | "medium" | "high";
+}
+
+export interface UsageInfo {
+  model: string;
+  cost: number | null;
+  ms: number;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+}
+
+/** Модель и «усилие» для операции: настройки приложения → AI_MODEL / AI_EFFORT. */
+export function configFor(op: AIOp, override?: Partial<AIConfig>): AIConfig {
+  const p = getSettings().aiProfile[op];
+  return {
+    model: override?.model || p?.model || MODEL,
+    effort: override?.effort || EFFORT_OVERRIDE || p?.effort || "medium",
+  };
+}
+
+function priceOf(model: string, u: { input: number; cacheWrite: number; cacheRead: number; output: number }) {
+  const p = PRICES[model];
+  if (!p) return null;
+  return (u.input * p.in + u.cacheWrite * p.write + u.cacheRead * p.read + u.output * p.out) / 1_000_000;
+}
+
+function logUsage(op: string, cfg: AIConfig, u: UsageInfo, tag?: string) {
+  try {
+    db.prepare(
+      "INSERT INTO ai_usage(ts, op, model, effort, input_tokens, cache_write_tokens, cache_read_tokens, output_tokens, cost, ms, tag) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+    ).run(Date.now(), op, u.model, cfg.effort, u.input, u.cacheWrite, u.cacheRead, u.output, u.cost, u.ms, tag ?? null);
+  } catch (e) {
+    console.error("ai_usage log failed", e);
+  }
+}
+
+// ───── кэш ответов: повторный разбор того же слова не тратит деньги ─────
+const CACHE_TTL = 30 * 24 * 3600 * 1000;
+function cacheGet<T>(key: string): T | null {
+  const r = db.prepare("SELECT value, ts FROM ai_cache WHERE key = ?").get(key) as { value: string; ts: number } | undefined;
+  if (!r || Date.now() - r.ts > CACHE_TTL) return null;
+  try {
+    return JSON.parse(r.value) as T;
+  } catch {
+    return null;
+  }
+}
+function cacheSet(key: string, value: unknown) {
+  db.prepare("INSERT INTO ai_cache(key, value, ts) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, ts = excluded.ts").run(
+    key,
+    JSON.stringify(value),
+    Date.now(),
+  );
+}
+
 async function ask<T extends z.ZodType>(opts: {
+  op: AIOp;
   system: string;
   user: string;
   schema: T;
-  effort?: "low" | "medium" | "high";
   maxTokens?: number;
+  override?: Partial<AIConfig>;
+  tag?: string;
+  onUsage?: (u: UsageInfo) => void;
 }): Promise<z.infer<T>> {
   if (!aiEnabled()) throw new AIError("ИИ не подключён: добавь ANTHROPIC_API_KEY в секреты fly.io");
+  const cfg = configFor(opts.op, opts.override);
+  const isHaiku = cfg.model.startsWith("claude-haiku");
+  const t0 = Date.now();
   try {
     const res = await getClient().beta.messages.parse({
-      model: MODEL,
+      model: cfg.model,
       max_tokens: opts.maxTokens ?? 16000,
-      // при отказе модели запрос автоматически повторится на запасной модели
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      system: opts.system,
+      // при отказе модели запрос автоматически повторится на запасной модели (у Haiku такой возможности нет)
+      ...(isHaiku ? {} : { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
+      // системный промпт одинаков для всех слов — кэшируем: следующие слова в течение 5 минут читают его в 20 раз дешевле
+      system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       output_config: {
-        effort: EFFORT_OVERRIDE || opts.effort || "low",
+        effort: cfg.effort,
         format: betaZodOutputFormat(opts.schema),
       },
       messages: [{ role: "user", content: opts.user }],
     });
+    const usage = {
+      input: res.usage.input_tokens ?? 0,
+      cacheWrite: res.usage.cache_creation_input_tokens ?? 0,
+      cacheRead: res.usage.cache_read_input_tokens ?? 0,
+      output: res.usage.output_tokens ?? 0,
+    };
+    const info: UsageInfo = { ...usage, model: res.model, cost: priceOf(res.model, usage), ms: Date.now() - t0 };
+    logUsage(opts.op, cfg, info, opts.tag);
+    opts.onUsage?.(info);
     if (res.stop_reason === "refusal") throw new AIError("Модель отказалась отвечать на этот запрос");
     if (res.stop_reason === "max_tokens") throw new AIError("Ответ ИИ оказался слишком длинным — попробуй ещё раз");
     if (!res.parsed_output) throw new AIError("ИИ вернул ответ в неожиданном формате");
@@ -110,21 +202,34 @@ const ANALYZE_SYSTEM = `Ты — лексикограф и преподават�
 - root — корень через дефис (ת-פ-ס), для заимствований без корня — null. binyan — только для глаголов. gizra — список групп (שלמים = shlemim; если корень с гортанной — добавь gronit).
 - gender и plural — для существительных (plural с огласовкой в plural_nikud). Для прилагательных plural = форма м. р. мн. ч.
 - he_examples — 3 простых естественных предложения на современном иврите (уровень ульпана), в каждом слово стоит в РАЗНЫХ формах, если это естественно. target — точная подстрока из text (без огласовок), в которой стоит слово. text_nikud — то же предложение с огласовкой. ru — перевод.
-- en_examples — 2 примера на английском (target — точная подстрока), только если слово есть в английском.
+- en_examples — 2 примера на английском (target — точная подстрока), ТОЛЬКО если ввод был на английском; иначе пустой список.
 - en_forms — для английских глаголов: past, pp, ing, 3s; для существительных с нерегулярным мн. ч. — plural. Иначе пустой список.
 - lemma_note — если ввод был не в словарной форме, по-русски поясни, что это была за форма (например «נתפסתי — прош. вр., 1 л. ед. ч.»). Иначе пустая строка.
 - notes — 1–3 коротких замечания: управление (с какой מילת יחס), устойчивые сочетания, регистр, омографы. mnemonic — короткая ассоциация на русском, если получается естественная; иначе пустая строка.
 - tags — 1–3 тематические метки на русском (например «право», «эмоции»).
 - is_valid = false, если это не слово ни одного из трёх языков.`;
 
-export async function analyzeWord(input: string): Promise<WordDraft> {
+export async function analyzeWord(
+  input: string,
+  opts: { override?: Partial<AIConfig>; fresh?: boolean; tag?: string; onUsage?: (u: UsageInfo) => void } = {},
+): Promise<WordDraft> {
   if (MOCK) return mockDraft(input);
-  const r = await ask({
-    system: ANALYZE_SYSTEM,
-    user: `Ввод: «${input.trim()}»`,
-    schema: DraftSchema,
-    effort: "medium",
-  });
+  const cfg = configFor("analyze", opts.override);
+  const key = `analyze:v${PROMPT_VERSION}:${cfg.model}:${cfg.effort}:${input.trim().toLowerCase()}`;
+  type R = z.infer<typeof DraftSchema>;
+  let r = !opts.fresh && !opts.override ? cacheGet<R>(key) : null;
+  if (!r) {
+    r = await ask({
+      op: "analyze",
+      system: ANALYZE_SYSTEM,
+      user: `Ввод: «${input.trim()}»`,
+      schema: DraftSchema,
+      override: opts.override,
+      tag: opts.tag,
+      onUsage: opts.onUsage,
+    });
+    if (r.is_valid) cacheSet(key, r);
+  }
   if (!r.is_valid) throw new AIError(`«${input}» не похоже на слово — проверь написание`);
   const examples: Example[] = [
     ...r.he_examples.map((e) => ({ lang: "he" as const, text: stripNikud(e.text), text_nikud: e.text_nikud, target: stripNikud(e.target), ru: e.ru })),
@@ -181,10 +286,18 @@ function personsSpec() {
     .join("\n");
 }
 
-export async function conjugate(w: Pick<Word, "he" | "he_nikud" | "root" | "binyan" | "ru">): Promise<{ forms: WordForm[]; gizra: string[]; root: string }> {
+export async function conjugate(
+  w: Pick<Word, "he" | "he_nikud" | "root" | "binyan" | "ru">,
+  opts: { fresh?: boolean } = {},
+): Promise<{ forms: WordForm[]; gizra: string[]; root: string }> {
   if (MOCK) return mockConj(w);
   const passive = w.binyan === "pual" || w.binyan === "hufal";
-  const r = await ask({
+  const cfg = configFor("conjugate");
+  const key = `conj:v${PROMPT_VERSION}:${cfg.model}:${cfg.effort}:${w.he_nikud || w.he}:${w.binyan || ""}:${w.root || ""}`;
+  type R = z.infer<typeof ConjSchema>;
+  const cached = opts.fresh ? null : cacheGet<R>(key);
+  const r: R = cached || (await ask({
+    op: "conjugate",
     system: `Ты — эксперт по морфологии иврита. Дай полную таблицу спряжения глагола в современном нормативном иврите.
 Набор форм (tense: person):
 ${personsSpec()}
@@ -194,8 +307,8 @@ ${personsSpec()}
 - gizra — группы глагола (несколько, если корень относится к нескольким), root — корень через дефис.`,
     user: `Глагол: ${w.he_nikud || w.he} (${w.ru}). Корень: ${w.root || "?"}. Биньян: ${w.binyan || "определи сам"}.`,
     schema: ConjSchema,
-    effort: "medium",
-  });
+  }));
+  if (!cached) cacheSet(key, r);
   const seen = new Set<string>();
   const forms: WordForm[] = [];
   for (const f of r.forms) {
@@ -240,7 +353,7 @@ export async function checkSentence(opts: { target: string; meaning: string; lan
 - other_lemmas — словарные формы остальных значимых слов предложения (на языке предложения).`,
     user: `Целевое слово: ${opts.target} — «${opts.meaning}».\nПредложение ученика: ${opts.sentence}`,
     schema: SentenceSchema,
-    effort: "low",
+    op: "check",
   });
 }
 
@@ -265,7 +378,7 @@ export async function reviewJournal(opts: { text: string; lang: "he" | "en"; pro
 - lemmas — для КАЖДОГО значимого слова текста (существительные, глаголы, прилагательные, наречия): surface — как написано, lemma — словарная форма (для глаголов иврита — שם הפועל).`,
     user: `Тема: ${opts.prompt || "свободная"}\n\nТекст:\n${opts.text}`,
     schema: JournalSchema,
-    effort: "low",
+    op: "check",
   });
 }
 
@@ -284,7 +397,7 @@ export async function glossText(text: string) {
 Для каждого значимого слова текста (без повторов): surface — как в тексте, lemma — словарная форма (глаголы иврита — שם הפועל), lemma_nikud — словарная форма с огласовкой (для английского — то же, что lemma), ru — значение именно в этом контексте, pos — часть речи. translation — перевод всего текста на русский.`,
     user: text.slice(0, 6000),
     schema: GlossSchema,
-    effort: "low",
+    op: "check",
   });
 }
 
@@ -301,7 +414,8 @@ export async function makeExamples(w: Word, lang: "he" | "en"): Promise<Example[
 Дай 3 коротких естественных предложения на ${lang === "he" ? "современном иврите" : "английском"} с этим словом — в разных формах, если это естественно. target — точная подстрока предложения, где стоит слово (без огласовок). text_nikud — ${lang === "he" ? "предложение с огласовкой" : "пустая строка"}. ru — перевод.`,
     user: `Слово: ${lang === "he" ? w.he_nikud || w.he : w.en} — «${w.ru}»`,
     schema: ExamplesSchema,
-    effort: "low",
+    op: "analyze",
+    override: { effort: "low" },
   });
   return r.examples.map((e) => ({
     lang,
@@ -354,7 +468,7 @@ explain — короткое пояснение по-русски к каждо�
 Иврит — без огласовок, кроме случаев, когда огласовка — суть упражнения.`,
     user: `Тема: ${opts.topic}\nКоличество упражнений: ${opts.count}${opts.words?.length ? `\nПо возможности используй слова ученика: ${opts.words.join(", ")}` : ""}`,
     schema: PackSchema,
-    effort: "medium",
+    op: "analyze",
   });
   const items: PackItem[] = r.items.map((it) => {
     switch (it.type) {

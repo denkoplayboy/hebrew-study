@@ -154,6 +154,30 @@ const MIGRATIONS: string[] = [
     text TEXT NOT NULL
   );
   `,
+  // 2 — учёт расходов ИИ и кэш ответов
+  `
+  CREATE TABLE ai_usage (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    op TEXT NOT NULL,
+    model TEXT NOT NULL,
+    effort TEXT,
+    input_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+    output_tokens INTEGER NOT NULL DEFAULT 0,
+    cost REAL,
+    ms INTEGER,
+    tag TEXT
+  );
+  CREATE INDEX ai_usage_ts ON ai_usage(ts);
+
+  CREATE TABLE ai_cache (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    ts INTEGER NOT NULL
+  );
+  `,
 ];
 
 function migrate() {
@@ -168,7 +192,14 @@ function migrate() {
 migrate();
 
 // ───────── настройки ─────────
+export type AIOp = "analyze" | "conjugate" | "check";
+export interface AIProfile {
+  model: string; // "" — модель по умолчанию (AI_MODEL)
+  effort: "low" | "medium" | "high";
+}
+
 export interface Settings {
+  aiProfile: Record<AIOp, AIProfile>;
   newPerDay: number;
   retention: number;
   sessionSize: number;
@@ -178,6 +209,11 @@ export interface Settings {
   ttsRate: number;
 }
 export const DEFAULT_SETTINGS: Settings = {
+  aiProfile: {
+    analyze: { model: "", effort: "medium" },
+    conjugate: { model: "", effort: "medium" },
+    check: { model: "", effort: "low" },
+  },
   newPerDay: 10,
   retention: 0.9,
   sessionSize: 20,
@@ -198,6 +234,8 @@ export function getSettings(): Settings {
       /* ignore */
     }
   }
+  // старые сохранения могли не содержать всех операций
+  s.aiProfile = { ...DEFAULT_SETTINGS.aiProfile, ...((s.aiProfile as object) || {}) };
   return s as unknown as Settings;
 }
 

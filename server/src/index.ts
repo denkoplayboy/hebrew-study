@@ -28,7 +28,21 @@ import {
   addMoment,
   getFacet,
 } from "./words.js";
-import { aiEnabled, aiInfo, analyzeWord, AIError, checkSentence, conjugate, generatePack, glossText, makeExamples, reviewJournal } from "./ai.js";
+import {
+  aiEnabled,
+  aiInfo,
+  analyzeWord,
+  AIError,
+  AI_MODELS,
+  checkSentence,
+  conjugate,
+  generatePack,
+  glossText,
+  makeExamples,
+  reviewJournal,
+  type AIConfig,
+  type UsageInfo,
+} from "./ai.js";
 import { buildSession, todayCounts } from "./session.js";
 import { fullStats, gardenStats, rhythm, rootsGarden } from "./stats.js";
 import { getPack, importWords, listPacks, loadContent, savePack } from "./content.js";
@@ -153,13 +167,13 @@ app.post("/api/words/analyze", async (c) => {
 });
 
 const conjJobs = new Set<number>();
-async function runConjugation(id: number) {
+async function runConjugation(id: number, fresh = false) {
   const w = getWord(id);
   if (!w || conjJobs.has(id) || !aiEnabled()) return;
   conjJobs.add(id);
   db.prepare("UPDATE words SET conj_status = 'pending' WHERE id = ?").run(id);
   try {
-    const r = await conjugate(w);
+    const r = await conjugate(w, { fresh });
     replaceConjForms(id, r.forms);
     const patch: Row = {};
     if (!w.gizra.length && r.gizra.length) patch.gizra = r.gizra;
@@ -218,7 +232,7 @@ app.delete("/api/words/:id", (c) => {
 app.post("/api/words/:id/conjugate", async (c) => {
   const id = Number(c.req.param("id"));
   if (!aiEnabled()) return c.json({ error: "ИИ не подключён" }, 400);
-  await runConjugation(id);
+  await runConjugation(id, true);
   return c.json(getFull(id));
 });
 
@@ -475,6 +489,48 @@ app.post("/api/packs/:id/import-words", (c) => {
 app.delete("/api/packs/:id", (c) => {
   db.prepare("DELETE FROM packs WHERE id = ? AND source <> 'repo'").run(c.req.param("id"));
   return c.json({ ok: true });
+});
+
+// ───────────────────────── расходы ИИ ─────────────────────────
+const OP_LABELS: Record<string, string> = { analyze: "разбор слов и примеры", conjugate: "спряжения", check: "проверки и дневник" };
+
+app.get("/api/ai/usage", (c) => {
+  const now = Date.now();
+  const day = new Date();
+  day.setHours(0, 0, 0, 0);
+  const sum = (from: number) =>
+    db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(cost), 0) AS cost FROM ai_usage WHERE ts >= ? AND (tag IS NULL OR tag <> 'compare')").get(from) as Row;
+  const byOp = (
+    db
+      .prepare(
+        `SELECT op, model, COUNT(*) AS n, AVG(cost) AS avg, SUM(cost) AS total, AVG(input_tokens + cache_write_tokens + cache_read_tokens) AS avg_in,
+          AVG(output_tokens) AS avg_out, SUM(cache_read_tokens) AS cache_read, SUM(input_tokens + cache_write_tokens + cache_read_tokens) AS all_in
+         FROM ai_usage WHERE ts >= ? AND (tag IS NULL OR tag <> 'compare') GROUP BY op, model ORDER BY total DESC`,
+      )
+      .all(now - 30 * 86400000) as Row[]
+  ).map((r) => ({ ...r, label: OP_LABELS[r.op] || r.op }));
+  const words = (db.prepare("SELECT COUNT(*) AS n FROM words WHERE created_at >= ? AND source = 'ai'").get(now - 30 * 86400000) as Row).n;
+  return c.json({ today: sum(day.getTime()), month: sum(now - 30 * 86400000), byOp, wordsAdded30: words });
+});
+
+/** Один и тот же разбор слова на нескольких моделях — чтобы сравнить качество и цену. */
+app.post("/api/ai/compare", async (c) => {
+  const { input, configs } = await c.req.json<{ input: string; configs: AIConfig[] }>();
+  if (!input?.trim()) return c.json({ error: "Введи слово" }, 400);
+  const allowed = new Set(AI_MODELS.map((m) => m.id));
+  const list = (configs || []).filter((x) => allowed.has(x.model) && ["low", "medium", "high"].includes(x.effort)).slice(0, 5);
+  const results = await Promise.all(
+    list.map(async (cfg) => {
+      let usage: UsageInfo | null = null;
+      try {
+        const draft = await analyzeWord(input, { override: cfg, fresh: true, tag: "compare", onUsage: (u) => (usage = u) });
+        return { config: cfg, draft, usage };
+      } catch (e) {
+        return { config: cfg, error: (e as Error).message, usage };
+      }
+    }),
+  );
+  return c.json({ results });
 });
 
 // ───────────────────────── настройки и резервная копия ─────────────────────────

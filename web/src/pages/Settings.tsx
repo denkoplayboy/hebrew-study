@@ -3,6 +3,7 @@ import { Download, Upload, LogOut, Volume2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useApp, speak, hasVoice } from "../lib/app";
 import { Switch } from "../components/ui";
+import { AISection } from "../components/AISection";
 
 export default function SettingsPage() {
   const { me, settings, updateSettings, toast, refreshMe, touch } = useApp();
@@ -113,20 +114,16 @@ export default function SettingsPage() {
       </div>
 
       <div className="section-title">ИИ</div>
-      <div className="card col gap-6">
-        {me?.ai.enabled ? (
-          <p>
-            Подключён: <b style={{ fontWeight: 500 }}>{me.ai.model}</b>. Разбор слов, спряжения, проверка фраз и дневника, наборы упражнений работают.
+      {me?.ai.enabled ? (
+        <AISection />
+      ) : (
+        <div className="card col gap-6">
+          <p>ИИ не подключён. Приложение работает, но слова придётся заполнять вручную, а проверка фраз станет самопроверкой.</p>
+          <p className="small text-2">
+            Чтобы подключить: в fly.io выполни <code>fly secrets set ANTHROPIC_API_KEY=…</code> (ключ берётся на console.anthropic.com).
           </p>
-        ) : (
-          <>
-            <p>ИИ не подключён. Приложение работает, но слова придётся заполнять вручную, а проверка фраз станет самопроверкой.</p>
-            <p className="small text-2">
-              Чтобы подключить: в fly.io выполни <code>fly secrets set ANTHROPIC_API_KEY=…</code> (ключ берётся на console.anthropic.com).
-            </p>
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="section-title">Данные</div>
       <div className="card col gap-16">

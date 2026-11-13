@@ -1,7 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
 
+export type AIOp = "analyze" | "conjugate" | "check";
+export interface AIProfile {
+  model: string;
+  effort: "low" | "medium" | "high";
+}
+
 export interface Settings {
+  aiProfile: Record<AIOp, AIProfile>;
   newPerDay: number;
   retention: number;
   sessionSize: number;
@@ -14,7 +21,7 @@ export interface Settings {
 export interface Me {
   authed: boolean;
   needsPassword: boolean;
-  ai: { enabled: boolean; model: string };
+  ai: { enabled: boolean; model: string; defaultModel?: string; models?: { id: string; name: string; note: string }[] };
   settings: Settings | null;
 }
 
@@ -39,6 +46,11 @@ interface Ctx {
 }
 
 const DEFAULTS: Settings = {
+  aiProfile: {
+    analyze: { model: "", effort: "medium" },
+    conjugate: { model: "", effort: "medium" },
+    check: { model: "", effort: "low" },
+  },
   newPerDay: 10,
   retention: 0.9,
   sessionSize: 20,
