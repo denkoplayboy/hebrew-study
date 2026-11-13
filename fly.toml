@@ -1,32 +1,34 @@
-# Конфигурация fly.io. Имя приложения поменяй на своё (оно станет адресом: <имя>.fly.dev).
-app = "shoresh"
-primary_region = "fra"
+# fly.toml app configuration file generated for hebrew-study on 2026-11-13T19:43:58Z
+#
+# See https://docs.fly.io/reference/configuration for information about how to use this file.
+#
+
+app = 'hebrew-study'
+primary_region = 'ams'
 
 [build]
-
 [env]
-  PORT = "8080"
-  DATA_DIR = "/data"
+  DATA_DIR = '/data'
+  PORT = '8080'
 
-# Постоянный диск для базы SQLite — без него слова пропадут при перезапуске
 [[mounts]]
-  source = "shoresh_data"
-  destination = "/data"
+  source = 'shoresh_data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
   [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/api/health"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/api/health'
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
+  size = 'shared-cpu-1x'
+  memory = '512mb'
