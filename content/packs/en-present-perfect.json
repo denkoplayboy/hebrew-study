@@ -1,0 +1,100 @@
+{
+ "id": "en-present-perfect",
+ "title": "English: Present Perfect или Past Simple",
+ "lang": "en",
+ "level": "B1",
+ "description": "Главная развилка английского прошедшего: результат сейчас или законченное событие в прошлом.",
+ "items": [
+  {
+   "type": "info",
+   "title": "Как выбирать",
+   "body": "Past Simple — есть (или подразумевается) конкретное время в прошлом: yesterday, in 2019, when I was a child.\nPresent Perfect — важен результат/опыт сейчас, время не названо: ever, never, already, yet, just, so far, since, for.\nВ иврите обе формы — просто עבר, поэтому выбор приходится «включать» сознательно."
+  },
+  {
+   "type": "choice",
+   "prompt": "I ___ this film twice.",
+   "options": [
+    "have seen",
+    "saw",
+    "see",
+    "had see"
+   ],
+   "answer": 0,
+   "explain": "Опыт без указания времени — Present Perfect."
+  },
+  {
+   "type": "choice",
+   "prompt": "I ___ this film last Sunday.",
+   "options": [
+    "saw",
+    "have seen",
+    "seen",
+    "have saw"
+   ],
+   "answer": 0,
+   "explain": "last Sunday — конкретное время, Past Simple."
+  },
+  {
+   "type": "choice",
+   "prompt": "She ___ in Haifa since 2020.",
+   "options": [
+    "has lived",
+    "lived",
+    "lives",
+    "is living since"
+   ],
+   "answer": 0,
+   "explain": "since + период до сих пор — Present Perfect."
+  },
+  {
+   "type": "choice",
+   "prompt": "When ___ to Israel?",
+   "options": [
+    "did you move",
+    "have you moved",
+    "you moved",
+    "do you moved"
+   ],
+   "answer": 0,
+   "explain": "When — вопрос о конкретном моменте → Past Simple."
+  },
+  {
+   "type": "fill",
+   "prompt": "I haven't finished it ___. (ещё)",
+   "answers": [
+    "yet"
+   ],
+   "explain": "yet — в отрицаниях и вопросах Present Perfect."
+  },
+  {
+   "type": "fill",
+   "prompt": "We have ___ arrived. (только что)",
+   "answers": [
+    "just"
+   ],
+   "explain": "just — «только что»."
+  },
+  {
+   "type": "translate",
+   "prompt": "Я никогда не был в Лондоне.",
+   "answers": [
+    "I have never been to London",
+    "I've never been to London"
+   ],
+   "explain": "Опыт за всю жизнь — Present Perfect; been to — «бывать»."
+  },
+  {
+   "type": "order",
+   "tokens": [
+    "already",
+    "eaten",
+    "have",
+    "We"
+   ],
+   "answers": [
+    "We have already eaten"
+   ],
+   "explain": "already стоит между have и причастием."
+  }
+ ]
+}

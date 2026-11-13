@@ -1,0 +1,32 @@
+# Конфигурация fly.io. Имя приложения поменяй на своё (оно станет адресом: <имя>.fly.dev).
+app = "shoresh"
+primary_region = "fra"
+
+[build]
+
+[env]
+  PORT = "8080"
+  DATA_DIR = "/data"
+
+# Постоянный диск для базы SQLite — без него слова пропадут при перезапуске
+[[mounts]]
+  source = "shoresh_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

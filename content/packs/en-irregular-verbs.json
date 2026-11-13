@@ -1,0 +1,867 @@
+{
+ "id": "en-irregular-verbs",
+ "title": "English: 15 неправильных глаголов",
+ "lang": "en",
+ "level": "A2–B1",
+ "description": "Самые частые неправильные глаголы с формами Past и Past Participle. Если глагол уже есть в словаре на иврите — карточка дополнится английским.",
+ "words": [
+  {
+   "en": "go",
+   "ru": "идти, ехать",
+   "he": "ללכת",
+   "he_nikud": "לָלֶכֶת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "went",
+     "nikud": "went"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "gone",
+     "nikud": "gone"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "going",
+     "nikud": "going"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "goes",
+     "nikud": "goes"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "We went to the beach yesterday.",
+     "text_nikud": "",
+     "target": "went",
+     "ru": "Вчера мы ходили на пляж."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "see",
+   "ru": "видеть",
+   "he": "לראות",
+   "he_nikud": "לִרְאוֹת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "saw",
+     "nikud": "saw"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "seen",
+     "nikud": "seen"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "seeing",
+     "nikud": "seeing"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "sees",
+     "nikud": "sees"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "Have you seen my keys?",
+     "text_nikud": "",
+     "target": "seen",
+     "ru": "Ты не видел мои ключи?"
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "take",
+   "ru": "брать",
+   "he": "לקחת",
+   "he_nikud": "לָקַחַת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "took",
+     "nikud": "took"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "taken",
+     "nikud": "taken"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "taking",
+     "nikud": "taking"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "takes",
+     "nikud": "takes"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "She took the last bus home.",
+     "text_nikud": "",
+     "target": "took",
+     "ru": "Она поехала домой на последнем автобусе."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "give",
+   "ru": "давать",
+   "he": "לתת",
+   "he_nikud": "לָתֵת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "gave",
+     "nikud": "gave"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "given",
+     "nikud": "given"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "giving",
+     "nikud": "giving"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "gives",
+     "nikud": "gives"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "He gave me a good piece of advice.",
+     "text_nikud": "",
+     "target": "gave",
+     "ru": "Он дал мне хороший совет."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "know",
+   "ru": "знать",
+   "he": "לדעת",
+   "he_nikud": "לָדַעַת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "knew",
+     "nikud": "knew"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "known",
+     "nikud": "known"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "knowing",
+     "nikud": "knowing"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "knows",
+     "nikud": "knows"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "I knew the answer, but I was too slow.",
+     "text_nikud": "",
+     "target": "knew",
+     "ru": "Я знал ответ, но не успел."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "think",
+   "ru": "думать",
+   "he": "לחשוב",
+   "he_nikud": "לַחְשֹׁב",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "thought",
+     "nikud": "thought"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "thought",
+     "nikud": "thought"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "thinking",
+     "nikud": "thinking"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "thinks",
+     "nikud": "thinks"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "I thought about it all night.",
+     "text_nikud": "",
+     "target": "thought",
+     "ru": "Я думал об этом всю ночь."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "bring",
+   "ru": "приносить",
+   "he": "להביא",
+   "he_nikud": "לְהָבִיא",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "brought",
+     "nikud": "brought"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "brought",
+     "nikud": "brought"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "bringing",
+     "nikud": "bringing"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "brings",
+     "nikud": "brings"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "Could you bring some water?",
+     "text_nikud": "",
+     "target": "bring",
+     "ru": "Можешь принести воды?"
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "buy",
+   "ru": "покупать",
+   "he": "לקנות",
+   "he_nikud": "לִקְנוֹת",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "bought",
+     "nikud": "bought"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "bought",
+     "nikud": "bought"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "buying",
+     "nikud": "buying"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "buys",
+     "nikud": "buys"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "We bought a new sofa last week.",
+     "text_nikud": "",
+     "target": "bought",
+     "ru": "На прошлой неделе мы купили новый диван."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "catch",
+   "ru": "ловить",
+   "he": "לתפוס",
+   "he_nikud": "לִתְפֹּס",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "caught",
+     "nikud": "caught"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "caught",
+     "nikud": "caught"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "catching",
+     "nikud": "catching"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "catches",
+     "nikud": "catches"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "The police caught the thief.",
+     "text_nikud": "",
+     "target": "caught",
+     "ru": "Полиция поймала вора."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "find",
+   "ru": "находить",
+   "he": "למצוא",
+   "he_nikud": "לִמְצֹא",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "found",
+     "nikud": "found"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "found",
+     "nikud": "found"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "finding",
+     "nikud": "finding"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "finds",
+     "nikud": "finds"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "I finally found a good job.",
+     "text_nikud": "",
+     "target": "found",
+     "ru": "Я наконец нашёл хорошую работу."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "leave",
+   "ru": "уходить, оставлять",
+   "he": "לעזוב",
+   "he_nikud": "לַעֲזֹב",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "left",
+     "nikud": "left"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "left",
+     "nikud": "left"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "leaving",
+     "nikud": "leaving"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "leaves",
+     "nikud": "leaves"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "He left the office early.",
+     "text_nikud": "",
+     "target": "left",
+     "ru": "Он рано ушёл из офиса."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "begin",
+   "ru": "начинать",
+   "he": "להתחיל",
+   "he_nikud": "לְהַתְחִיל",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "began",
+     "nikud": "began"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "begun",
+     "nikud": "begun"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "beginning",
+     "nikud": "beginning"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "begins",
+     "nikud": "begins"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "The lesson has already begun.",
+     "text_nikud": "",
+     "target": "begun",
+     "ru": "Урок уже начался."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "choose",
+   "ru": "выбирать",
+   "he": "לבחור",
+   "he_nikud": "לִבְחֹר",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "chose",
+     "nikud": "chose"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "chosen",
+     "nikud": "chosen"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "choosing",
+     "nikud": "choosing"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "chooses",
+     "nikud": "chooses"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "Why did you choose this course?",
+     "text_nikud": "",
+     "target": "choose",
+     "ru": "Почему ты выбрал этот курс?"
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "forget",
+   "ru": "забывать",
+   "he": "לשכוח",
+   "he_nikud": "לִשְׁכֹּחַ",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "forgot",
+     "nikud": "forgot"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "forgotten",
+     "nikud": "forgotten"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "forgetting",
+     "nikud": "forgetting"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "forgets",
+     "nikud": "forgets"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "Don't forget your umbrella.",
+     "text_nikud": "",
+     "target": "forget",
+     "ru": "Не забудь зонт."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  },
+  {
+   "en": "understand",
+   "ru": "понимать",
+   "he": "להבין",
+   "he_nikud": "לְהָבִין",
+   "pos": "verb",
+   "study": [
+    "en"
+   ],
+   "input_lang": "en",
+   "en_forms": [
+    {
+     "lang": "en",
+     "tense": "past",
+     "person": "",
+     "form": "understood",
+     "nikud": "understood"
+    },
+    {
+     "lang": "en",
+     "tense": "pp",
+     "person": "",
+     "form": "understood",
+     "nikud": "understood"
+    },
+    {
+     "lang": "en",
+     "tense": "ing",
+     "person": "",
+     "form": "understanding",
+     "nikud": "understanding"
+    },
+    {
+     "lang": "en",
+     "tense": "3s",
+     "person": "",
+     "form": "understands",
+     "nikud": "understands"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "en",
+     "text": "I understood only half of the film.",
+     "text_nikud": "",
+     "target": "understood",
+     "ru": "Я понял только половину фильма."
+    }
+   ],
+   "tags": [
+    "irregular"
+   ]
+  }
+ ],
+ "items": [
+  {
+   "type": "info",
+   "title": "Три формы",
+   "body": "go — went — gone: base / Past Simple / Past Participle.\nPast Simple — законченное действие в прошлом (yesterday, last week).\nPast Participle — для Present Perfect (have gone) и пассива (was taken)."
+  },
+  {
+   "type": "fill",
+   "prompt": "Yesterday I ___ (go) to the market.",
+   "answers": [
+    "went"
+   ],
+   "explain": "Past Simple от go — went."
+  },
+  {
+   "type": "fill",
+   "prompt": "Have you ever ___ (see) snow?",
+   "answers": [
+    "seen"
+   ],
+   "explain": "Present Perfect: have + seen."
+  },
+  {
+   "type": "fill",
+   "prompt": "She has ___ (take) my pen again!",
+   "answers": [
+    "taken"
+   ],
+   "explain": "has + taken."
+  },
+  {
+   "type": "fill",
+   "prompt": "We ___ (buy) tickets last night.",
+   "answers": [
+    "bought"
+   ],
+   "explain": "buy — bought — bought."
+  },
+  {
+   "type": "choice",
+   "prompt": "The lesson has already ___.",
+   "options": [
+    "begun",
+    "began",
+    "begin",
+    "beginned"
+   ],
+   "answer": 0,
+   "explain": "has + Past Participle: begun."
+  },
+  {
+   "type": "choice",
+   "prompt": "I ___ my keys at home this morning.",
+   "options": [
+    "left",
+    "leaved",
+    "have left yesterday",
+    "leave"
+   ],
+   "answer": 0,
+   "explain": "Законченное действие сегодня утром — Past Simple: left."
+  }
+ ]
+}

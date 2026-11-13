@@ -1,0 +1,2665 @@
+{
+ "id": "starter-verbs",
+ "title": "Опорные глаголы: все биньяны и гзарот",
+ "lang": "he",
+ "level": "алеф–бет",
+ "description": "12 глаголов-моделей с полными таблицами спряжения: от שלמים до נע\"וי, נל\"ה, נפ\"ן, מרובעים и пассивных биньянов. Импортируй в словарь — и они появятся в лаборатории глаголов.",
+ "words": [
+  {
+   "he": "לכתוב",
+   "he_nikud": "לִכְתֹּב",
+   "translit": "лихто́в",
+   "ru": "писать",
+   "en": "write",
+   "root": "כ-ת-ב",
+   "binyan": "paal",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "פָּעַל, модель אֶפְעֹל: в будущем — гласная «о» (אכתוב).",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "כתבתי",
+     "nikud": "כָּתַבְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "כתבת",
+     "nikud": "כָּתַבְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "כתבת",
+     "nikud": "כָּתַבְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "כתב",
+     "nikud": "כָּתַב"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "כתבה",
+     "nikud": "כָּתְבָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "כתבנו",
+     "nikud": "כָּתַבְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "כתבתם",
+     "nikud": "כְּתַבְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "כתבתן",
+     "nikud": "כְּתַבְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "כתבו",
+     "nikud": "כָּתְבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "כותב",
+     "nikud": "כּוֹתֵב"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "כותבת",
+     "nikud": "כּוֹתֶבֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "כותבים",
+     "nikud": "כּוֹתְבִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "כותבות",
+     "nikud": "כּוֹתְבוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אכתוב",
+     "nikud": "אֶכְתֹּב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תכתוב",
+     "nikud": "תִּכְתֹּב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תכתבי",
+     "nikud": "תִּכְתְּבִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יכתוב",
+     "nikud": "יִכְתֹּב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תכתוב",
+     "nikud": "תִּכְתֹּב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נכתוב",
+     "nikud": "נִכְתֹּב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תכתבו",
+     "nikud": "תִּכְתְּבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יכתבו",
+     "nikud": "יִכְתְּבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "כתוב",
+     "nikud": "כְּתֹב"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "כתבי",
+     "nikud": "כִּתְבִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "כתבו",
+     "nikud": "כִּתְבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לכתוב",
+     "nikud": "לִכְתֹּב"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "אני כותב מכתב לסבתא.",
+     "text_nikud": "אֲנִי כּוֹתֵב מִכְתָּב לְסָבְתָא.",
+     "target": "כותב",
+     "ru": "Я пишу письмо бабушке."
+    }
+   ]
+  },
+  {
+   "he": "לדבר",
+   "he_nikud": "לְדַבֵּר",
+   "translit": "лэдабэ́р",
+   "ru": "говорить",
+   "ru_alt": "разговаривать",
+   "en": "speak",
+   "en_alt": "talk",
+   "root": "ד-ב-ר",
+   "binyan": "piel",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "פִּעֵל: дагеш во 2-й корневой, в настоящем — приставка מְ־.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "דיברתי",
+     "nikud": "דִּבַּרְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "דיברת",
+     "nikud": "דִּבַּרְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "דיברת",
+     "nikud": "דִּבַּרְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "דיבר",
+     "nikud": "דִּבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "דיברה",
+     "nikud": "דִּבְּרָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "דיברנו",
+     "nikud": "דִּבַּרְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "דיברתם",
+     "nikud": "דִּבַּרְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "דיברתן",
+     "nikud": "דִּבַּרְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "דיברו",
+     "nikud": "דִּבְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מדבר",
+     "nikud": "מְדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מדברת",
+     "nikud": "מְדַבֶּרֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מדברים",
+     "nikud": "מְדַבְּרִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מדברות",
+     "nikud": "מְדַבְּרוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אדבר",
+     "nikud": "אֲדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תדבר",
+     "nikud": "תְּדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תדברי",
+     "nikud": "תְּדַבְּרִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "ידבר",
+     "nikud": "יְדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תדבר",
+     "nikud": "תְּדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נדבר",
+     "nikud": "נְדַבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תדברו",
+     "nikud": "תְּדַבְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "ידברו",
+     "nikud": "יְדַבְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "דבר",
+     "nikud": "דַּבֵּר"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "דברי",
+     "nikud": "דַּבְּרִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "דברו",
+     "nikud": "דַּבְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לדבר",
+     "nikud": "לְדַבֵּר"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "דיברנו על זה אתמול.",
+     "text_nikud": "דִּבַּרְנוּ עַל זֶה אֶתְמוֹל.",
+     "target": "דיברנו",
+     "ru": "Мы говорили об этом вчера."
+    }
+   ]
+  },
+  {
+   "he": "להרגיש",
+   "he_nikud": "לְהַרְגִּישׁ",
+   "translit": "лэhарги́ш",
+   "ru": "чувствовать",
+   "ru_alt": "ощущать",
+   "en": "feel",
+   "root": "ר-ג-ש",
+   "binyan": "hifil",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "הִפְעִיל: в настоящем — מַ־…־ִי־, в прошедшем — הִ־. איך אתה מרגיש? — как ты себя чувствуешь?",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "הרגשתי",
+     "nikud": "הִרְגַּשְׁתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "הרגשת",
+     "nikud": "הִרְגַּשְׁתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "הרגשת",
+     "nikud": "הִרְגַּשְׁתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "הרגיש",
+     "nikud": "הִרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "הרגישה",
+     "nikud": "הִרְגִּישָׁה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "הרגשנו",
+     "nikud": "הִרְגַּשְׁנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "הרגשתם",
+     "nikud": "הִרְגַּשְׁתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "הרגשתן",
+     "nikud": "הִרְגַּשְׁתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "הרגישו",
+     "nikud": "הִרְגִּישׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מרגיש",
+     "nikud": "מַרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מרגישה",
+     "nikud": "מַרְגִּישָׁה"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מרגישים",
+     "nikud": "מַרְגִּישִׁים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מרגישות",
+     "nikud": "מַרְגִּישׁוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "ארגיש",
+     "nikud": "אַרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תרגיש",
+     "nikud": "תַּרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תרגישי",
+     "nikud": "תַּרְגִּישִׁי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "ירגיש",
+     "nikud": "יַרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תרגיש",
+     "nikud": "תַּרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נרגיש",
+     "nikud": "נַרְגִּישׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תרגישו",
+     "nikud": "תַּרְגִּישׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "ירגישו",
+     "nikud": "יַרְגִּישׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "הרגש",
+     "nikud": "הַרְגֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "הרגישי",
+     "nikud": "הַרְגִּישִׁי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "הרגישו",
+     "nikud": "הַרְגִּישׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "להרגיש",
+     "nikud": "לְהַרְגִּישׁ"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "איך את מרגישה היום?",
+     "text_nikud": "אֵיךְ אַתְּ מַרְגִּישָׁה הַיּוֹם?",
+     "target": "מרגישה",
+     "ru": "Как ты (ж) себя чувствуешь сегодня?"
+    }
+   ]
+  },
+  {
+   "he": "להתלבש",
+   "he_nikud": "לְהִתְלַבֵּשׁ",
+   "translit": "лэhитлабэ́ш",
+   "ru": "одеваться",
+   "en": "get dressed",
+   "root": "ל-ב-ש",
+   "binyan": "hitpael",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "הִתְפַּעֵל — возвратное действие «на себя»: одевать себя. В настоящем — מִתְ־.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "התלבשתי",
+     "nikud": "הִתְלַבַּשְׁתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "התלבשת",
+     "nikud": "הִתְלַבַּשְׁתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "התלבשת",
+     "nikud": "הִתְלַבַּשְׁתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "התלבש",
+     "nikud": "הִתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "התלבשה",
+     "nikud": "הִתְלַבְּשָׁה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "התלבשנו",
+     "nikud": "הִתְלַבַּשְׁנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "התלבשתם",
+     "nikud": "הִתְלַבַּשְׁתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "התלבשתן",
+     "nikud": "הִתְלַבַּשְׁתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "התלבשו",
+     "nikud": "הִתְלַבְּשׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מתלבש",
+     "nikud": "מִתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מתלבשת",
+     "nikud": "מִתְלַבֶּשֶׁת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מתלבשים",
+     "nikud": "מִתְלַבְּשִׁים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מתלבשות",
+     "nikud": "מִתְלַבְּשׁוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אתלבש",
+     "nikud": "אֶתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תתלבש",
+     "nikud": "תִּתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תתלבשי",
+     "nikud": "תִּתְלַבְּשִׁי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יתלבש",
+     "nikud": "יִתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תתלבש",
+     "nikud": "תִּתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נתלבש",
+     "nikud": "נִתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תתלבשו",
+     "nikud": "תִּתְלַבְּשׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יתלבשו",
+     "nikud": "יִתְלַבְּשׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "התלבש",
+     "nikud": "הִתְלַבֵּשׁ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "התלבשי",
+     "nikud": "הִתְלַבְּשִׁי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "התלבשו",
+     "nikud": "הִתְלַבְּשׁוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "להתלבש",
+     "nikud": "לְהִתְלַבֵּשׁ"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "הילדים התלבשו מהר.",
+     "text_nikud": "הַיְּלָדִים הִתְלַבְּשׁוּ מַהֵר.",
+     "target": "התלבשו",
+     "ru": "Дети быстро оделись."
+    }
+   ]
+  },
+  {
+   "he": "לקום",
+   "he_nikud": "לָקוּם",
+   "translit": "лаку́м",
+   "ru": "вставать",
+   "ru_alt": "подниматься",
+   "en": "get up",
+   "en_alt": "rise",
+   "root": "ק-ו-ם",
+   "binyan": "paal",
+   "gizra": [
+    "nayv"
+   ],
+   "notes": "נע\"וי: средняя корневая ו «исчезает» в прошедшем (קַמְתִּי) и проявляется в будущем (אָקוּם). Прошедшее 3 л. м. р. совпадает с настоящим: קָם.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "קמתי",
+     "nikud": "קַמְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "קמת",
+     "nikud": "קַמְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "קמת",
+     "nikud": "קַמְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "קם",
+     "nikud": "קָם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "קמה",
+     "nikud": "קָמָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "קמנו",
+     "nikud": "קַמְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "קמתם",
+     "nikud": "קַמְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "קמתן",
+     "nikud": "קַמְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "קמו",
+     "nikud": "קָמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "קם",
+     "nikud": "קָם"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "קמה",
+     "nikud": "קָמָה"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "קמים",
+     "nikud": "קָמִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "קמות",
+     "nikud": "קָמוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אקום",
+     "nikud": "אָקוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תקום",
+     "nikud": "תָּקוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תקומי",
+     "nikud": "תָּקוּמִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יקום",
+     "nikud": "יָקוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תקום",
+     "nikud": "תָּקוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נקום",
+     "nikud": "נָקוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תקומו",
+     "nikud": "תָּקוּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יקומו",
+     "nikud": "יָקוּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "קום",
+     "nikud": "קוּם"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "קומי",
+     "nikud": "קוּמִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "קומו",
+     "nikud": "קוּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לקום",
+     "nikud": "לָקוּם"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "מחר אקום מוקדם.",
+     "text_nikud": "מָחָר אָקוּם מֻקְדָּם.",
+     "target": "אקום",
+     "ru": "Завтра я встану рано."
+    }
+   ]
+  },
+  {
+   "he": "לקנות",
+   "he_nikud": "לִקְנוֹת",
+   "translit": "ликно́т",
+   "ru": "покупать",
+   "ru_alt": "купить",
+   "en": "buy",
+   "root": "ק-נ-ה",
+   "binyan": "paal",
+   "gizra": [
+    "nlh"
+   ],
+   "notes": "נל\"ה: 3-я корневая ה превращается в י в прошедшем (קָנִיתִי), а в инфинитиве — ־וֹת.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "קניתי",
+     "nikud": "קָנִיתִי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "קנית",
+     "nikud": "קָנִיתָ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "קנית",
+     "nikud": "קָנִית"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "קנה",
+     "nikud": "קָנָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "קנתה",
+     "nikud": "קָנְתָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "קנינו",
+     "nikud": "קָנִינוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "קניתם",
+     "nikud": "קְנִיתֶם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "קניתן",
+     "nikud": "קְנִיתֶן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "קנו",
+     "nikud": "קָנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "קונה",
+     "nikud": "קוֹנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "קונה",
+     "nikud": "קוֹנָה"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "קונים",
+     "nikud": "קוֹנִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "קונות",
+     "nikud": "קוֹנוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אקנה",
+     "nikud": "אֶקְנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תקנה",
+     "nikud": "תִּקְנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תקני",
+     "nikud": "תִּקְנִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יקנה",
+     "nikud": "יִקְנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תקנה",
+     "nikud": "תִּקְנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נקנה",
+     "nikud": "נִקְנֶה"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תקנו",
+     "nikud": "תִּקְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יקנו",
+     "nikud": "יִקְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "קנה",
+     "nikud": "קְנֵה"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "קני",
+     "nikud": "קְנִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "קנו",
+     "nikud": "קְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לקנות",
+     "nikud": "לִקְנוֹת"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "קנינו דירה בחיפה.",
+     "text_nikud": "קָנִינוּ דִּירָה בְּחֵיפָה.",
+     "target": "קנינו",
+     "ru": "Мы купили квартиру в Хайфе."
+    }
+   ]
+  },
+  {
+   "he": "לשבת",
+   "he_nikud": "לָשֶׁבֶת",
+   "translit": "лашэ́вэт",
+   "ru": "сидеть",
+   "ru_alt": "садиться",
+   "en": "sit",
+   "root": "י-ש-ב",
+   "binyan": "paal",
+   "gizra": [
+    "npyv"
+   ],
+   "notes": "נפ\"יו: 1-я корневая י выпадает в будущем (אֵשֵׁב), повелительном (שֵׁב) и инфинитиве (לָשֶׁבֶת).",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "ישבתי",
+     "nikud": "יָשַׁבְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "ישבת",
+     "nikud": "יָשַׁבְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "ישבת",
+     "nikud": "יָשַׁבְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "ישב",
+     "nikud": "יָשַׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "ישבה",
+     "nikud": "יָשְׁבָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "ישבנו",
+     "nikud": "יָשַׁבְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "ישבתם",
+     "nikud": "יְשַׁבְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "ישבתן",
+     "nikud": "יְשַׁבְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "ישבו",
+     "nikud": "יָשְׁבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "יושב",
+     "nikud": "יוֹשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "יושבת",
+     "nikud": "יוֹשֶׁבֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "יושבים",
+     "nikud": "יוֹשְׁבִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "יושבות",
+     "nikud": "יוֹשְׁבוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אשב",
+     "nikud": "אֵשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תשב",
+     "nikud": "תֵּשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תשבי",
+     "nikud": "תֵּשְׁבִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "ישב",
+     "nikud": "יֵשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תשב",
+     "nikud": "תֵּשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נשב",
+     "nikud": "נֵשֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תשבו",
+     "nikud": "תֵּשְׁבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "ישבו",
+     "nikud": "יֵשְׁבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "שב",
+     "nikud": "שֵׁב"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "שבי",
+     "nikud": "שְׁבִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "שבו",
+     "nikud": "שְׁבוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לשבת",
+     "nikud": "לָשֶׁבֶת"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "שב, בבקשה.",
+     "text_nikud": "שֵׁב, בְּבַקָּשָׁה.",
+     "target": "שב",
+     "ru": "Садись, пожалуйста."
+    }
+   ]
+  },
+  {
+   "he": "לנסוע",
+   "he_nikud": "לִנְסֹעַ",
+   "translit": "линсо́а",
+   "ru": "ехать",
+   "ru_alt": "ездить, уезжать",
+   "en": "travel",
+   "en_alt": "go (by vehicle), drive",
+   "root": "נ-ס-ע",
+   "binyan": "paal",
+   "gizra": [
+    "npn",
+    "gronit"
+   ],
+   "notes": "נפ\"ן: 1-я корневая נ ассимилируется в будущем (אֶסַּע) и выпадает в повелительном (סַע). ע в конце — гортанная, отсюда «а» (פתח גנובה) в נוֹסֵעַ.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "נסעתי",
+     "nikud": "נָסַעְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "נסעת",
+     "nikud": "נָסַעְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "נסעת",
+     "nikud": "נָסַעְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "נסע",
+     "nikud": "נָסַע"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "נסעה",
+     "nikud": "נָסְעָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "נסענו",
+     "nikud": "נָסַעְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "נסעתם",
+     "nikud": "נְסַעְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "נסעתן",
+     "nikud": "נְסַעְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "נסעו",
+     "nikud": "נָסְעוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "נוסע",
+     "nikud": "נוֹסֵעַ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "נוסעת",
+     "nikud": "נוֹסַעַת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "נוסעים",
+     "nikud": "נוֹסְעִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "נוסעות",
+     "nikud": "נוֹסְעוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אסע",
+     "nikud": "אֶסַּע"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תיסע",
+     "nikud": "תִּסַּע"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תסעי",
+     "nikud": "תִּסְעִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "ייסע",
+     "nikud": "יִסַּע"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תיסע",
+     "nikud": "תִּסַּע"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "ניסע",
+     "nikud": "נִסַּע"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תסעו",
+     "nikud": "תִּסְעוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יסעו",
+     "nikud": "יִסְעוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "סע",
+     "nikud": "סַע"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "סעי",
+     "nikud": "סְעִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "סעו",
+     "nikud": "סְעוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לנסוע",
+     "nikud": "לִנְסֹעַ"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "אנחנו נוסעים לאילת בקיץ.",
+     "text_nikud": "אֲנַחְנוּ נוֹסְעִים לְאֵילַת בַּקַּיִץ.",
+     "target": "נוסעים",
+     "ru": "Летом мы едем в Эйлат."
+    }
+   ]
+  },
+  {
+   "he": "לתרגם",
+   "he_nikud": "לְתַרְגֵּם",
+   "translit": "лэтаргэ́м",
+   "ru": "переводить",
+   "ru_alt": "перевести",
+   "en": "translate",
+   "root": "ת-ר-ג-ם",
+   "binyan": "piel",
+   "gizra": [
+    "meruba"
+   ],
+   "notes": "מרובעים: четырёхбуквенный корень, спрягается по модели פִּעֵל, но без дагеша.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "תרגמתי",
+     "nikud": "תִּרְגַּמְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "תרגמת",
+     "nikud": "תִּרְגַּמְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "תרגמת",
+     "nikud": "תִּרְגַּמְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "תרגם",
+     "nikud": "תִּרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "תרגמה",
+     "nikud": "תִּרְגְּמָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "תרגמנו",
+     "nikud": "תִּרְגַּמְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "תרגמתם",
+     "nikud": "תִּרְגַּמְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "תרגמתן",
+     "nikud": "תִּרְגַּמְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "תרגמו",
+     "nikud": "תִּרְגְּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מתרגם",
+     "nikud": "מְתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מתרגמת",
+     "nikud": "מְתַרְגֶּמֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מתרגמים",
+     "nikud": "מְתַרְגְּמִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מתרגמות",
+     "nikud": "מְתַרְגְּמוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אתרגם",
+     "nikud": "אֲתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תתרגם",
+     "nikud": "תְּתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תתרגמי",
+     "nikud": "תְּתַרְגְּמִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יתרגם",
+     "nikud": "יְתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תתרגם",
+     "nikud": "תְּתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נתרגם",
+     "nikud": "נְתַרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תתרגמו",
+     "nikud": "תְּתַרְגְּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יתרגמו",
+     "nikud": "יְתַרְגְּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "תרגם",
+     "nikud": "תַּרְגֵּם"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "תרגמי",
+     "nikud": "תַּרְגְּמִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "תרגמו",
+     "nikud": "תַּרְגְּמוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לתרגם",
+     "nikud": "לְתַרְגֵּם"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "היא תרגמה את הספר לרוסית.",
+     "text_nikud": "הִיא תִּרְגְּמָה אֶת הַסֵּפֶר לְרוּסִית.",
+     "target": "תרגמה",
+     "ru": "Она перевела книгу на русский."
+    }
+   ]
+  },
+  {
+   "he": "לקרוא",
+   "he_nikud": "לִקְרֹא",
+   "translit": "ликро́",
+   "ru": "читать",
+   "ru_alt": "звать, называть",
+   "en": "read",
+   "en_alt": "call",
+   "root": "ק-ר-א",
+   "binyan": "paal",
+   "gizra": [
+    "nla"
+   ],
+   "notes": "נל\"א: א в конце «немая» — в прошедшем קָרָאתִי (а не קָרַאְתִּי), в будущем — «а»: אֶקְרָא.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "קראתי",
+     "nikud": "קָרָאתִי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "קראת",
+     "nikud": "קָרָאתָ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "קראת",
+     "nikud": "קָרָאת"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "קרא",
+     "nikud": "קָרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "קראה",
+     "nikud": "קָרְאָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "קראנו",
+     "nikud": "קָרָאנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "קראתם",
+     "nikud": "קְרָאתֶם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "קראתן",
+     "nikud": "קְרָאתֶן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "קראו",
+     "nikud": "קָרְאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "קורא",
+     "nikud": "קוֹרֵא"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "קוראת",
+     "nikud": "קוֹרֵאת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "קוראים",
+     "nikud": "קוֹרְאִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "קוראות",
+     "nikud": "קוֹרְאוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אקרא",
+     "nikud": "אֶקְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תקרא",
+     "nikud": "תִּקְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תקראי",
+     "nikud": "תִּקְרְאִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יקרא",
+     "nikud": "יִקְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תקרא",
+     "nikud": "תִּקְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נקרא",
+     "nikud": "נִקְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תקראו",
+     "nikud": "תִּקְרְאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יקראו",
+     "nikud": "יִקְרְאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "קרא",
+     "nikud": "קְרָא"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "קראי",
+     "nikud": "קִרְאִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "קראו",
+     "nikud": "קִרְאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לקרוא",
+     "nikud": "לִקְרֹא"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "מה אתה קורא עכשיו?",
+     "text_nikud": "מָה אַתָּה קוֹרֵא עַכְשָׁו?",
+     "target": "קורא",
+     "ru": "Что ты сейчас читаешь?"
+    }
+   ]
+  },
+  {
+   "he": "לבוא",
+   "he_nikud": "לָבוֹא",
+   "translit": "лаво́",
+   "ru": "приходить",
+   "ru_alt": "прийти, приезжать",
+   "en": "come",
+   "root": "ב-ו-א",
+   "binyan": "paal",
+   "gizra": [
+    "nayv",
+    "nla"
+   ],
+   "notes": "Сразу две особенности: נע\"וי (пустая ו) и נל\"א (немая א). Повелительное בּוֹא — «иди сюда/давай».",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "באתי",
+     "nikud": "בָּאתִי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "באת",
+     "nikud": "בָּאתָ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "באת",
+     "nikud": "בָּאת"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "בא",
+     "nikud": "בָּא"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "באה",
+     "nikud": "בָּאָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "באנו",
+     "nikud": "בָּאנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "באתם",
+     "nikud": "בָּאתֶם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "באתן",
+     "nikud": "בָּאתֶן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "באו",
+     "nikud": "בָּאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "בא",
+     "nikud": "בָּא"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "באה",
+     "nikud": "בָּאָה"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "באים",
+     "nikud": "בָּאִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "באות",
+     "nikud": "בָּאוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אבוא",
+     "nikud": "אָבוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תבוא",
+     "nikud": "תָּבוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תבואי",
+     "nikud": "תָּבוֹאִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יבוא",
+     "nikud": "יָבוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תבוא",
+     "nikud": "תָּבוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נבוא",
+     "nikud": "נָבוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תבואו",
+     "nikud": "תָּבוֹאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יבואו",
+     "nikud": "יָבוֹאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "ms",
+     "form": "בוא",
+     "nikud": "בּוֹא"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "fs",
+     "form": "בואי",
+     "nikud": "בּוֹאִי"
+    },
+    {
+     "lang": "he",
+     "tense": "imperative",
+     "person": "p",
+     "form": "בואו",
+     "nikud": "בּוֹאוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "infinitive",
+     "person": "inf",
+     "form": "לבוא",
+     "nikud": "לָבוֹא"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "מתי תבואי?",
+     "text_nikud": "מָתַי תָּבוֹאִי?",
+     "target": "תבואי",
+     "ru": "Когда ты (ж) придёшь?"
+    }
+   ]
+  },
+  {
+   "he": "הוזמן",
+   "he_nikud": "הוּזְמַן",
+   "translit": "hузма́н",
+   "ru": "быть приглашённым",
+   "en": "be invited",
+   "root": "ז-מ-ן",
+   "binyan": "hufal",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "הֻפְעַל — пассив к הִזְמִין (пригласить). Нет инфинитива и повелительного. В настоящем — מוּ־: מוּזְמָן — приглашённый.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "הוזמנתי",
+     "nikud": "הוּזְמַנְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "הוזמנת",
+     "nikud": "הוּזְמַנְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "הוזמנת",
+     "nikud": "הוּזְמַנְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "הוזמן",
+     "nikud": "הוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "הוזמנה",
+     "nikud": "הוּזְמְנָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "הוזמנו",
+     "nikud": "הוּזְמַנּוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "הוזמנתם",
+     "nikud": "הוּזְמַנְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "הוזמנתן",
+     "nikud": "הוּזְמַנְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "הוזמנו",
+     "nikud": "הוּזְמְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מוזמן",
+     "nikud": "מוּזְמָן"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מוזמנת",
+     "nikud": "מוּזְמֶנֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מוזמנים",
+     "nikud": "מוּזְמָנִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מוזמנות",
+     "nikud": "מוּזְמָנוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אוזמן",
+     "nikud": "אוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תוזמן",
+     "nikud": "תּוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תוזמני",
+     "nikud": "תּוּזְמְנִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יוזמן",
+     "nikud": "יוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תוזמן",
+     "nikud": "תּוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נוזמן",
+     "nikud": "נוּזְמַן"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תוזמנו",
+     "nikud": "תּוּזְמְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יוזמנו",
+     "nikud": "יוּזְמְנוּ"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "הוזמנו לחתונה בחודש הבא.",
+     "text_nikud": "הוּזְמַנּוּ לַחֲתֻנָּה בַּחֹדֶשׁ הַבָּא.",
+     "target": "הוזמנו",
+     "ru": "Нас пригласили на свадьбу в следующем месяце."
+    }
+   ]
+  },
+  {
+   "he": "סודר",
+   "he_nikud": "סֻדַּר",
+   "translit": "суда́р",
+   "ru": "быть упорядоченным",
+   "ru_alt": "быть устроенным, быть улаженным",
+   "en": "be arranged",
+   "en_alt": "be sorted out",
+   "root": "ס-ד-ר",
+   "binyan": "pual",
+   "gizra": [
+    "shlemim"
+   ],
+   "notes": "פֻּעַל — пассив к סִדֵּר (упорядочить). Нет инфинитива и повелительного. מְסֻדָּר — аккуратный, прибранный.",
+   "pos": "verb",
+   "study": [
+    "he"
+   ],
+   "input_lang": "he",
+   "he_forms": [
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1s",
+     "form": "סודרתי",
+     "nikud": "סֻדַּרְתִּי"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2ms",
+     "form": "סודרת",
+     "nikud": "סֻדַּרְתָּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fs",
+     "form": "סודרת",
+     "nikud": "סֻדַּרְתְּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3ms",
+     "form": "סודר",
+     "nikud": "סֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3fs",
+     "form": "סודרה",
+     "nikud": "סֻדְּרָה"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "1p",
+     "form": "סודרנו",
+     "nikud": "סֻדַּרְנוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2mp",
+     "form": "סודרתם",
+     "nikud": "סֻדַּרְתֶּם"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "2fp",
+     "form": "סודרתן",
+     "nikud": "סֻדַּרְתֶּן"
+    },
+    {
+     "lang": "he",
+     "tense": "past",
+     "person": "3p",
+     "form": "סודרו",
+     "nikud": "סֻדְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "ms",
+     "form": "מסודר",
+     "nikud": "מְסֻדָּר"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fs",
+     "form": "מסודרת",
+     "nikud": "מְסֻדֶּרֶת"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "mp",
+     "form": "מסודרים",
+     "nikud": "מְסֻדָּרִים"
+    },
+    {
+     "lang": "he",
+     "tense": "present",
+     "person": "fp",
+     "form": "מסודרות",
+     "nikud": "מְסֻדָּרוֹת"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1s",
+     "form": "אסודר",
+     "nikud": "אֲסֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2ms",
+     "form": "תסודר",
+     "nikud": "תְּסֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2fs",
+     "form": "תסודרי",
+     "nikud": "תְּסֻדְּרִי"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3ms",
+     "form": "יסודר",
+     "nikud": "יְסֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3fs",
+     "form": "תסודר",
+     "nikud": "תְּסֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "1p",
+     "form": "נסודר",
+     "nikud": "נְסֻדַּר"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "2p",
+     "form": "תסודרו",
+     "nikud": "תְּסֻדְּרוּ"
+    },
+    {
+     "lang": "he",
+     "tense": "future",
+     "person": "3p",
+     "form": "יסודרו",
+     "nikud": "יְסֻדְּרוּ"
+    }
+   ],
+   "examples": [
+    {
+     "lang": "he",
+     "text": "החדר מסודר עכשיו.",
+     "text_nikud": "הַחֶדֶר מְסֻדָּר עַכְשָׁו.",
+     "target": "מסודר",
+     "ru": "Комната сейчас прибрана."
+    }
+   ]
+  }
+ ],
+ "items": [
+  {
+   "type": "info",
+   "title": "Как пользоваться",
+   "body": "Эти глаголы — «скелет» спряжения: почти любой новый глагол спрягается как один из них.\n\nНажми «Добавить слова в словарь» — глаголы попадут в твой сад, а в разделе «Глаголы» откроются тренажёры спряжения и разбора форм."
+  },
+  {
+   "type": "choice",
+   "prompt": "Какой глагол — модель для группы נל\"ה?",
+   "options": [
+    "לקנות",
+    "לקום",
+    "לשבת",
+    "לכתוב"
+   ],
+   "answer": 0,
+   "explain": "ק-נ-ה: 3-я корневая ה."
+  },
+  {
+   "type": "choice",
+   "prompt": "В какой форме 1-я корневая י у לשבת сохраняется?",
+   "options": [
+    "יָשַׁבְתִּי",
+    "אֵשֵׁב",
+    "שֵׁב",
+    "לָשֶׁבֶת"
+   ],
+   "answer": 0,
+   "explain": "В прошедшем и настоящем י на месте; в будущем, повелительном и инфинитиве — выпадает."
+  },
+  {
+   "type": "choice",
+   "prompt": "Почему в будущем от לנסוע — אֶסַּע с дагешем?",
+   "options": [
+    "נ ассимилировалась (נפ\"ן)",
+    "это биньян פיעל",
+    "ע — гортанная",
+    "так пишется любой פעל"
+   ],
+   "answer": 0,
+   "explain": "Первая корневая נ «уподобилась» следующей букве и оставила след — дагеш."
+  }
+ ]
+}
