@@ -1,6 +1,6 @@
 # Конфигурация fly.io. Имя приложения поменяй на своё (оно станет адресом: <имя>.fly.dev).
-app = "shoresh"
-primary_region = "fra"
+app = "hebrew-study"
+primary_region = "ams"
 
 [build]
 
@@ -12,6 +12,7 @@ primary_region = "fra"
 [[mounts]]
   source = "shoresh_data"
   destination = "/data"
+  initial_size = "1gb"
 
 [http_service]
   internal_port = 8080

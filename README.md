@@ -70,10 +70,10 @@ curl -L https://fly.io/install.sh | sh
 fly auth login
 
 # 2. В папке проекта: создать приложение (имя в fly.toml можно поменять — оно станет адресом)
-fly apps create shoresh
+fly apps create hebrew-study
 
 # 3. Создать постоянный диск для базы (1 ГБ хватит на годы)
-fly volumes create shoresh_data --region fra --size 1
+fly volumes create shoresh_data --region ams --size 1
 
 # 4. Секреты: пароль для входа и ключ ИИ
 fly secrets set APP_PASSWORD='придумай-пароль' ANTHROPIC_API_KEY='sk-ant-...'
