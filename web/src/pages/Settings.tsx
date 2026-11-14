@@ -7,7 +7,7 @@ import { AISection } from "../components/AISection";
 import { DesignPickers } from "../components/DesignPickers";
 
 export default function SettingsPage() {
-  const { me, settings, updateSettings, toast, refreshMe, touch, perks } = useApp();
+  const { me, settings, updateSettings, toast, refreshMe, touch } = useApp();
   const file = useRef<HTMLInputElement>(null);
   const [theme, setTheme] = useState(() => {
     try {
@@ -117,7 +117,7 @@ export default function SettingsPage() {
       <div className="section-title">Оформление</div>
       <div className="card">
         <DesignPickers />
-        <p className="tiny muted mt-16">Новые шрифты, цвета и виды сада открываются зданиями на игровом поле в Лавке.</p>
+        <p className="tiny muted mt-16">Новые шрифты, цвета и породы деревьев открывает Дизайн-студия на Ротшильде — на игровом поле в Лавке.</p>
       </div>
 
       <div className="section-title">ИИ</div>
@@ -144,18 +144,14 @@ export default function SettingsPage() {
           </button>
           <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
         </div>
-        {perks.csvExport ? (
-          <div className="row wrap">
-            <a className="btn soft" href="/api/export/words?format=csv">
-              Словарь в CSV
-            </a>
-            <a className="btn soft" href="/api/export/words?format=tsv">
-              Словарь в TSV для Anki
-            </a>
-          </div>
-        ) : (
-          <p className="tiny muted">Экспорт словаря в CSV и Anki открывает Обсерватория уровня 3 на игровом поле.</p>
-        )}
+        <div className="row wrap">
+          <a className="btn soft" href="/api/export/words?format=csv">
+            Словарь в CSV
+          </a>
+          <a className="btn soft" href="/api/export/words?format=tsv">
+            Словарь в TSV для Anki
+          </a>
+        </div>
       </div>
 
       {me?.needsPassword && (

@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { db, getMeta, setMeta } from "./db.js";
 import { addMoment, getForms, rowToWord } from "./words.js";
 import { addDew, addEffect, activeEffects, balance, spendDew, todayKey } from "./economy.js";
+import { addAffinity } from "./girl.js";
 import {
   ACCENTS,
   BUILDINGS,
@@ -169,28 +170,39 @@ export function perks(): Perks {
   const levels: Record<string, number> = {};
   for (const c of CELLS) if (c.building) levels[c.building] = props.get(c.i) ?? 0;
   const L = (b: string) => levels[b] || 0;
+  const design = L("design");
   const arch = L("archive");
+  const cafe = L("cafe");
+  const black = L("black");
   return {
     levels,
-    fonts: HE_FONTS.filter((f) => f.level <= L("typography")).map((f) => f.id),
-    accents: ACCENTS.filter((a) => a.level <= L("gallery")).map((a) => a.id),
-    plants: PLANT_STYLES.filter((p) => p.level <= L("greenhouse")).map((p) => p.id),
-    rollDiscount: [0, 2, 3, 3][L("bank")],
-    startBonus: L("bank") >= 2 ? 5 : 0,
-    freeDailyRoll: L("bank") >= 3,
-    forecast: L("observatory") >= 1,
-    edgeMode: L("observatory") >= 2,
-    csvExport: L("observatory") >= 3,
-    dictation: L("studio") >= 1,
-    dictationBonus: [0, 0, 1, 2][L("studio")],
-    blitz: L("stadium") >= 1,
-    blitzMarathon: L("stadium") >= 2,
-    blitzCapMult: [1, 1, 1.5, 2][L("stadium")],
-    effects: EFFECTS.filter((e) => e.level <= L("cafe")).map((e) => e.id),
-    effectDiscount: L("cafe") >= 3 ? 0.2 : 0,
+    fonts: HE_FONTS.filter((f) => f.level <= design).map((f) => f.id),
+    accents: ACCENTS.filter((a) => a.level <= design).map((a) => a.id),
+    plants: PLANT_STYLES.filter((p) => p.level <= design).map((p) => p.id),
+    celebration: design >= 3,
+    dewBonus: [0, 0.1, 0.2, 0.3][L("port")],
+    effects: EFFECTS.filter((e) => (e.shop === "cafe" ? e.level <= cafe : e.level <= black)).map((e) => e.id),
+    cafeDiscount: cafe >= 3 ? 0.2 : 0,
+    blackDiscount: black >= 3 ? 0.25 : 0,
+    morningCoffee: cafe >= 3,
+    girl: L("girl") >= 1,
+    wishesPerDay: [0, 1, 2, 3][L("girl")],
+    wishDiscount: [0, 0, 0.1, 0.2][L("girl")],
+    spinsPerDay: [0, 1, 2, 3][L("wheel")],
+    bigPrizes: L("wheel") >= 2,
+    jackpotSlice: L("wheel") >= 3,
+    blitz: L("arena") >= 1,
+    dictation: L("arena") >= 2,
+    blitzMarathon: L("arena") >= 3,
+    blitzCapMult: L("arena") >= 3 ? 2 : 1,
+    hostelIncome: [0, 8, 15, 25][L("hostel")],
+    hostelRollChance: L("hostel") >= 3 ? 0.3 : 0,
     storyPrice: [null, 40, 30, 20][L("storyteller")],
+    storyThemes: L("storyteller") >= 2,
+    storySeries: L("storyteller") >= 3,
     seedsPrice: [null, 30, 30, 15][arch],
     rootPrice: [null, null, 25, 13][arch],
+    archiveWeeklyFree: arch >= 3,
   };
 }
 
@@ -198,9 +210,10 @@ function rollInfo(s: GameState) {
   const p = perks();
   const today = todayKey();
   const rollsToday = s.rollDay === today ? s.rollsToday : 0;
-  const base = 10 - p.rollDiscount;
+  void p;
+  const base = 10;
   const cost = rollsToday < 3 ? base : rollsToday < 5 ? base + 5 : base + 10;
-  const dailyFree = p.freeDailyRoll && s.dailyFreeDay !== today;
+  const dailyFree = false;
   const free = s.freeRolls > 0 || dailyFree;
   return { cost: free ? 0 : cost, paidCost: cost, free, freeRolls: s.freeRolls, dailyFree, rollsToday };
 }
@@ -297,7 +310,7 @@ function land(s: GameState, events: Event[], depth = 0) {
   const p = perks();
   switch (c.kind) {
     case "start":
-      gain(20 + p.startBonus, "Остановка на Старте", events);
+      gain(20, "Остановка на Старте", events);
       break;
     case "plot": {
       if (!props.has(c.i)) {
@@ -306,8 +319,11 @@ function land(s: GameState, events: Event[], depth = 0) {
       } else {
         const lvl = props.get(c.i) ?? 0;
         let rent = RENT[lvl] * (districtComplete(c.district!, props) ? 2 : 1);
-        if (c.building === "studio" && lvl >= 3) rent = Math.round(rent * 1.5);
         gain(rent, `Рента: ${c.name}${lvl ? ` (${BUILDINGS[c.building!].name}, ур. ${lvl})` : ""}`, events);
+        if (c.building === "girl" && lvl >= 1) {
+          const d = addAffinity(3);
+          events.push({ text: `Она заметила тебя в окне кафе и помахала${d ? ` — близость +${d}` : ""}`, tone: "good" });
+        }
       }
       break;
     }
@@ -429,7 +445,7 @@ export function roll() {
   s.pos = path[path.length - 1];
   if (path.slice(0, -1).includes(0)) {
     s.laps++;
-    gain(10 + perks().startBonus, "Проход через Старт", events);
+    gain(10, "Проход через Старт", events);
   } else if (s.pos === 0) s.laps++;
   log("roll", `Бросок: ${die} → ${CELLS[s.pos].name}`, info.free ? 0 : -info.paidCost);
   land(s, events);
@@ -545,16 +561,166 @@ export function build(cell: number) {
   return { unlocked: b.levels[lvl], view: gameView() };
 }
 
+export function effectPrice(id: string, p = perks()) {
+  const e = EFFECTS.find((x) => x.id === id)!;
+  return Math.round(e.price * (1 - (e.shop === "cafe" ? p.cafeDiscount : p.blackDiscount)));
+}
+
 export function buyEffect(id: string) {
   const p = perks();
   const e = EFFECTS.find((x) => x.id === id);
-  if (!e || !p.effects.includes(id)) throw new GameError("Этот эффект пока не продаётся — улучши Кафе «Ход»");
-  const price = Math.round(e.price * (1 - p.effectDiscount));
-  if (!spendDew(price, `Кафе «Ход»: ${e.name}`)) throw new GameError(`Не хватает росы: нужно ${price}`);
-  if ("minutes" in e) addEffect(e.id, { minutes: e.minutes });
+  if (!e || !p.effects.includes(id)) throw new GameError(e?.shop === "black" ? "Этот товар пока не продают — улучши Чёрный рынок" : "Этот эффект пока не продаётся — улучши Кафе «Ход»");
+  const price = effectPrice(id, p);
+  const where = e.shop === "cafe" ? "Кафе «Ход»" : "Чёрный рынок";
+  if (!spendDew(price, `${where}: ${e.name}`)) throw new GameError(`Не хватает росы: нужно ${price}`);
+  if (e.minutes) addEffect(e.id, { minutes: e.minutes });
   else addEffect(e.id, { uses: e.uses });
-  log("effect", `Кафе «Ход»: ${e.name}`, -price);
+  log("effect", `${where}: ${e.name}`, -price);
   return gameView();
+}
+
+/** Для просьб к Ноа: бесплатные броски и перенос фишки без события клетки. */
+export function addFreeRolls(n: number) {
+  const s = getState();
+  s.freeRolls += n;
+  setState(s);
+}
+export function moveToken(cell: number) {
+  const s = getState();
+  s.pos = cell;
+  s.pending = null;
+  setState(s);
+  log("move", `Ноа подвезла до клетки: ${CELLS[cell].name}`);
+}
+
+// ───────── Колесо Цфата ─────────
+
+interface Prize {
+  id: string;
+  label: string;
+  short: string;
+  dew?: number;
+  rolls?: number;
+  token?: "hint" | "retry" | "skip" | "shield";
+  uses?: number;
+  x2min?: number;
+}
+
+export function wheelPrizes(p = perks()): Prize[] {
+  const big = p.bigPrizes;
+  const list: Prize[] = [
+    { id: "d1", label: big ? "+15 росы" : "+10 росы", short: big ? "+15" : "+10", dew: big ? 15 : 10 },
+    { id: "r1", label: "Бесплатный бросок", short: "бросок", rolls: 1 },
+    { id: "d2", label: big ? "+30 росы" : "+20 росы", short: big ? "+30" : "+20", dew: big ? 30 : 20 },
+    { id: "h2", label: "2 подсказки без штрафа", short: "подсказки", token: "hint", uses: 2 },
+    { id: "x2", label: "Двойная роса 15 мин", short: "роса ×2", x2min: 15 },
+    { id: "s2", label: "2 пропуска", short: "пропуски", token: "skip", uses: 2 },
+    { id: "d3", label: big ? "+50 росы" : "+35 росы", short: big ? "+50" : "+35", dew: big ? 50 : 35 },
+    { id: "sh", label: "2 щита", short: "щиты", token: "shield", uses: 2 },
+  ];
+  if (p.jackpotSlice) list.push({ id: "jp", label: "ДЖЕКПОТ +100", short: "джекпот", dew: 100 });
+  return list;
+}
+
+function spinsLeft(p = perks()) {
+  const used = Number(getMeta("wheel:" + todayKey()) || 0);
+  return Math.max(0, p.spinsPerDay - used);
+}
+
+export function wheelState() {
+  const p = perks();
+  const pending = getMeta("wheel:pending");
+  let pend = null;
+  if (pending) {
+    const x = JSON.parse(pending);
+    pend = { prize: x.prize, index: x.index, q: publicQuestion(x.q) };
+  }
+  const list = wheelPrizes(p);
+  return { prizes: list.map((x) => x.label), shorts: list.map((x) => x.short), left: spinsLeft(p), perDay: p.spinsPerDay, pending: pend };
+}
+
+export function spin() {
+  const p = perks();
+  if (!p.spinsPerDay) throw new GameError("Колесо ещё не построено — участок Цфат");
+  if (getMeta("wheel:pending")) throw new GameError("Сначала ответь на вопрос и забери приз");
+  if (spinsLeft(p) <= 0) throw new GameError("Обороты на сегодня закончились — колесо снова закрутится завтра");
+  const prizes = wheelPrizes(p);
+  // джекпот выпадает реже остальных
+  const weights = prizes.map((x) => (x.id === "jp" ? 1 : x.id === "d3" ? 2 : 4));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = crypto.randomInt(total);
+  let index = 0;
+  for (; index < weights.length; index++) {
+    if (r < weights[index]) break;
+    r -= weights[index];
+  }
+  setMeta("wheel:" + todayKey(), String(Number(getMeta("wheel:" + todayKey()) || 0) + 1));
+  const q = wordQuestion();
+  setMeta("wheel:pending", JSON.stringify({ index, prize: prizes[index].label, q }));
+  log("spin", `Колесо Цфата: ${prizes[index].label}`);
+  return { index, prize: prizes[index].label, q: publicQuestion(q), state: wheelState() };
+}
+
+export function claimSpin(answer: number) {
+  const raw = getMeta("wheel:pending");
+  if (!raw) throw new GameError("Нет выпавшего приза");
+  const { index, q } = JSON.parse(raw) as { index: number; q: Question };
+  const prize = wheelPrizes()[index];
+  setMeta("wheel:pending", "");
+  const ok = answer === q.answer;
+  const events: Event[] = [];
+  const s = getState();
+  if (ok) {
+    if (prize.dew) gain(prize.dew, `Колесо Цфата: ${prize.label}`, events);
+    if (prize.rolls) (s.freeRolls += prize.rolls, events.push({ text: "Колесо Цфата: бесплатный бросок", tone: "good" }));
+    if (prize.token) (addEffect(prize.token, { uses: prize.uses }), events.push({ text: `Колесо Цфата: ${prize.label}`, tone: "good" }));
+    if (prize.x2min) (addEffect("dew_x2", { minutes: prize.x2min }), events.push({ text: `Колесо Цфата: ${prize.label}`, tone: "good" }));
+    setState(s);
+  } else gain(3, "Колесо Цфата: ответ мимо, утешительный приз", events);
+  return { ok, correct: q.answer, events, state: wheelState() };
+}
+
+// ───────── итог урока: хостел, сундук, джекпот ─────────
+
+export function completeSession(opts: { graded: number; correct: number; dew: number }) {
+  const p = perks();
+  const out: { text: string; amount?: number }[] = [];
+  const fx = activeEffects();
+  const s = getState();
+  if (opts.graded >= 5 && p.hostelIncome && getMeta("hostel:" + todayKey()) !== "1") {
+    setMeta("hostel:" + todayKey(), "1");
+    addDew(p.hostelIncome, "Хостел под звёздами: туристы заплатили");
+    out.push({ text: "Хостел под звёздами: туристы заплатили", amount: p.hostelIncome });
+    if (p.hostelRollChance && Math.random() < p.hostelRollChance) {
+      s.freeRolls++;
+      out.push({ text: "Турист оставил на ресепшене бесплатный бросок" });
+    }
+  }
+  if (opts.graded >= 8 && fx.chest_until) {
+    const roll = crypto.randomInt(100);
+    if (roll < 55) {
+      const d = 10 + crypto.randomInt(21);
+      addDew(d, "Сундук финиша");
+      out.push({ text: "Сундук финиша: роса", amount: d });
+    } else if (roll < 75) {
+      s.freeRolls++;
+      out.push({ text: "Сундук финиша: бесплатный бросок" });
+    } else if (roll < 90) {
+      addEffect("shield", { uses: 1 });
+      out.push({ text: "Сундук финиша: щит" });
+    } else {
+      addDew(50, "Сундук финиша: золото");
+      out.push({ text: "Сундук финиша: золотой сундук", amount: 50 });
+    }
+  }
+  if (opts.graded >= 5 && opts.dew > 0 && fx.jackpot > 0) {
+    db.prepare("UPDATE effects SET uses = uses - 1 WHERE type = 'jackpot' AND uses > 0").run();
+    addDew(opts.dew * 2, "Джекпот: роса за урок ×3");
+    out.push({ text: "Джекпот: роса за урок утроена", amount: opts.dew * 2 });
+  }
+  setState(s);
+  for (const o of out) log("gain", o.text, o.amount);
+  return out;
 }
 
 /** Цена ИИ-активности здания (или ошибка, если не построено). */

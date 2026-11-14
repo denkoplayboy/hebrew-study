@@ -3,6 +3,8 @@ import type { StudyLang } from "./lang.js";
 
 /** Слово, которое стоит выучить вместе с текущим (другой биньян, сущ. ↔ прил. и т.п.). */
 export interface RelatedSuggestion {
+  /** morph — другой биньян или часть речи; synonym / antonym / collocation — соседство по смыслу */
+  kind?: "morph" | "synonym" | "antonym" | "collocation";
   he: string;
   he_nikud: string;
   ru: string;

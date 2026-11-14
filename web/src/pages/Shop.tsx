@@ -12,14 +12,16 @@ import {
   ShoppingBasket,
   Plane,
   MapPin,
-  Type,
   Palette,
-  Landmark,
-  Telescope,
   Headphones,
   Zap,
-  Flower2,
   Coffee,
+  Anchor,
+  Skull,
+  Heart,
+  Disc3,
+  Swords,
+  BedDouble,
   BookHeart,
   Library,
   Sprout,
@@ -70,6 +72,7 @@ interface GameView {
   log: { id: number; ts: number; kind: string; text: string; amount: number | null }[];
   today: number;
   ai: boolean;
+  wheel: { prizes: string[]; shorts?: string[]; left: number; perDay: number; pending: { prize: string; index: number; q: Q } | null };
 }
 interface GEvent {
   text: string;
@@ -78,16 +81,18 @@ interface GEvent {
 }
 
 const ICONS: Record<string, typeof Bus> = {
-  Type,
   Palette,
-  Landmark,
-  Telescope,
   Headphones,
   Zap,
-  Flower2,
   Coffee,
   BookHeart,
   Library,
+  Anchor,
+  Skull,
+  Heart,
+  Disc3,
+  Swords,
+  BedDouble,
 };
 const SPECIAL_ICON: Record<string, typeof Bus> = {
   start: Bus,
@@ -141,6 +146,7 @@ export default function Shop() {
   const [busy, setBusy] = useState(false);
   const [suggest, setSuggest] = useState<null | "theme" | "root">(null);
   const [topic, setTopic] = useState("");
+  const [storyTheme, setStoryTheme] = useState("");
   const timer = useRef<number[]>([]);
 
   useEffect(() => {
@@ -236,10 +242,10 @@ export default function Shop() {
     }
   };
 
-  const story = async () => {
+  const story = async (opts: { theme?: string; series?: boolean } = {}) => {
     setBusy(true);
     try {
-      const r = await api.post<{ id: number }>("/api/game/story", { lang: "he" });
+      const r = await api.post<{ id: number }>("/api/game/story", { lang: "he", ...opts });
       touch();
       nav(`/stories/${r.id}`);
     } catch (e) {
@@ -547,49 +553,93 @@ export default function Shop() {
           </div>
 
           {/* активности зданий */}
-          {pk.effects.length > 0 && (
+          {(pk.dewBonus > 0 || pk.hostelIncome > 0) && (
             <div className="card col gap-6">
-              <h3 className="row gap-6">
-                <Coffee size={16} /> Кафе «Ход» — эффекты для уроков
-              </h3>
-              {EFFECTS.filter((e) => pk.effects.includes(e.id)).map((e) => {
-                const price = Math.round(e.price * (1 - pk.effectDiscount));
-                return (
-                  <div key={e.id} className="row between">
-                    <div className="grow">
-                      <div>{e.name}</div>
-                      <div className="tiny muted">{e.hint}</div>
-                    </div>
-                    <button className="btn sm soft" disabled={busy || view.balance < price} onClick={() => buyEffect(e.id)}>
-                      {price} <Droplets size={13} />
-                    </button>
-                  </div>
-                );
-              })}
+              <h3>Доходы города</h3>
+              {pk.dewBonus > 0 && (
+                <div className="row small">
+                  <Anchor size={15} /> <span className="grow">Порт Яффо: роса за все уроки</span> <b style={{ fontWeight: 500 }}>+{Math.round(pk.dewBonus * 100)}%</b>
+                </div>
+              )}
+              {pk.hostelIncome > 0 && (
+                <div className="row small">
+                  <BedDouble size={15} /> <span className="grow">Хостел: после первого урока дня</span> <b style={{ fontWeight: 500 }}>+{pk.hostelIncome} росы</b>
+                </div>
+              )}
             </div>
           )}
+          {pk.girl && (
+            <Link to="/carmel" className="card link row" style={{ borderColor: "color-mix(in srgb, var(--clay) 40%, var(--border))" }}>
+              <span className="brand-mark" style={{ width: 40, height: 40, background: "var(--clay-soft)", color: "var(--clay)" }}>
+                <Heart size={18} />
+              </span>
+              <div className="grow">
+                <div style={{ fontWeight: 500 }}>Кафе на Кармеле</div>
+                <div className="small muted">Она сидит у окна. Зайти, поговорить, подарить что-нибудь, попросить о помощи.</div>
+              </div>
+              <ArrowRight size={16} />
+            </Link>
+          )}
+          {view.wheel && view.wheel.perDay > 0 && <WheelCard wheel={view.wheel} onDone={(v) => apply(v)} />}
+          {(["cafe", "black"] as const).map((shop) => {
+            const list = EFFECTS.filter((e) => e.shop === shop && pk.effects.includes(e.id));
+            if (!list.length) return null;
+            const disc = shop === "cafe" ? pk.cafeDiscount : pk.blackDiscount;
+            return (
+              <div key={shop} className="card col gap-6" style={shop === "black" ? { background: "color-mix(in srgb, var(--text) 6%, var(--surface))" } : undefined}>
+                <h3 className="row gap-6">
+                  {shop === "cafe" ? <Coffee size={16} /> : <Skull size={16} />} {shop === "cafe" ? "Кафе «Ход» — эффекты для уроков" : "Чёрный рынок — сильнодействующее"}
+                </h3>
+                {shop === "cafe" && pk.morningCoffee && <div className="tiny muted">Утренний кофе: первый урок дня сам включает двойную росу на 20 минут.</div>}
+                {list.map((e) => {
+                  const price = Math.round(e.price * (1 - disc));
+                  return (
+                    <div key={e.id} className="row between">
+                      <div className="grow">
+                        <div>{e.name}</div>
+                        <div className="tiny muted">{e.hint}</div>
+                      </div>
+                      <button className="btn sm soft" disabled={busy || view.balance < price} onClick={() => buyEffect(e.id)}>
+                        {price} <Droplets size={13} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
           {(pk.storyPrice != null || pk.seedsPrice != null) && (
             <div className="card col gap-6">
               <h3 className="row gap-6">
-                <Sparkles size={16} /> Здания с ИИ
+                <Sparkles size={16} /> Сказки и архив
               </h3>
               {!ai && <p className="small" style={{ color: "var(--clay)" }}>Нужен ключ ИИ (ANTHROPIC_API_KEY).</p>}
               {pk.storyPrice != null && (
-                <div className="row between">
-                  <div className="grow">
-                    <div>Кафе «Сиппур»: сказка из твоих слов</div>
-                    <div className="tiny muted">Рассказ из слов, которые пора повторить, и вопросы на понимание</div>
+                <div className="col gap-6">
+                  <div className="row between">
+                    <div className="grow">
+                      <div>Кафе «Сиппур»: сказка из твоих слов</div>
+                      <div className="tiny muted">Рассказ из слов, которые пора повторить, и вопросы на понимание</div>
+                    </div>
+                    <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.storyPrice} onClick={() => story({ theme: storyTheme.trim() || undefined })}>
+                      {pk.storyPrice} <Droplets size={13} />
+                    </button>
                   </div>
-                  <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.storyPrice} onClick={story}>
-                    {pk.storyPrice} <Droplets size={13} />
-                  </button>
+                  {pk.storyThemes && (
+                    <input className="input" style={{ padding: "8px 12px" }} value={storyTheme} onChange={(e) => setStoryTheme(e.target.value)} placeholder="тема или жанр: детектив в шуке, свидание, фантастика…" />
+                  )}
+                  {pk.storySeries && (
+                    <button className="btn sm ghost" style={{ alignSelf: "flex-start" }} disabled={busy || !ai || view.balance < pk.storyPrice} onClick={() => story({ series: true, theme: storyTheme.trim() || undefined })}>
+                      Следующая серия сериала · {pk.storyPrice} <Droplets size={13} />
+                    </button>
+                  )}
                 </div>
               )}
               {pk.seedsPrice != null && (
                 <div className="row between">
                   <div className="grow">
                     <div>Архив корней: слова по теме</div>
-                    <div className="tiny muted">10–12 полезных слов по теме, которых у тебя ещё нет</div>
+                    <div className="tiny muted">10–12 полезных слов по теме, которых у тебя ещё нет{pk.archiveWeeklyFree ? " · одна подборка в неделю бесплатно" : ""}</div>
                   </div>
                   <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.seedsPrice} onClick={() => setSuggest("theme")}>
                     {pk.seedsPrice} <Droplets size={13} />
@@ -642,7 +692,7 @@ export default function Shop() {
             <b>Роса</b> капает только за уроки: повторение в срок, рост слов, самостоятельное употребление, полностью политый сад.
           </div>
           <div>
-            <b>Бросок</b> стоит {10 - pk.rollDiscount} росы; после трёх платных бросков за день — дороже (+5, потом +10). Шабат и некоторые карты дают бесплатные броски.
+            <b>Бросок</b> стоит 10 росы; после трёх платных бросков за день — дороже (+5, потом +10). Шабат, Колесо и некоторые карты дают бесплатные броски.
           </div>
           <div>
             <b>Участок</b> покупается, только когда фишка на нём стоит. <b>Здание</b> на своём участке можно строить и улучшать в любой момент — 3 уровня, каждый что-то
@@ -787,46 +837,155 @@ function CellModal({ c, view, busy, onClose, onBuild }: { c: GCell; view: GameVi
 
 /** Куда ведёт построенное здание. */
 function BuildingLinks({ building, perks }: { building: string; perks: Perks }) {
-  if (["typography", "gallery", "greenhouse"].includes(building))
+  if (building === "design")
     return (
       <div className="card soft">
-        <DesignPickers only={building === "typography" ? "fonts" : building === "gallery" ? "accents" : "plants"} />
+        <DesignPickers />
       </div>
     );
-  if (building === "observatory")
+  if (building === "arena")
     return (
       <div className="row wrap">
-        <Link to="/stats" className="btn soft sm">
-          Прогноз в статистике
+        <Link to="/practice/blitz" className="btn soft sm">
+          Открыть «Блиц»
         </Link>
-        {perks.edgeMode && (
-          <Link to="/practice/edge" className="btn soft sm">
-            Режим «На грани»
+        {perks.dictation && (
+          <Link to="/practice/dictation" className="btn soft sm">
+            Открыть «Диктант»
           </Link>
-        )}
-        {perks.csvExport && (
-          <>
-            <a className="btn soft sm" href="/api/export/words?format=csv">
-              Экспорт CSV
-            </a>
-            <a className="btn soft sm" href="/api/export/words?format=tsv">
-              TSV для Anki
-            </a>
-          </>
         )}
       </div>
     );
-  if (building === "studio")
+  if (building === "girl")
     return (
-      <Link to="/practice/dictation" className="btn soft sm">
-        Открыть «Диктант»
+      <Link to="/carmel" className="btn primary sm">
+        <Heart size={14} /> Зайти в кафе
       </Link>
     );
-  if (building === "stadium")
-    return (
-      <Link to="/practice/blitz" className="btn soft sm">
-        Открыть «Блиц»
-      </Link>
-    );
+  if (building === "port") return <p className="small text-2">Сейчас: +{Math.round(perks.dewBonus * 100)}% ко всей росе за уроки.</p>;
+  if (building === "hostel") return <p className="small text-2">Сейчас: +{perks.hostelIncome} росы каждый день после первого урока.</p>;
   return null;
+}
+
+/** Колесо Цфата: оборот бесплатный (лимит в день), приз забираешь верным ответом. */
+function WheelCard({ wheel, onDone }: { wheel: GameView["wheel"]; onDone: (v: GameView) => void }) {
+  const { toast, touch } = useApp();
+  const [angle, setAngle] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [pending, setPending] = useState(wheel.pending);
+  const [result, setResult] = useState<{ ok: boolean; correct: number; picked: number } | null>(null);
+  const [left, setLeft] = useState(wheel.left);
+  const n = wheel.prizes.length;
+  const seg = 360 / n;
+
+  const spin = async () => {
+    setSpinning(true);
+    setResult(null);
+    try {
+      const r = await api.post<{ index: number; prize: string; q: Q; state: GameView["wheel"] }>("/api/game/spin");
+      // крутим так, чтобы выпавший сектор оказался под указателем сверху
+      const target = 360 * 5 + (360 - (r.index * seg + seg / 2));
+      setAngle((a) => a - (a % 360) + target);
+      setTimeout(() => {
+        setSpinning(false);
+        setPending({ prize: r.prize, index: r.index, q: r.q });
+        setLeft(r.state.left);
+      }, 2600);
+    } catch (e) {
+      setSpinning(false);
+      toast((e as Error).message, true);
+    }
+  };
+  const claim = async (k: number) => {
+    try {
+      const r = await api.post<{ ok: boolean; correct: number; state: GameView["wheel"] }>("/api/game/spin/claim", { answer: k });
+      setResult({ ok: r.ok, correct: r.correct, picked: k });
+      setLeft(r.state.left);
+      touch();
+      onDone(await api.get<GameView>("/api/game"));
+      setTimeout(() => setPending(null), 1800);
+    } catch (e) {
+      toast((e as Error).message, true);
+    }
+  };
+
+  return (
+    <div className="card col gap-6">
+      <div className="row between">
+        <h3 className="row gap-6">
+          <Disc3 size={16} /> Колесо Цфата
+        </h3>
+        <span className="small muted">
+          оборотов сегодня: {left} из {wheel.perDay}
+        </span>
+      </div>
+      <div className="row wrap gap-16" style={{ justifyContent: "center" }}>
+        <div style={{ position: "relative", width: 180, height: 190 }}>
+          <svg width="180" height="180" viewBox="-100 -100 200 200" style={{ transform: `rotate(${angle}deg)`, transition: spinning ? "transform 2.5s cubic-bezier(.17,.67,.2,1)" : "none", marginTop: 10 }}>
+            {wheel.prizes.map((label, i) => {
+              const a0 = ((i * seg - 90) * Math.PI) / 180;
+              const a1 = (((i + 1) * seg - 90) * Math.PI) / 180;
+              const jp = label.startsWith("ДЖЕКПОТ");
+              const mid = (((i + 0.5) * seg - 90) * Math.PI) / 180;
+              return (
+                <g key={i}>
+                  <path
+                    d={`M0 0 L${95 * Math.cos(a0)} ${95 * Math.sin(a0)} A95 95 0 0 1 ${95 * Math.cos(a1)} ${95 * Math.sin(a1)} Z`}
+                    fill={jp ? "var(--gold)" : i % 2 ? "var(--accent-soft)" : "var(--surface-2)"}
+                    stroke="var(--border-strong)"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={56 * Math.cos(mid)}
+                    y={56 * Math.sin(mid)}
+                    fontSize="9"
+                    fontWeight={jp ? 600 : 400}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill="var(--text)"
+                    transform={`rotate(${(i + 0.5) * seg - 90} ${56 * Math.cos(mid)} ${56 * Math.sin(mid)})`}
+                  >
+                    {wheel.shorts?.[i] ?? label.slice(0, 10)}
+                  </text>
+                </g>
+              );
+            })}
+            <circle r="14" fill="var(--surface)" stroke="var(--border-strong)" />
+          </svg>
+          <div style={{ position: "absolute", top: 0, left: 82, width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderTop: "14px solid var(--clay)" }} />
+        </div>
+        <div className="col gap-6" style={{ flex: "1 1 200px", minWidth: 0 }}>
+          {!pending ? (
+            <>
+              <p className="small text-2">Крути — и ответь на вопрос по своим словам, чтобы забрать приз. Мимо — утешительные 3 росы.</p>
+              <button className="btn primary" onClick={spin} disabled={spinning || left <= 0}>
+                {spinning ? <span className="spinner" /> : <Disc3 size={16} />} {left > 0 ? "Крутить" : "Завтра снова"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="small">
+                Выпало: <b style={{ fontWeight: 500 }}>{pending.prize}</b>
+              </div>
+              <div className="center">
+                {pending.q.promptHe ? <He text={pending.q.prompt} nikud style={{ fontSize: "1.6rem" }} /> : <b>{pending.q.prompt}</b>}
+                <div className="tiny muted">{pending.q.sub}</div>
+              </div>
+              <div className="options" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                {pending.q.options.map((o, k) => {
+                  const cls = !result ? "" : k === result.correct ? " correct" : k === result.picked ? " wrong" : "";
+                  return (
+                    <button key={k} className={"option" + cls + (o.he ? " he-opt" : "")} style={{ minHeight: 42, justifyContent: "center" }} disabled={!!result} onClick={() => claim(k)}>
+                      {o.he ? <He text={o.label} nikud /> : o.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {result && <div className="small" style={{ color: result.ok ? "var(--ok)" : "var(--clay)" }}>{result.ok ? "Приз твой!" : "Мимо — утешительные 3 росы"}</div>}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

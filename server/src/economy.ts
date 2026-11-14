@@ -54,7 +54,18 @@ export function activeEffects(): ActiveEffects {
     const u = get(t)?.until || 0;
     return u > now ? u : 0;
   };
-  return { dew_x2_until: until("dew_x2"), golden_until: until("golden"), hint: get("hint")?.uses || 0, retry: get("retry")?.uses || 0 };
+  const uses = (t: string) => get(t)?.uses || 0;
+  return {
+    dew_x2_until: until("dew_x2"),
+    dew_x3_until: until("dew_x3"),
+    golden_until: until("golden"),
+    chest_until: until("chest"),
+    hint: uses("hint"),
+    retry: uses("retry"),
+    skip: uses("skip"),
+    shield: uses("shield"),
+    jackpot: uses("jackpot"),
+  };
 }
 
 export function addEffect(type: string, opts: { minutes?: number; uses?: number }) {
@@ -69,7 +80,7 @@ export function addEffect(type: string, opts: { minutes?: number; uses?: number 
   );
 }
 
-export function useEffectToken(type: "hint" | "retry"): boolean {
+export function useEffectToken(type: "hint" | "retry" | "skip" | "shield" | "jackpot"): boolean {
   return db.prepare("UPDATE effects SET uses = uses - 1 WHERE type = ? AND uses > 0").run(type).changes > 0;
 }
 
@@ -79,6 +90,16 @@ const FACET_DEW: Record<Facet, number> = { recognize: 1, listen: 1, recall: 2, s
 const STAGE_DEW = [0, 0, 0, 5, 10, 25];
 
 /** Роса за повторение: только если навык был новым или «хотел пить» (повторять заранее ради росы бессмысленно). */
+/** Порт Яффо: прибавка к росе за уроки с переносом дробной части (чтобы +10% к 1 капле не терялись). */
+export function lessonDew(base: number, bonus: number): number {
+  if (!bonus) return base;
+  const carry = Number(getMeta("dew:carry") || 0);
+  const exact = base * (1 + bonus) + carry;
+  const give = Math.floor(exact);
+  setMeta("dew:carry", String(exact - give));
+  return give;
+}
+
 export function dewForReview(opts: {
   facet: Facet;
   grade: number;
@@ -88,13 +109,15 @@ export function dewForReview(opts: {
   stageAfter: number;
   wordLabel: string;
   ref: string;
+  bonus?: number;
 }): number {
   let earned = 0;
   const now = Date.now();
   const fx = activeEffects();
-  const mult = fx.dew_x2_until ? 2 : 1;
+  const mult = fx.dew_x3_until ? 3 : fx.dew_x2_until ? 2 : 1;
   if (!opts.practice && opts.grade >= 2 && opts.before && (opts.before.reps === 0 || opts.before.due <= now)) {
-    earned += addDew((FACET_DEW[opts.facet] + (opts.grade === 4 ? 1 : 0)) * mult, mult > 1 ? "повторение (двойная роса)" : "повторение", opts.ref);
+    const base = (FACET_DEW[opts.facet] + (opts.grade === 4 ? 1 : 0)) * mult;
+    earned += addDew(lessonDew(base, opts.bonus || 0), mult === 3 ? "повторение (тройная роса)" : mult === 2 ? "повторение (двойная роса)" : "повторение", opts.ref);
   }
   // золотой час: +1 за любой засчитанный верный ответ
   if (fx.golden_until && !opts.practice && opts.grade >= 3) earned += addDew(1, "золотой час", opts.ref);

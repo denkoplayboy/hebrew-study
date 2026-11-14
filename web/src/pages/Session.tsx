@@ -49,7 +49,7 @@ export default function Session() {
   const { mode = "mix" } = useParams();
   const [sp] = useSearchParams();
   const nav = useNavigate();
-  const { touch, toast, effects } = useApp();
+  const { touch, toast, effects, setEffects } = useApp();
   const [queue, setQueue] = useState<ExerciseItem[] | null>(null);
   const [note, setNote] = useState<string | undefined>();
   const [locked, setLocked] = useState(false);
@@ -109,11 +109,17 @@ export default function Session() {
     [mode, toast],
   );
 
+  // щит: после ошибки можно закрыться — ошибка не попадёт в историю памяти
+  const [shieldFor, setShieldFor] = useState<ExResult | null>(null);
+
   const next = useCallback(
-    async (r: ExResult) => {
+    async (r: ExResult, shielded = false) => {
       if (!queue) return;
       const item = queue[idx];
-      const reviewP = send(item, r);
+      if (!shielded && !r.correct && !r.practice && !r.serverApplied && item.kind !== "intro" && effects.shield > 0 && !(item as any).__practice) {
+        setShieldFor(r);
+        return;
+      }
       // ошибка → вернём это упражнение через несколько шагов (без влияния на расписание)
       let q = queue;
       if (r.requeue && !requeued.current.has(item.key) && mode !== "match") {
@@ -123,15 +129,34 @@ export default function Session() {
         q = [...queue.slice(0, pos), copy, ...queue.slice(pos)];
         setQueue(q);
       }
-      const review = await reviewP;
+      const review = await send(item, r);
       setLogs((l) => [...l, { item, r, review }]);
       if (idx + 1 >= q.length) {
         setFinished(true);
         touch();
       } else setIdx(idx + 1);
     },
-    [queue, idx, send, mode, touch],
+    [queue, idx, send, mode, touch, effects.shield],
   );
+
+  const useToken = async (type: "skip" | "shield") => {
+    try {
+      const r = await api.post<{ effects: typeof effects }>("/api/effects/use", { type });
+      setEffects(r.effects);
+      return true;
+    } catch (e) {
+      toast((e as Error).message, true);
+      return false;
+    }
+  };
+
+  const skip = async () => {
+    if (!queue || !(await useToken("skip"))) return;
+    if (idx + 1 >= queue.length) {
+      setFinished(true);
+      touch();
+    } else setIdx(idx + 1);
+  };
 
   const title = TITLES[mode] || "Практика";
   const progress = queue?.length ? (finished ? 1 : idx / queue.length) : 0;
@@ -157,7 +182,42 @@ export default function Session() {
           </div>
           {mode !== "blitz" && <Bar value={progress} thin />}
         </div>
+        {effects.skip > 0 && queue && queue.length > 0 && !finished && mode !== "blitz" && mode !== "match" && queue[idx]?.kind !== "intro" && (
+          <button className="btn ghost sm" onClick={skip} title="Пропустить упражнение без последствий">
+            Пропуск · {effects.skip}
+          </button>
+        )}
       </div>
+
+      {shieldFor && (
+        <div className="card col gap-6" style={{ marginBottom: 14, borderColor: "color-mix(in srgb, var(--gold) 50%, var(--border))" }}>
+          <b style={{ fontWeight: 500 }}>Ошибка. Закрыться щитом?</b>
+          <span className="small text-2">Щит (осталось {effects.shield}): эта ошибка не попадёт в историю памяти и расписание не собьётся.</span>
+          <div className="row">
+            <button
+              className="btn primary sm"
+              onClick={async () => {
+                const r = shieldFor;
+                setShieldFor(null);
+                if (await useToken("shield")) next({ ...r, practice: true, requeue: false }, true);
+                else next(r, true);
+              }}
+            >
+              Закрыться щитом
+            </button>
+            <button
+              className="btn ghost sm"
+              onClick={() => {
+                const r = shieldFor;
+                setShieldFor(null);
+                next(r, true);
+              }}
+            >
+              Принять ошибку
+            </button>
+          </div>
+        </div>
+      )}
 
       {!queue && <div className="ex-card skeleton" />}
 
@@ -246,6 +306,22 @@ function Exercise({ item, onNext }: { item: ExerciseItem; onNext: (r: ExResult) 
 
 function Summary({ logs, mode, seconds, onAgain }: { logs: Log[]; mode: string; seconds: number; onAgain: () => void }) {
   const nav = useNavigate();
+  const { perks, touch } = useApp();
+  const [rewards, setRewards] = useState<{ text: string; amount?: number }[]>([]);
+  const sent = useRef(false);
+  useEffect(() => {
+    if (sent.current || mode === "match" || mode === "blitz") return;
+    sent.current = true;
+    const g = logs.filter((l) => l.item.kind !== "intro" && !l.r.practice);
+    const earned = logs.reduce((s, l) => s + (l.review?.dew || 0), 0);
+    api
+      .post<{ rewards: { text: string; amount?: number }[] }>("/api/session/complete", { graded: g.length, correct: g.filter((l) => l.r.correct).length, dew: earned })
+      .then((r) => {
+        setRewards(r.rewards);
+        if (r.rewards.length) touch();
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const graded = logs.filter((l) => l.item.kind !== "intro");
   const ok = graded.filter((l) => l.r.correct).length;
   const grown = new Map<number, Log>();
@@ -279,6 +355,21 @@ function Summary({ logs, mode, seconds, onAgain }: { logs: Log[]; mode: string; 
             <Droplets size={16} className="drop" /> +{dew} росы
           </p>
         )}
+        {rewards.length > 0 && (
+          <div className="card soft col gap-4" style={{ padding: 12, width: "100%" }}>
+            {rewards.map((r, k) => (
+              <div key={k} className="row between small">
+                <span>{r.text}</span>
+                {r.amount ? (
+                  <b style={{ fontWeight: 500, color: "var(--ok)" }}>
+                    +{r.amount} <Droplets size={12} />
+                  </b>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+        {perks.celebration && grown.size > 0 && <LeafFall />}
         {confident.length >= 3 && (
           <p className="small muted">
             Калибровка: когда ты «уверен», ты прав в {Math.round((confidentOk / confident.length) * 100)}% случаев.
@@ -328,6 +419,20 @@ function Summary({ logs, mode, seconds, onAgain }: { logs: Log[]; mode: string; 
           В сад
         </button>
       </div>
+    </div>
+  );
+}
+
+/** Листопад при росте слов (Дизайн-студия 3 уровня). */
+function LeafFall() {
+  const leaves = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ left: Math.random() * 100, delay: Math.random() * 1.2, dur: 2.4 + Math.random() * 1.6, rot: Math.random() * 360, k: i })), []);
+  return (
+    <div className="leaf-fall" aria-hidden>
+      {leaves.map((l) => (
+        <svg key={l.k} width="16" height="16" viewBox="0 0 16 16" style={{ left: `${l.left}%`, animationDelay: `${l.delay}s`, animationDuration: `${l.dur}s`, transform: `rotate(${l.rot}deg)` }}>
+          <path d="M8 1 C13 4 14 10 8 15 C2 10 3 4 8 1Z" fill={l.k % 3 ? "var(--accent)" : "var(--gold)"} />
+        </svg>
+      ))}
     </div>
   );
 }

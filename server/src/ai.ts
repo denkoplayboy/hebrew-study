@@ -11,7 +11,7 @@ const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 const EFFORT_OVERRIDE = process.env.AI_EFFORT as "low" | "medium" | "high" | undefined;
 const MOCK = process.env.AI_MOCK === "1";
 // меняй при правке промптов — чтобы не отдавать из кэша ответы старой версии
-const PROMPT_VERSION = 3;
+const PROMPT_VERSION = 4;
 
 export const AI_MODELS = [
   { id: "claude-opus-5-5", name: "Opus 5.5", note: "самая сильная" },
@@ -187,7 +187,16 @@ const DraftSchema = z.object({
   he_examples: z.array(z.object({ text: z.string(), text_nikud: z.string(), target: z.string(), ru: z.string() })),
   en_examples: z.array(z.object({ text: z.string(), target: z.string(), ru: z.string() })),
   en_forms: z.array(z.object({ form_id: z.enum(["past", "pp", "ing", "3s", "plural"]), form: z.string() })),
-  related: z.array(z.object({ he: z.string(), he_nikud: z.string(), ru: z.string(), pos: z.enum(POS_IDS), relation: z.string() })),
+  related: z.array(
+    z.object({
+      kind: z.enum(["morph", "synonym", "antonym", "collocation"]),
+      he: z.string(),
+      he_nikud: z.string(),
+      ru: z.string(),
+      pos: z.enum(POS_IDS),
+      relation: z.string(),
+    }),
+  ),
 });
 
 const ANALYZE_SYSTEM = `Ты — лексикограф и преподаватель иврита и английского. ${LEARNER}
@@ -208,7 +217,10 @@ const ANALYZE_SYSTEM = `Ты — лексикограф и преподават�
 - lemma_note — если ввод был не в словарной форме, по-русски поясни, что это была за форма (например «נתפסתי — прош. вр., 1 л. ед. ч.»). Иначе пустая строка.
 - notes — 1–3 коротких замечания: управление (с какой מילת יחס), устойчивые сочетания, регистр, омографы. mnemonic — короткая ассоциация на русском, если получается естественная; иначе пустая строка.
 - tags — 1–3 тематические метки на русском (например «право», «эмоции»).
-- related — 0–3 слова на иврите, которые стоит выучить ВМЕСТЕ с этим, потому что без них картина неполная: тот же корень в парном биньяне (пассив ↔ актив: הוּלַּל → לְהַלֵּל; נִכְנַס → לְהַכְנִיס), прилагательное ↔ существительное, от которого оно образовано (רוּחָנִי → רוּחַ), глагол ↔ его отглагольное существительное (לְהַחְלִיט → הַחְלָטָה). Только частотные слова современного иврита, в словарной форме; he — без огласовок (כתיב מלא), he_nikud — с огласовками, ru — перевод, relation — коротко по-русски, чем связано (например «пиэль: хвалить — активная пара»). Не повторяй само слово. Если ничего действительно полезного нет — пустой список.
+- related — РОВНО два слова на иврите, которые стоит посадить рядом с этим (в словарной форме; he — без огласовок, כתיב מלא; he_nikud — с огласовками; ru — перевод):
+  1) kind = "morph": слово того же корня в ДРУГОМ биньяне или ДРУГОЙ части речи — парный глагол (הוּלַּל → לְהַלֵּל), существительное к прилагательному (רוּחָנִי → רוּחַ), отглагольное существительное (לְהַחְלִיט → הַחְלָטָה), прилагательное к существительному. Если у слова нет корня — возьми ближайшее по образованию.
+  2) смысловое соседство — одно из: kind = "synonym" (близкое по смыслу), "antonym" (противоположное) или "collocation" (слово, которое чаще всего употребляется вместе с этим: для רְאָיָה — לְהָבִיא, «привести доказательство»). Выбирай то, что полезнее для живой речи.
+  relation — коротко по-русски, чем связано (например «пиэль: хвалить — активная пара» или «часто вместе: לְהָבִיא רְאָיָה — привести доказательство»). Только частотные слова современного иврита, не повторяй само слово.
 - is_valid = false, если это не слово ни одного из трёх языков.`;
 
 export async function analyzeWord(
@@ -533,7 +545,7 @@ const StorySchema = z.object({
 export type Story = z.infer<typeof StorySchema>;
 
 /** Сказка из слов ученика: короткий связный текст + вопросы на понимание. */
-export async function makeStory(opts: { lang: "he" | "en"; words: { he: string; en: string; ru: string }[] }): Promise<Story> {
+export async function makeStory(opts: { lang: "he" | "en"; words: { he: string; en: string; ru: string }[]; theme?: string; previous?: string }): Promise<Story> {
   if (MOCK)
     return {
       title: "Мок-сказка",
@@ -549,9 +561,120 @@ export async function makeStory(opts: { lang: "he" | "en"; words: { he: string; 
 - sentences: text — ${opts.lang === "he" ? "предложение на иврите, כתיב מלא без огласовок; text_nikud — то же с огласовками" : "предложение на английском; text_nikud — пустая строка"}; ru — перевод.
 - questions: 3 вопроса на понимание по-русски, по 3–4 варианта ответа, answer_index — индекс верного, explain — короткое пояснение со ссылкой на фразу из текста.
 - used — слова из списка (в словарной форме, как в списке), которые реально вошли в текст.`,
-    user: `Слова ученика:\n${list}`,
+    user: `Слова ученика:\n${list}${opts.theme ? `\n\nТема или жанр: ${opts.theme}` : ""}${opts.previous ? `\n\nЭто продолжение сериала: те же герои и место. Прошлая серия: ${opts.previous}` : ""}`,
     schema: StorySchema,
     tag: "story",
+  });
+}
+
+// ───────────────────────── Кафе на Кармеле: Незнакомка ─────────────────────────
+
+const GIRL_PERSONA = `Ты — Ноа (נוֹעָה), 29 лет, иллюстратор из Хайфы. Каждый день сидишь с ноутбуком за столиком у окна в маленьком кафе на Кармеле.
+Характер: тёплая, остроумная, немного насмешливая, любит море, стихи Рахели, кино и хорошую выпечку; терпеть не может хамство и пафос.
+Ученик — русскоязычный взрослый, живёт в Израиле и учит иврит (уровень ульпана алеф–гимель). Говоришь с ним на ПРОСТОМ иврите (короткие фразы, частотная лексика), чтобы он понимал, и всегда даёшь перевод на русский.
+Отношения — дружеская симпатия, флирт максимум лёгкий и вежливый, без пошлости. На откровенные, сексуальные, оскорбительные или опасные просьбы и реплики — короткий отказ с юмором, без морали, близость при этом падает.`;
+
+function stageNote(stage: string, nameKnown: boolean) {
+  return `Сейчас ваши отношения: «${stage}». ${nameKnown ? "Ученик знает твоё имя." : "Ученик ещё НЕ знает твоего имени — не называй его, пока он вежливо не познакомится (тогда можно сказать)."} Чем ближе отношения, тем ты теплее и щедрее.`;
+}
+
+const ChatSchema = z.object({
+  reply_he: z.string(),
+  reply_ru: z.string(),
+  correction: z.string(),
+  affinity: z.number().int(),
+  told_name: z.boolean(),
+  lemmas: z.array(z.object({ surface: z.string(), lemma: z.string() })),
+});
+export type GirlChat = z.infer<typeof ChatSchema>;
+
+export async function girlChat(opts: { message: string; history: { me: string; her: string }[]; stage: string; nameKnown: boolean; gift?: string }): Promise<GirlChat> {
+  if (MOCK)
+    return {
+      reply_he: opts.gift ? "וואו, תודה! זה ממש מתוק מצדך." : "שלום! אני בדרך כלל יושבת כאן בבוקר. ואתה?",
+      reply_ru: opts.gift ? "Ого, спасибо! Это очень мило с твоей стороны." : "Привет! Я обычно сижу здесь по утрам. А ты?",
+      correction: "",
+      affinity: 3,
+      told_name: false,
+      lemmas: [],
+    };
+  const hist = opts.history
+    .slice(-10)
+    .map((h) => `Ученик: ${h.me}\nТы: ${h.her}`)
+    .join("\n");
+  return ask({
+    op: "check",
+    override: { effort: "low" },
+    tag: "girl",
+    system: `${GIRL_PERSONA}
+${stageNote(opts.stage, opts.nameKnown)}
+Ответь на реплику ученика как Ноа:
+- reply_he — 1–3 коротких предложения на простом иврите (כתיב מלא, без огласовок); можно задать встречный вопрос, чтобы разговор продолжался.
+- reply_ru — перевод reply_he на русский.
+- correction — если ученик писал на иврите с ошибкой, мягко покажи правильный вариант (по-русски, коротко); иначе пустая строка.
+- affinity — насколько реплика сблизила вас, от −10 до +6: вежливость, интерес к ней, юмор и особенно попытка писать на иврите повышают; хамство и пошлость — сильно понижают.
+- told_name — true, если в этом ответе ты назвала своё имя.
+- lemmas — словарные формы значимых слов, которые ученик сам написал на иврите (для глаголов — שם הפועל); если писал не на иврите — пустой список.`,
+    user: `${hist ? "Разговор до этого:\n" + hist + "\n\n" : ""}${opts.gift ? `Ученик подарил тебе: ${opts.gift}. ` : ""}Ученик: ${opts.message.slice(0, 600) || "(молча улыбается)"}`,
+    schema: ChatSchema,
+  });
+}
+
+const WISH_ACTIONS = ["dew_x2", "dew_x3", "golden", "tokens", "free_rolls", "move", "story", "word_pack", "exercise_pack", "message", "title"] as const;
+const WishSchema = z.object({
+  feasible: z.boolean(),
+  reply: z.string(),
+  price: z.number().int(),
+  fulfil_text: z.string(),
+  actions: z.array(
+    z.object({
+      type: z.enum(WISH_ACTIONS),
+      amount: z.number().int(),
+      token: z.enum(["hint", "retry", "skip", "shield", "none"]),
+      text: z.string(),
+      cell: z.number().int(),
+    }),
+  ),
+});
+export type WishOffer = z.infer<typeof WishSchema>;
+
+/** Просьба к Ноа: она сама назначает цену и решает, как выполнить. */
+export async function judgeWish(opts: { text: string; cells: string; balance: number; words: string[]; stage: string; nameKnown: boolean }): Promise<WishOffer> {
+  if (MOCK)
+    return {
+      feasible: true,
+      reply: "Ну ладно, помогу. Двойная роса на полчаса — за 30 росы, и не торгуйся. (мок)",
+      price: 30,
+      fulfil_text: "בבקשה! Готово.",
+      actions: [{ type: "dew_x2", amount: 30, token: "none", text: "", cell: 0 }],
+    };
+  return ask({
+    op: "check",
+    override: { effort: "low" },
+    tag: "wish",
+    system: `${GIRL_PERSONA}
+${stageNote(opts.stage, opts.nameKnown)}
+
+Ученик просит тебя что-то сделать. Ты сама назначаешь цену в росе (валюта сада) — любую, по настроению и по тому, как он попросил, — и после оплаты выполняешь. Выполнить ты можешь ТОЛЬКО этими действиями:
+- dew_x2 (amount — минуты, 5–60): двойная роса за уроки
+- dew_x3 (amount — минуты, 5–30): тройная роса за уроки
+- golden (amount — минуты, 10–60): +1 роса за каждый верный ответ
+- tokens (token: hint | retry | skip | shield, amount 1–5): жетоны для упражнений — подсказка без штрафа, вторая попытка, пропуск упражнения, щит от ошибки
+- free_rolls (amount 1–3): бесплатные броски кубика на игровом поле
+- move (cell — номер клетки): подвезти фишку на клетку поля. Клетки: ${opts.cells}
+- story (text — тема): написать рассказ из слов ученика на эту тему
+- word_pack (text — тема): подобрать новые полезные слова по теме
+- exercise_pack (text — тема): составить набор упражнений
+- message (text — сам текст, до 800 символов): записка, стих, песня, тост, совет, шутка, маленький урок — пишешь прямо сейчас на простом иврите с переводом на русский; можно вплетать слова ученика: ${opts.words.slice(0, 30).join(", ") || "—"}
+- title (text — до 40 символов): дать название его саду
+
+Цена — твоё решение. Ориентиры: двойная роса 10 мин ≈ 12, тройная 10 мин ≈ 25, золотой час 30 мин ≈ 20, жетон ≈ 6–8, бросок ≈ 12, подвезти ≈ 20, рассказ ≈ 45, подборка слов ≈ 35, набор упражнений ≈ 40, записка или стих 5–30, название сада ≈ 30. Попросил красиво, тем более на иврите — уступи и скажи об этом; нагло — подними цену. Близким друзьям ты делаешь скидки сама. Можешь назначить и шуточно огромную цену за ерунду — но не больше 300. Сейчас у ученика ${opts.balance} росы.
+Если просьбу нельзя выполнить этими действиями — предложи ближайшее, что можешь (feasible = true), или откажи с юмором (feasible = false, price = 0, actions = []). Сексуальные, оскорбительные, опасные просьбы — всегда отказ (feasible = false, price = 0), коротко.
+reply — твой ответ ученику по-русски, 2–4 предложения, можно с одной фразой на иврите в скобках с переводом: что сделаешь и сколько это будет стоить.
+fulfil_text — короткая фраза, которую он увидит после оплаты (на иврите с переводом).
+Неиспользуемые поля действий: token = "none", text = "", cell = 0, amount = 0.`,
+    user: `Просьба: ${opts.text.slice(0, 600)}`,
+    schema: WishSchema,
   });
 }
 
@@ -587,8 +710,8 @@ function mockDraft(input: string): WordDraft {
     related:
       lang === "he"
         ? [
-            { he: "רוח", he_nikud: "רוּחַ", ru: "дух, ветер", pos: "noun", relation: "существительное, от которого образовано (мок)" },
-            { he: "להלל", he_nikud: "לְהַלֵּל", ru: "хвалить", pos: "verb", relation: "пиэль: активная пара (мок)" },
+            { kind: "morph", he: "רוח", he_nikud: "רוּחַ", ru: "дух, ветер", pos: "noun", relation: "существительное, от которого образовано (мок)" },
+            { kind: "antonym", he: "גשמי", he_nikud: "גַּשְׁמִי", ru: "материальный", pos: "adj", relation: "противоположное по смыслу (мок)" },
           ]
         : [],
   };

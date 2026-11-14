@@ -25,6 +25,7 @@ interface HomeData {
   rhythm: { days: { day: number; count: number; minutes: number }[]; consistency: number };
   recent: WordSummary[];
   moments: { id: number; ts: number; kind: string; text: string; word_id: number | null }[];
+  gardenTitle?: string;
 }
 
 function greeting() {
@@ -62,6 +63,7 @@ export default function Home() {
       <div className="page-head">
         <div>
           <h1>{greeting()}</h1>
+          {data.gardenTitle && <div className="small" style={{ color: "var(--accent-strong)" }}>Сад «{data.gardenTitle}»</div>}
           <p>
             {ruDate} · <span className="he">{heDay}</span>
           </p>

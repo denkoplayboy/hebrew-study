@@ -5,6 +5,13 @@ import { posLabel } from "../../../shared/lang";
 import { useApp } from "../lib/app";
 import { He, Mixed, SpeakBtn } from "./ui";
 
+const KIND_LABEL: Record<string, string> = {
+  morph: "тот же корень",
+  synonym: "синоним",
+  antonym: "антоним",
+  collocation: "часто вместе",
+};
+
 /** Список слов, которые стоит посадить: кнопка «Посадить» открывает разбор этого слова. */
 export function SuggestionList({
   items,
@@ -27,6 +34,7 @@ export function SuggestionList({
               <He text={s.he_nikud || s.he} nikud style={{ fontSize: compact ? "1.25rem" : "1.4rem" }} />
               <span className="text-2">{s.ru}</span>
               {!compact && <span className="tiny muted">{posLabel(s.pos)}</span>}
+              {s.kind && <span className={"badge " + (s.kind === "morph" ? "accent" : "water")}>{KIND_LABEL[s.kind]}</span>}
             </div>
             {s.relation && (
               <div className="small muted">

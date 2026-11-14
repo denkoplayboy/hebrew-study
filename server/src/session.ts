@@ -395,7 +395,6 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       return { items: items.slice(0, size), note: items.length ? undefined : "Пока нет пар-близнецов: они появятся, когда ты перепутаешь похожие слова." };
     }
     case "edge": {
-      if (!perks().edgeMode) return { items: [], note: "Режим «На грани» открывает Обсерватория уровня 2 — на игровом поле в Лавке.", locked: true } as any;
       // навыки, которые ещё не «хотят пить», но вот-вот захотят
       const target = getSettings().retention;
       const cs = candidates(lang)
@@ -419,7 +418,7 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       return { items };
     }
     case "dictation": {
-      if (!perks().dictation) return { items: [], note: "Диктант открывается Студией «Коль» в Цфате — на игровом поле в Лавке.", locked: true } as any;
+      if (!perks().dictation) return { items: [], note: "Диктант открывает Арена Тверии 2 уровня — на игровом поле в Лавке.", locked: true } as any;
       const l: StudyLang = o.lang === "en" ? "en" : "he";
       const rows = db
         .prepare(
@@ -444,7 +443,7 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       return { items: shuffle(items), note: items.length ? undefined : "Для диктанта нужны знакомые слова с примерами предложений." };
     }
     case "blitz": {
-      if (!perks().blitz) return { items: [], note: "Блиц открывается Стадионом в Тверии — на игровом поле в Лавке.", locked: true } as any;
+      if (!perks().blitz) return { items: [], note: "Блиц открывает Арена Тверии — на игровом поле в Лавке.", locked: true } as any;
       const known = candidates(lang, ["recognize"]).filter((c) => c.reps > 0);
       if (known.length < 4) return { items: [], note: "Для блица нужно хотя бы 4 знакомых слова." };
       const items: ExerciseItem[] = [];

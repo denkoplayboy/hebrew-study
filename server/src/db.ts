@@ -234,6 +234,34 @@ const MIGRATIONS: string[] = [
     amount INTEGER
   );
   `,
+  // 5 — Подвал желаний
+  `
+  CREATE TABLE wishes (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    reply TEXT NOT NULL,
+    price INTEGER NOT NULL DEFAULT 0,
+    actions TEXT NOT NULL DEFAULT '[]',
+    fulfil_text TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'offered',
+    result TEXT NOT NULL DEFAULT '[]'
+  );
+  `,
+  // 6 — Незнакомка в кафе на Кармеле: разговоры, подарки, отношения
+  `
+  CREATE TABLE girl_log (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    me TEXT NOT NULL DEFAULT '',
+    her TEXT NOT NULL DEFAULT '',
+    her_ru TEXT NOT NULL DEFAULT '',
+    delta INTEGER NOT NULL DEFAULT 0,
+    meta TEXT NOT NULL DEFAULT '{}'
+  );
+  CREATE INDEX girl_log_ts ON girl_log(ts);
+  `,
 ];
 
 function migrate() {

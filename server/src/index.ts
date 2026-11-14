@@ -45,6 +45,8 @@ import {
   type UsageInfo,
   suggestWords,
   makeStory,
+  judgeWish,
+  girlChat,
 } from "./ai.js";
 import {
   activeEffects,
@@ -57,12 +59,16 @@ import {
   ensureWelcome,
   spendDew,
   useEffectToken,
+  addEffect,
+  todayKey,
 } from "./economy.js";
-import { act, aiActivityPrice, build, buyEffect, GameError, gameView, perks, roll } from "./game.js";
+import { act, aiActivityPrice, build, buyEffect, claimSpin, completeSession, GameError, gameView, perks, roll, spin, wheelState, moveToken, addFreeRolls } from "./game.js";
 import { buildSession, todayCounts } from "./session.js";
 import { fullStats, gardenStats, rhythm, rootsGarden } from "./stats.js";
 import { getPack, importWords, listPacks, loadContent, savePack } from "./content.js";
 import { detectLang, normHe, stripNikud, tokenize, type StudyLang } from "../../shared/lang.js";
+import { CELLS, GIFTS } from "../../shared/board.js";
+import { addAffinity, dailyGiftAvailable, favoriteGift, girlHistory, logGirl, moneyReaction, setNameKnown, stageInfo, takeDailyGift } from "./girl.js";
 import type { ReviewInput, WordDraft } from "../../shared/types.js";
 import type { Grade } from "../../shared/memory.js";
 
@@ -139,6 +145,7 @@ app.get("/api/home", (c) => {
     moments,
     settings: getSettings(),
     dew: { balance: balance(), ...dewStats() },
+    gardenTitle: getMeta("garden:title") || "",
   });
 });
 
@@ -307,6 +314,12 @@ app.get("/api/session", (c) => {
 /** Повторение + роса за него. */
 function reviewWithDew(r: Parameters<typeof applyReview>[0]) {
   const before = getFacet(r.word_id, r.lang, r.facet);
+  const pk = perks();
+  // Кафе «Ход», 3 уровень: утренний кофе — первый урок дня включает двойную росу
+  if (pk.morningCoffee && !r.practice && getMeta("coffee:" + todayKey()) !== "1") {
+    setMeta("coffee:" + todayKey(), "1");
+    addEffect("dew_x2", { minutes: 20 });
+  }
   const res = applyReview(r);
   const w = getWord(r.word_id);
   let dew = dewForReview({
@@ -318,11 +331,8 @@ function reviewWithDew(r: Parameters<typeof applyReview>[0]) {
     stageAfter: res.stageAfter,
     wordLabel: w?.he || w?.en || "",
     ref: String(r.word_id),
+    bonus: pk.dewBonus,
   });
-  // Студия «Коль»: бонус за диктант слово в слово
-  const studio = perks().dictationBonus;
-  if (studio && !r.practice && r.mode === "dictation" && Number((r.detail as Row | undefined)?.score) === 100)
-    dew += addDew(studio, "Студия «Коль»: диктант слово в слово", String(r.word_id));
   if (!r.practice) dew += dewForWatered(todayCounts().dueFacets);
   return { ...res, dew };
 }
@@ -611,7 +621,7 @@ function gameErr<T>(fn: () => T) {
   }
 }
 
-app.get("/api/game", (c) => c.json({ ...gameView(), today: dewStats().today, ai: aiEnabled() }));
+app.get("/api/game", (c) => c.json({ ...gameView(), wheel: wheelState(), today: dewStats().today, ai: aiEnabled() }));
 app.post("/api/game/roll", (c) => c.json(gameErr(() => roll())));
 app.post("/api/game/act", async (c) => {
   const { action, payload } = await c.req.json<{ action: string; payload?: Record<string, unknown> }>();
@@ -626,18 +636,254 @@ app.post("/api/game/effect", async (c) => {
   return c.json(gameErr(() => buyEffect(id)));
 });
 
+app.post("/api/game/spin", (c) => c.json(gameErr(() => spin())));
+app.post("/api/game/spin/claim", async (c) => {
+  const { answer } = await c.req.json<{ answer: number }>();
+  return c.json(gameErr(() => claimSpin(Number(answer))));
+});
+
+/** Итог законченного урока: доход хостела, сундук финиша, джекпот. */
+app.post("/api/session/complete", async (c) => {
+  const { graded = 0, correct = 0, dew = 0 } = await c.req.json<{ graded: number; correct: number; dew: number }>();
+  return c.json({ rewards: completeSession({ graded, correct, dew }) });
+});
+
+// ── Кафе на Кармеле: Незнакомка (Ноа) ──
+function girlLevel() {
+  return perks().levels.girl || 0;
+}
+function needGirl() {
+  if (!perks().girl) throw new AIError("Кафе на Кармеле ещё не построено — участок Кармель на игровом поле");
+}
+
+app.get("/api/girl", (c) => {
+  const pk = perks();
+  const fav = favoriteGift();
+  const rows = db.prepare("SELECT * FROM wishes ORDER BY ts DESC LIMIT 15").all() as Row[];
+  return c.json({
+    open: pk.girl,
+    level: girlLevel(),
+    ai: aiEnabled(),
+    balance: balance(),
+    ...stageInfo(),
+    gifts: GIFTS.map((g) => ({ ...g, favorite: g.id === fav })),
+    history: girlHistory(40),
+    requestsLeft: Math.max(0, pk.wishesPerDay - wishesToday()),
+    requestsPerDay: pk.wishesPerDay,
+    requestDiscount: pk.wishDiscount,
+    wishes: rows.map(wishView),
+    dailyGift: dailyGiftAvailable(girlLevel()),
+  });
+});
+
+app.post("/api/girl/chat", async (c) => {
+  needGirl();
+  if (!aiEnabled()) return c.json({ error: "Для разговора нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  const { message } = await c.req.json<{ message: string }>();
+  if (!message?.trim()) return c.json({ error: "Напиши ей что-нибудь" }, 400);
+  const today = (db.prepare("SELECT COUNT(*) AS n FROM girl_log WHERE kind = 'chat' AND ts >= ?").get(new Date().setHours(0, 0, 0, 0)) as Row).n;
+  if (today >= 40) return c.json({ error: "Она ушла рисовать — договорите завтра" }, 400);
+  const st = stageInfo();
+  const history = (db.prepare("SELECT me, her FROM girl_log WHERE kind = 'chat' ORDER BY ts DESC LIMIT 10").all() as { me: string; her: string }[]).reverse();
+  const r = await girlChat({ message, history, stage: st.stageName, nameKnown: st.nameKnown });
+  const delta = addAffinity(Math.max(-10, Math.min(6, r.affinity)));
+  if (r.told_name) setNameKnown();
+  logGirl("chat", { me: message.trim(), her: r.reply_he, her_ru: r.reply_ru, delta, meta: { correction: r.correction } });
+  // слова из сада, которые ты сам употребил в разговоре, засчитываются как живая речь
+  const found = matchLemmas(r.lemmas, "he");
+  for (const [k, v] of localLemmas(message, "he")) if (!found.has(k)) found.set(k, v);
+  const credited = creditSpontaneous(found, "he", "girl", []);
+  return c.json({ reply_he: r.reply_he, reply_ru: r.reply_ru, correction: r.correction, delta, credited, state: stageInfo() });
+});
+
+app.post("/api/girl/gift", async (c) => {
+  needGirl();
+  const { id } = await c.req.json<{ id: string }>();
+  const g = GIFTS.find((x) => x.id === id);
+  if (!g) return c.json({ error: "Такого подарка нет" }, 400);
+  if (!spendDew(g.price, `Подарок для неё: ${g.name}`)) return c.json({ error: `Не хватает росы: ${g.price}` }, 400);
+  const fav = favoriteGift() === g.id;
+  const delta = addAffinity(g.affinity * (fav ? 2 : 1));
+  let he = "תודה רבה!";
+  let ru = "Большое спасибо!";
+  if (aiEnabled()) {
+    try {
+      const st = stageInfo();
+      const r = await girlChat({ message: "", history: [], stage: st.stageName, nameKnown: st.nameKnown, gift: `${g.name} (${g.he})${fav ? " — это как раз то, что ты любишь больше всего" : ""}` });
+      he = r.reply_he;
+      ru = r.reply_ru;
+    } catch {
+      /* без ИИ — простая благодарность */
+    }
+  }
+  logGirl("gift", { me: g.name, her: he, her_ru: ru, delta, meta: { gift: g.id, favorite: fav } });
+  return c.json({ reply_he: he, reply_ru: ru, delta, favorite: fav, state: stageInfo(), balance: balance() });
+});
+
+app.post("/api/girl/give", async (c) => {
+  needGirl();
+  const { amount } = await c.req.json<{ amount: number }>();
+  const n = Math.round(Number(amount));
+  if (!(n >= 1)) return c.json({ error: "Сколько росы отдать?" }, 400);
+  if (!spendDew(n, "Отдал ей росу")) return c.json({ error: "Столько росы у тебя нет" }, 400);
+  const delta = addAffinity(n * 0.4);
+  const line = moneyReaction(n);
+  logGirl("money", { me: `${n} росы`, her: line.he, her_ru: line.ru, delta });
+  return c.json({ reply_he: line.he, reply_ru: line.ru, delta, state: stageInfo(), balance: balance() });
+});
+
+app.post("/api/girl/daily", (c) => {
+  needGirl();
+  if (!dailyGiftAvailable(girlLevel())) return c.json({ error: "Сегодня подарка нет" }, 400);
+  const g = takeDailyGift();
+  logGirl("present", { her: g.he, her_ru: g.text });
+  addMoment("girl", null, `Подарок от Ноа: ${g.text}`);
+  return c.json(g);
+});
+
+// ── просьбы: она сама назначает цену ──
+function wishesToday() {
+  return (db.prepare("SELECT COUNT(*) AS n FROM wishes WHERE ts >= ? AND status = 'paid'").get(new Date().setHours(0, 0, 0, 0)) as Row).n as number;
+}
+function asksToday() {
+  return (db.prepare("SELECT COUNT(*) AS n FROM wishes WHERE ts >= ?").get(new Date().setHours(0, 0, 0, 0)) as Row).n as number;
+}
+function wishView(r: Row) {
+  return { ...r, actions: JSON.parse(r.actions), result: JSON.parse(r.result) };
+}
+app.get("/api/game/wishes", (c) => {
+  const pk = perks();
+  const rows = db.prepare("SELECT * FROM wishes ORDER BY ts DESC LIMIT 20").all() as Row[];
+  return c.json({ perDay: pk.wishesPerDay, left: Math.max(0, pk.wishesPerDay - wishesToday()), discount: pk.wishDiscount, wishes: rows.map(wishView) });
+});
+app.post("/api/game/wish", async (c) => {
+  const { text } = await c.req.json<{ text: string }>();
+  const pk = perks();
+  if (!pk.wishesPerDay) return c.json({ error: "Кафе на Кармеле ещё не построено" }, 400);
+  if (!aiEnabled()) return c.json({ error: "Для просьб нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  if (!text?.trim()) return c.json({ error: "О чём попросить?" }, 400);
+  if (wishesToday() >= pk.wishesPerDay) return c.json({ error: "На сегодня хватит просьб — она улыбается: «מחר»" }, 400);
+  if (asksToday() >= pk.wishesPerDay * 4) return c.json({ error: "Она устала торговаться — приходи завтра" }, 400);
+  const cells = CELLS.map((x) => `${x.i} ${x.name}`).join(", ");
+  const words = (db.prepare("SELECT he FROM words WHERE he <> '' ORDER BY RANDOM() LIMIT 30").all() as Row[]).map((r) => r.he);
+  const st = stageInfo();
+  const offer = await judgeWish({ text, cells, balance: balance(), words, stage: st.stageName, nameKnown: st.nameKnown });
+  let price = Math.max(0, Math.min(300, offer.price));
+  const disc = Math.min(0.5, pk.wishDiscount + st.discount);
+  if (disc && price) price = Math.round(price * (1 - disc));
+  const info = db
+    .prepare("INSERT INTO wishes(ts, text, reply, price, actions, fulfil_text, status) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(Date.now(), text.trim(), offer.reply, price, JSON.stringify(offer.actions || []), offer.fulfil_text || "", offer.feasible && offer.actions?.length ? "offered" : "refused");
+  return c.json(wishView(db.prepare("SELECT * FROM wishes WHERE id = ?").get(Number(info.lastInsertRowid)) as Row));
+});
+app.post("/api/game/wish/:id/decline", (c) => {
+  db.prepare("UPDATE wishes SET status = 'declined' WHERE id = ? AND status = 'offered'").run(Number(c.req.param("id")));
+  return c.json({ ok: true });
+});
+app.post("/api/game/wish/:id/accept", async (c) => {
+  const id = Number(c.req.param("id"));
+  const w = db.prepare("SELECT * FROM wishes WHERE id = ?").get(id) as Row | undefined;
+  if (!w || w.status !== "offered") return c.json({ error: "Это предложение уже недействительно" }, 400);
+  if (wishesToday() >= perks().wishesPerDay) return c.json({ error: "Желания на сегодня исполнены" }, 400);
+  if (!spendDew(w.price, "Просьба к ней: " + String(w.text).slice(0, 40), String(id))) return c.json({ error: `Не хватает росы: нужно ${w.price}` }, 400);
+  addAffinity(4);
+  db.prepare("UPDATE wishes SET status = 'paid' WHERE id = ?").run(id);
+  const actions = JSON.parse(w.actions) as Row[];
+  const result: { text: string; link?: string; body?: string }[] = [];
+  const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, Math.round(Number(v) || 0)));
+  for (const a of actions) {
+    try {
+      switch (a.type) {
+        case "dew_x2":
+        case "dew_x3":
+        case "golden": {
+          const max = a.type === "dew_x3" ? 30 : 60;
+          const m = clamp(a.amount, 5, max);
+          addEffect(a.type, { minutes: m });
+          result.push({ text: `${a.type === "dew_x2" ? "Двойная роса" : a.type === "dew_x3" ? "Тройная роса" : "Золотой час"} на ${m} мин` });
+          break;
+        }
+        case "tokens": {
+          if (!["hint", "retry", "skip", "shield"].includes(a.token)) break;
+          const n = clamp(a.amount, 1, 5);
+          addEffect(a.token, { uses: n });
+          const names: Record<string, string> = { hint: "подсказки без штрафа", retry: "вторые попытки", skip: "пропуски", shield: "щиты" };
+          result.push({ text: `Жетоны: ${names[a.token]} ×${n}` });
+          break;
+        }
+        case "free_rolls": {
+          const n = clamp(a.amount, 1, 3);
+          addFreeRolls(n);
+          result.push({ text: `Бесплатные броски ×${n}` });
+          break;
+        }
+        case "move": {
+          const cell = clamp(a.cell, 0, 19);
+          moveToken(cell);
+          result.push({ text: `Фишка перенесена: ${CELLS[cell].name}` });
+          break;
+        }
+        case "story": {
+          const rows = db.prepare("SELECT * FROM words WHERE study LIKE '%\"he\"%' ORDER BY RANDOM() LIMIT 10").all() as Row[];
+          if (rows.length < 3) break;
+          const words = rows.map(rowToWord);
+          const story = await makeStory({ lang: "he", words, theme: a.text });
+          const ids = words.filter((x) => story.used.some((u) => normHe(u) === normHe(x.he))).map((x) => x.id);
+          const info = db
+            .prepare("INSERT INTO stories(ts, lang, title, data) VALUES (?, 'he', ?, ?)")
+            .run(Date.now(), story.title, JSON.stringify({ ...story, word_ids: ids.length ? ids : words.map((x) => x.id) }));
+          result.push({ text: `Сказка: ${story.title}`, link: `/stories/${info.lastInsertRowid}` });
+          break;
+        }
+        case "word_pack": {
+          const known = (db.prepare("SELECT he FROM words WHERE he <> ''").all() as Row[]).map((r) => r.he);
+          const res = await suggestWords({ kind: "theme", topic: a.text || "слова от Ноа", known });
+          const info = db.prepare("INSERT INTO offers(ts, kind, title, data) VALUES (?, 'theme', ?, ?)").run(Date.now(), res.title, JSON.stringify({ topic: a.text, intro: res.intro, items: res.items }));
+          result.push({ text: `Подборка слов: ${res.title}`, link: `/offers/${info.lastInsertRowid}` });
+          break;
+        }
+        case "exercise_pack": {
+          const pack = await generatePack({ topic: a.text || "сюрприз от Ноа", lang: "he", count: 10 });
+          savePack(pack);
+          result.push({ text: `Набор упражнений: ${pack.title}`, link: `/lab/${pack.id}` });
+          break;
+        }
+        case "message":
+          if (a.text) result.push({ text: "Записка от неё", body: String(a.text).slice(0, 1200) });
+          break;
+        case "title":
+          if (a.text) {
+            setMeta("garden:title", String(a.text).slice(0, 40));
+            result.push({ text: `Сад теперь называется «${String(a.text).slice(0, 40)}»` });
+          }
+          break;
+      }
+    } catch (e) {
+      result.push({ text: `Не удалось: ${(e as Error).message}` });
+    }
+  }
+  db.prepare("UPDATE wishes SET result = ? WHERE id = ?").run(JSON.stringify(result), id);
+  addMoment("wish", null, `Она выполнила просьбу: ${String(w.text).slice(0, 60)}`);
+  return c.json(wishView(db.prepare("SELECT * FROM wishes WHERE id = ?").get(id) as Row));
+});
+
 /** Жетоны «Подсказка без штрафа» и «Вторая попытка» тратятся прямо в упражнениях. */
 app.post("/api/effects/use", async (c) => {
-  const { type } = await c.req.json<{ type: "hint" | "retry" }>();
-  if (type !== "hint" && type !== "retry") return c.json({ error: "Неизвестный эффект" }, 400);
+  const { type } = await c.req.json<{ type: "hint" | "retry" | "skip" | "shield" }>();
+  if (!["hint", "retry", "skip", "shield"].includes(type)) return c.json({ error: "Неизвестный эффект" }, 400);
   const ok = useEffectToken(type);
   return ok ? c.json({ ok, effects: activeEffects() }) : c.json({ error: "Жетоны закончились" }, 400);
 });
 
 /** Кафе «Сиппур»: сказка из слов, которые хотят пить (или самых слабых). */
 app.post("/api/game/story", async (c) => {
-  const { lang = "he" } = await c.req.json<{ lang?: StudyLang }>().catch(() => ({ lang: "he" as StudyLang }));
+  const { lang = "he", theme, series } = await c.req
+    .json<{ lang?: StudyLang; theme?: string; series?: boolean }>()
+    .catch(() => ({ lang: "he" as StudyLang, theme: undefined, series: undefined }));
   if (!aiEnabled()) return c.json({ error: "Для сказок нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  const pk = perks();
+  if (theme && !pk.storyThemes) return c.json({ error: "Выбор темы открывает Кафе «Сиппур» 2 уровня" }, 400);
+  if (series && !pk.storySeries) return c.json({ error: "Сериал открывает Кафе «Сиппур» 3 уровня" }, 400);
   const price = gameErr(() => aiActivityPrice("story"));
   if (balance() < price) return c.json({ error: `Не хватает росы: сказка стоит ${price}` }, 400);
   const now = Date.now();
@@ -649,7 +895,15 @@ app.post("/api/game/story", async (c) => {
     .all(now, lang) as Row[];
   if (rows.length < 3) return c.json({ error: "Нужно хотя бы 3 слова в саду" }, 400);
   const words = rows.map(rowToWord);
-  const story = await makeStory({ lang, words });
+  let previous: string | undefined;
+  if (series) {
+    const last = db.prepare("SELECT title, data FROM stories ORDER BY ts DESC LIMIT 1").get() as Row | undefined;
+    if (last) {
+      const d = JSON.parse(last.data);
+      previous = `«${last.title}»: ` + (d.sentences || []).map((x: Row) => x.ru).join(" ").slice(0, 900);
+    }
+  }
+  const story = await makeStory({ lang, words, theme: theme?.trim() || undefined, previous });
   spendDew(price, "Кафе «Сиппур»: сказка");
   const ids = words.filter((w) => story.used.some((u) => normHe(u) === normHe(w.he) || u.toLowerCase() === w.en.toLowerCase())).map((w) => w.id);
   const info = db
@@ -695,7 +949,9 @@ app.post("/api/game/suggest", async (c) => {
   if (balance() < price) return c.json({ error: `Не хватает росы: нужно ${price}` }, 400);
   const known = (db.prepare("SELECT he FROM words WHERE he <> '' ORDER BY created_at DESC LIMIT 400").all() as Row[]).map((r) => r.he);
   const res = await suggestWords({ kind, topic: topic.trim(), known });
-  spendDew(price, kind === "root" ? "Архив корней: семья корня" : "Архив корней: слова по теме");
+  const week = `${new Date().getFullYear()}-${Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 86400000))}`;
+  if (perks().archiveWeeklyFree && getMeta("archive:free") !== week) setMeta("archive:free", week);
+  else spendDew(price, kind === "root" ? "Архив корней: семья корня" : "Архив корней: слова по теме");
   const info = db
     .prepare("INSERT INTO offers(ts, kind, title, data) VALUES (?, ?, ?, ?)")
     .run(Date.now(), kind, res.title, JSON.stringify({ topic, intro: res.intro, items: res.items }));
@@ -717,16 +973,15 @@ app.post("/api/blitz/finish", async (c) => {
   const best = Number(getMeta(key) || 0);
   const record = correct > best;
   if (record) setMeta(key, String(correct));
-  const recordBonus = record && best > 0 ? (p.levels.stadium >= 3 ? 10 : 5) : 0;
+  const recordBonus = record && best > 0 ? (p.levels.arena >= 3 ? 10 : 5) : 0;
   const dew = dewCapped("blitz", Math.floor(Math.max(0, correct) / 3) + recordBonus, Math.round(20 * p.blitzCapMult), "блиц");
   if (record && best > 0) addMoment("blitz", null, `Новый рекорд блица: ${correct}`);
   void total;
   return c.json({ dew, best: Math.max(best, correct), record });
 });
 
-/** Экспорт словаря (Обсерватория, уровень 3): CSV или TSV для импорта в Anki. */
+/** Экспорт словаря: CSV или TSV для импорта в Anki. */
 app.get("/api/export/words", (c) => {
-  if (!perks().csvExport) return c.json({ error: "Экспорт открывает Обсерватория уровня 3" }, 403);
   const fmt = c.req.query("format") === "tsv" ? "tsv" : "csv";
   const words = (db.prepare("SELECT * FROM words ORDER BY created_at").all() as Row[]).map(rowToWord);
   const sep = fmt === "tsv" ? "\t" : ",";
@@ -739,9 +994,8 @@ app.get("/api/export/words", (c) => {
   return c.body((fmt === "csv" ? "\ufeff" : "") + body);
 });
 
-/** Прогноз нагрузки (Обсерватория, уровень 1): сколько навыков станут «жаждущими» в каждый из 14 дней. */
+/** Прогноз нагрузки: сколько навыков станут «жаждущими» в каждый из 14 дней. */
 app.get("/api/forecast", (c) => {
-  if (!perks().forecast) return c.json({ error: "Прогноз открывает Обсерватория" }, 403);
   const start = new Date().setHours(0, 0, 0, 0);
   const rows = db.prepare("SELECT due FROM facets WHERE state = 'review' AND reps > 0 AND due < ?").all(start + 14 * 86400000) as { due: number }[];
   const days = Array.from({ length: 14 }, (_, i) => ({ day: start + i * 86400000, count: 0 }));
@@ -779,6 +1033,8 @@ const TABLES = [
   "properties",
   "effects",
   "game_log",
+  "wishes",
+  "girl_log",
 ];
 
 app.get("/api/export", (c) => {

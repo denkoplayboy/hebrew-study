@@ -23,10 +23,10 @@ const MODES = [
   { id: "match", icon: Puzzle, title: "Пары", text: "Соедини слова и переводы на время. Лёгкая разминка.", facets: [], skill: "узнавание" },
   { id: "twins", icon: GitCompare, title: "Близнецы", text: "Слова, которые ты путал между собой, — в одной тренировке.", facets: [], skill: "различение" },
   { id: "weak", icon: Activity, title: "Слабые места", text: "Самые хрупкие навыки по всему саду, даже если ещё не пора.", facets: [], skill: "всё" },
-  { id: "edge", icon: Telescope, title: "На грани", text: "Слова, которые вот-вот начнут увядать: успеть до жажды.", facets: [], skill: "всё", perk: "edgeMode", where: "Обсерватория ур. 2 (Кармель)" },
-  { id: "dictation", icon: Headphones, title: "Диктант", text: "Слышишь целое предложение из примеров — записываешь его.", facets: [], skill: "слух + письмо", perk: "dictation", where: "Студия «Коль» (Цфат)" },
-  { id: "blitz", icon: Zap, title: "Блиц", text: "Знакомые слова на скорость. Рекорды и немного росы.", facets: [], skill: "беглость", perk: "blitz", where: "Стадион (Тверия)" },
-] as { id: string; icon: typeof Zap; title: string; text: string; facets: string[]; skill: string; perk?: "edgeMode" | "dictation" | "blitz"; where?: string }[];
+  { id: "edge", icon: Telescope, title: "На грани", text: "Слова, которые вот-вот начнут увядать: успеть до жажды.", facets: [], skill: "всё" },
+  { id: "dictation", icon: Headphones, title: "Диктант", text: "Слышишь целое предложение из примеров — записываешь его.", facets: [], skill: "слух + письмо", perk: "dictation", where: "Арена Тверии ур. 2" },
+  { id: "blitz", icon: Zap, title: "Блиц", text: "Знакомые слова на скорость. Рекорды и немного росы.", facets: [], skill: "беглость", perk: "blitz", where: "Арена Тверии" },
+] as { id: string; icon: typeof Zap; title: string; text: string; facets: string[]; skill: string; perk?: "dictation" | "blitz"; where?: string }[];
 
 export default function Practice() {
   const { data } = useData<{ today: Today }>("/api/home");

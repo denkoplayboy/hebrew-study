@@ -11,7 +11,7 @@ export function DesignPickers({ only }: { only?: "fonts" | "accents" | "plants" 
     <div className="col gap-16">
       {(!only || only === "fonts") && (
         <div>
-          <div className="label">Шрифт иврита · Типография (Яффо)</div>
+          <div className="label">Шрифт иврита · Дизайн-студия (Ротшильд)</div>
           <div className="grid grid-3 stack-sm" style={{ gap: 8 }}>
             {HE_FONTS.map((f) => {
               const open = perks.fonts.includes(f.id);
@@ -39,7 +39,7 @@ export function DesignPickers({ only }: { only?: "fonts" | "accents" | "plants" 
       )}
       {(!only || only === "accents") && (
         <div>
-          <div className="label">Цвет сада · Галерея (Ротшильд)</div>
+          <div className="label">Цвет сада · Дизайн-студия</div>
           <div className="chips">
             {ACCENTS.map((a) => {
               const open = perks.accents.includes(a.id);
@@ -60,7 +60,7 @@ export function DesignPickers({ only }: { only?: "fonts" | "accents" | "plants" 
       )}
       {(!only || only === "plants") && (
         <div>
-          <div className="label">Вид сада · Оранжерея (Мицпе-Рамон)</div>
+          <div className="label">Породы деревьев · Дизайн-студия</div>
           <div className="grid grid-2" style={{ gap: 8 }}>
             {PLANT_STYLES.map((s) => {
               const open = perks.plants.includes(s.id);

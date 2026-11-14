@@ -1,23 +1,10 @@
-import { Link } from "react-router-dom";
 import { Telescope } from "lucide-react";
-import { useApp, useData } from "../lib/app";
+import { useData } from "../lib/app";
 
 /** Прогноз нагрузки на 14 дней — премиум Обсерватории на игровом поле. */
 export function Forecast({ compact }: { compact?: boolean }) {
-  const { perks } = useApp();
-  const { data } = useData<{ days: { day: number; count: number }[] }>(perks.forecast ? "/api/forecast" : null, [perks.forecast]);
-  if (!perks.forecast) {
-    if (compact) return null;
-    return (
-      <div className="card soft row">
-        <Telescope size={18} />
-        <span className="small text-2 grow">Прогноз нагрузки на 14 дней открывает Обсерватория (Кармель) на игровом поле.</span>
-        <Link to="/shop" className="btn sm ghost">
-          В лавку
-        </Link>
-      </div>
-    );
-  }
+  const { data } = useData<{ days: { day: number; count: number }[] }>("/api/forecast");
+  void compact;
   if (!data) return null;
   const max = Math.max(1, ...data.days.map((d) => d.count));
   const wd = new Intl.DateTimeFormat("ru-RU", { weekday: "short" });

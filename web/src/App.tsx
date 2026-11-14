@@ -37,6 +37,7 @@ import More from "./pages/More";
 import Shop from "./pages/Shop";
 import Story from "./pages/Story";
 import Offer from "./pages/Offer";
+import Carmel from "./pages/Carmel";
 import { RelatedPlaque } from "./components/Suggestions";
 
 export const NAV = [
@@ -136,8 +137,9 @@ function Shell() {
               <Link to="/shop" className="dew-chip" title="Роса">
                 <Droplets size={15} /> {dew}
               </Link>
-              <button className="btn soft sm" onClick={() => openOmni()}>
-                <Search size={16} /> Найти / добавить
+              <button className="btn soft sm" onClick={() => openOmni()} aria-label="Найти или добавить">
+                <Search size={16} /> <span className="hide-xs">Найти / добавить</span>
+                <span className="show-xs">Найти</span>
               </button>
             </div>
           </div>
@@ -160,6 +162,7 @@ function Shell() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/stories/:id" element={<Story />} />
           <Route path="/offers/:id" element={<Offer />} />
+          <Route path="/carmel" element={<Carmel />} />
           <Route path="*" element={<div className="page">Страница не найдена. <a onClick={() => nav("/")}>В сад</a></div>} />
         </Routes>
       </main>
