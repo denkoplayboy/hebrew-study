@@ -5,7 +5,7 @@ import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { db, getSettings, saveSettings, DB_PATH } from "./db.js";
+import { db, getSettings, saveSettings, DB_PATH, getMeta, setMeta } from "./db.js";
 import {
   addExamples,
   applyReview,
@@ -27,6 +27,7 @@ import {
   updateWord,
   addMoment,
   getFacet,
+  resolveRelated,
 } from "./words.js";
 import {
   aiEnabled,
@@ -42,7 +43,28 @@ import {
   reviewJournal,
   type AIConfig,
   type UsageInfo,
+  suggestWords,
+  makeStory,
+  fertilize,
 } from "./ai.js";
+import {
+  addDew,
+  balance,
+  buy,
+  CATALOG,
+  consume,
+  dewCapped,
+  dewForReview,
+  dewForWatered,
+  dewStats,
+  ensureWelcome,
+  inventory,
+  itemById,
+  ledger,
+  owns,
+  priceOf,
+  weeklyFair,
+} from "./economy.js";
 import { buildSession, todayCounts } from "./session.js";
 import { fullStats, gardenStats, rhythm, rootsGarden } from "./stats.js";
 import { getPack, importWords, listPacks, loadContent, savePack } from "./content.js";
@@ -53,6 +75,7 @@ import type { Grade } from "../../shared/memory.js";
 type Row = Record<string, any>;
 
 loadContent();
+ensureWelcome();
 
 const app = new Hono();
 
@@ -96,8 +119,18 @@ app.post("/api/logout", (c) => {
 
 app.get("/api/me", (c) => {
   const authed = !PASSWORD || getCookie(c, "shoresh") === TOKEN;
-  return c.json({ authed, needsPassword: !!PASSWORD, ai: aiInfo(), settings: authed ? getSettings() : null });
+  return c.json({
+    authed,
+    needsPassword: !!PASSWORD,
+    ai: aiInfo(),
+    settings: authed ? getSettings() : null,
+    dew: authed ? balance() : 0,
+    owned: authed ? inventory() : {},
+  });
 });
+
+app.get("/api/dew", (c) => c.json({ balance: balance(), owned: inventory(), ...dewStats() }));
+
 
 // ───────────────────────── главная ─────────────────────────
 app.get("/api/home", (c) => {
@@ -110,6 +143,7 @@ app.get("/api/home", (c) => {
     recent: summaries(recent),
     moments,
     settings: getSettings(),
+    dew: { balance: balance(), ...dewStats() },
   });
 });
 
@@ -200,7 +234,8 @@ app.post("/api/words", async (c) => {
   const id = createWord({ ...d, source: aiEnabled() ? "ai" : "manual" });
   const w = getWord(id)!;
   if (w.pos === "verb" && w.he && !(d.he_forms || []).length) void runConjugation(id);
-  return c.json({ id, word: getSummary(id) });
+  const suggestions = resolveRelated(w.related, id).filter((x) => !x.existing_id);
+  return c.json({ id, word: getSummary(id), suggestions });
 });
 
 app.post("/api/words/:id/merge", async (c) => {
@@ -213,8 +248,20 @@ app.post("/api/words/:id/merge", async (c) => {
 });
 
 app.get("/api/words/:id", (c) => {
-  const w = getFull(Number(c.req.param("id")));
-  return w ? c.json(w) : c.json({ error: "Не найдено" }, 404);
+  const id = Number(c.req.param("id"));
+  const w = getFull(id);
+  return w ? c.json({ ...w, related: resolveRelated(w.related, id) }) : c.json({ error: "Не найдено" }, 404);
+});
+
+/** Убрать предложение из «стоит добавить» у слова. */
+app.post("/api/words/:id/related/dismiss", async (c) => {
+  const id = Number(c.req.param("id"));
+  const { he } = await c.req.json<{ he: string }>();
+  const w = getWord(id);
+  if (!w) return c.json({ error: "Не найдено" }, 404);
+  const rest = w.related.filter((r) => normHe(r.he) !== normHe(he));
+  db.prepare("UPDATE words SET related = ? WHERE id = ?").run(JSON.stringify(rest), id);
+  return c.json({ ok: true });
 });
 
 app.patch("/api/words/:id", async (c) => {
@@ -262,6 +309,25 @@ app.get("/api/session", (c) => {
   );
 });
 
+/** Повторение + роса за него. */
+function reviewWithDew(r: Parameters<typeof applyReview>[0]) {
+  const before = getFacet(r.word_id, r.lang, r.facet);
+  const res = applyReview(r);
+  const w = getWord(r.word_id);
+  let dew = dewForReview({
+    facet: r.facet,
+    grade: r.grade,
+    practice: r.practice,
+    before,
+    stageBefore: res.stageBefore,
+    stageAfter: res.stageAfter,
+    wordLabel: w?.he || w?.en || "",
+    ref: String(r.word_id),
+  });
+  if (!r.practice) dew += dewForWatered(todayCounts().dueFacets);
+  return { ...res, dew };
+}
+
 app.post("/api/review", async (c) => {
   const r = await c.req.json<ReviewInput & { confusedWith?: number }>();
   if (r.confusedWith) recordConfusion(r.word_id, r.confusedWith);
@@ -270,8 +336,7 @@ app.post("/api/review", async (c) => {
     const other = lookupToken(given);
     if (other && other.id !== r.word_id) recordConfusion(r.word_id, other.id);
   }
-  const res = applyReview(r);
-  return c.json(res);
+  return c.json(reviewWithDew(r));
 });
 
 /** Ищет в списке лемм слова из словаря. */
@@ -303,7 +368,7 @@ function localLemmas(text: string, lang: StudyLang): Map<number, string> {
 
 /** Засчитывает самостоятельное употребление слов. */
 function creditSpontaneous(found: Map<number, string>, lang: StudyLang, mode: string, exclude: number[], invited: number[] = []) {
-  const credited: { id: number; he: string; en: string; ru: string; surface: string; spontaneous: boolean; first: boolean }[] = [];
+  const credited: { id: number; he: string; en: string; ru: string; surface: string; spontaneous: boolean; first: boolean; dew: number }[] = [];
   for (const [id, surface] of found) {
     if (exclude.includes(id)) continue;
     const w = getWord(id);
@@ -311,7 +376,7 @@ function creditSpontaneous(found: Map<number, string>, lang: StudyLang, mode: st
     const spontaneous = !invited.includes(id);
     const before = getFacet(id, lang, "produce");
     const first = !!before && before.reps === 0;
-    applyReview({
+    const res = reviewWithDew({
       word_id: id,
       lang,
       facet: "produce",
@@ -324,8 +389,11 @@ function creditSpontaneous(found: Map<number, string>, lang: StudyLang, mode: st
         { facet: "recognize", grade: 3 },
       ],
     });
+    let dew = res.dew;
+    // самостоятельное употребление — самое ценное: бонус сверху (только если повторение засчиталось)
+    if (spontaneous && dew > 0) dew += addDew(first ? 6 : 3, `сам употребил ${w.he || w.en}`, String(id));
     if (first && spontaneous) addMoment("spontaneous", id, `Впервые сам употребил ${w.he || w.en}`);
-    credited.push({ id, he: w.he, en: w.en, ru: w.ru, surface, spontaneous, first });
+    credited.push({ id, he: w.he, en: w.en, ru: w.ru, surface, spontaneous, first, dew });
   }
   return credited;
 }
@@ -339,7 +407,7 @@ app.post("/api/produce/check", async (c) => {
   let grade: Grade = 1;
   if (check.uses_target && check.usage_correct) grade = check.grammar_ok && check.naturalness >= 4 && !hinted ? 4 : 3;
   if (hinted && grade > 2) grade = 2;
-  const review = applyReview({
+  const review = reviewWithDew({
     word_id,
     lang,
     facet: "produce",
@@ -479,7 +547,8 @@ app.post("/api/packs/generate", async (c) => {
 app.post("/api/packs/:id/run", async (c) => {
   const { score, total } = await c.req.json<{ score: number; total: number }>();
   db.prepare("INSERT INTO pack_runs(pack_id, ts, score, total) VALUES (?, ?, ?, ?)").run(c.req.param("id"), Date.now(), score, total);
-  return c.json({ ok: true });
+  const dew = dewCapped("pack:" + c.req.param("id"), Math.max(0, Math.round(score)), 12, "набор упражнений");
+  return c.json({ ok: true, dew });
 });
 app.post("/api/packs/:id/import-words", (c) => {
   const p = getPack(c.req.param("id"));
@@ -533,14 +602,161 @@ app.post("/api/ai/compare", async (c) => {
   return c.json({ results });
 });
 
+// ───────────────────────── лавка ─────────────────────────
+app.get("/api/shop", (c) => {
+  const owned = inventory();
+  const fair = weeklyFair();
+  return c.json({
+    balance: balance(),
+    ...dewStats(),
+    fair,
+    ai: aiEnabled(),
+    items: CATALOG.map((i) => ({ ...i, finalPrice: priceOf(i), onFair: fair.items.includes(i.id), qty: owned[i.id] || 0 })),
+    ledger: ledger(25),
+    stories: db.prepare("SELECT id, ts, title, lang, read_at FROM stories ORDER BY ts DESC LIMIT 20").all(),
+    offers: db.prepare("SELECT id, ts, kind, title FROM offers ORDER BY ts DESC LIMIT 20").all(),
+    blitzBest: Number(getMeta("blitz:best") || 0),
+  });
+});
+
+app.post("/api/shop/buy", async (c) => {
+  const { item } = await c.req.json<{ item: string }>();
+  const def = itemById(item);
+  if (def?.ai && !aiEnabled()) return c.json({ error: "Для этого товара нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  const r = buy(item);
+  return r.ok ? c.json(r) : c.json({ error: r.error }, 400);
+});
+
+function needItem(id: string) {
+  if (!owns(id)) throw new AIError(`Сначала купи «${itemById(id)?.title}» в лавке`);
+}
+
+/** Сказка из слов, которые хотят пить (или самых слабых). */
+app.post("/api/shop/use/story", async (c) => {
+  const { lang = "he" } = await c.req.json<{ lang?: StudyLang }>().catch(() => ({ lang: "he" as StudyLang }));
+  needItem("story");
+  const now = Date.now();
+  const rows = db
+    .prepare(
+      `SELECT w.*, MIN(CASE WHEN f.due <= ? AND f.reps > 0 THEN 0 ELSE 1 END) AS pri FROM words w JOIN facets f ON f.word_id = w.id
+       WHERE f.lang = ? AND f.state <> 'locked' GROUP BY w.id ORDER BY pri, RANDOM() LIMIT 10`,
+    )
+    .all(now, lang) as Row[];
+  if (rows.length < 3) return c.json({ error: "Нужно хотя бы 3 слова в саду" }, 400);
+  const words = rows.map(rowToWord);
+  const story = await makeStory({ lang, words });
+  consume("story");
+  const ids = words.filter((w) => story.used.some((u) => normHe(u) === normHe(w.he) || u.toLowerCase() === w.en.toLowerCase())).map((w) => w.id);
+  const info = db
+    .prepare("INSERT INTO stories(ts, lang, title, data) VALUES (?, ?, ?, ?)")
+    .run(now, lang, story.title, JSON.stringify({ ...story, word_ids: ids.length ? ids : words.map((w) => w.id) }));
+  return c.json({ id: Number(info.lastInsertRowid) });
+});
+
+app.get("/api/stories", (c) => c.json(db.prepare("SELECT id, ts, title, lang, read_at FROM stories ORDER BY ts DESC").all()));
+app.get("/api/stories/:id", (c) => {
+  const r = db.prepare("SELECT * FROM stories WHERE id = ?").get(Number(c.req.param("id"))) as Row | undefined;
+  if (!r) return c.json({ error: "Не найдено" }, 404);
+  const data = JSON.parse(r.data);
+  const words = summaries((data.word_ids as number[]).map((id) => getWord(id)!).filter(Boolean));
+  return c.json({ id: r.id, ts: r.ts, lang: r.lang, title: r.title, read_at: r.read_at, ...data, words });
+});
+/** Прочитал сказку и ответил на вопросы: слова получают «узнавание в контексте». */
+app.post("/api/stories/:id/read", async (c) => {
+  const id = Number(c.req.param("id"));
+  const { correct, total } = await c.req.json<{ correct: number; total: number }>();
+  const r = db.prepare("SELECT * FROM stories WHERE id = ?").get(id) as Row | undefined;
+  if (!r) return c.json({ error: "Не найдено" }, 404);
+  const data = JSON.parse(r.data);
+  let dew = 0;
+  if (!r.read_at) {
+    for (const wid of data.word_ids as number[]) {
+      const w = getWord(wid);
+      if (!w || !w.study.includes(r.lang)) continue;
+      dew += reviewWithDew({ word_id: wid, lang: r.lang, facet: "recognize", grade: 3, mode: "story", correct: true, detail: { story: id } }).dew;
+    }
+    dew += addDew(Math.max(0, correct) * 2, "сказка прочитана", String(id));
+    db.prepare("UPDATE stories SET read_at = ? WHERE id = ?").run(Date.now(), id);
+  }
+  return c.json({ ok: true, dew, correct, total });
+});
+
+/** Пакет семян или лупа корня: ИИ предлагает слова, сохраняем подборку. */
+app.post("/api/shop/use/suggest", async (c) => {
+  const { kind, topic } = await c.req.json<{ kind: "theme" | "root"; topic: string }>();
+  const item = kind === "root" ? "root-lens" : "seeds";
+  needItem(item);
+  if (!topic?.trim()) return c.json({ error: kind === "root" ? "Укажи корень" : "Укажи тему" }, 400);
+  const known = (db.prepare("SELECT he FROM words WHERE he <> '' ORDER BY created_at DESC LIMIT 400").all() as Row[]).map((r) => r.he);
+  const res = await suggestWords({ kind, topic: topic.trim(), known });
+  consume(item);
+  const info = db
+    .prepare("INSERT INTO offers(ts, kind, title, data) VALUES (?, ?, ?, ?)")
+    .run(Date.now(), kind, res.title, JSON.stringify({ topic, intro: res.intro, items: res.items }));
+  return c.json({ id: Number(info.lastInsertRowid) });
+});
+app.get("/api/offers/:id", (c) => {
+  const r = db.prepare("SELECT * FROM offers WHERE id = ?").get(Number(c.req.param("id"))) as Row | undefined;
+  if (!r) return c.json({ error: "Не найдено" }, 404);
+  const data = JSON.parse(r.data);
+  return c.json({ id: r.id, ts: r.ts, kind: r.kind, title: r.title, intro: data.intro, topic: data.topic, items: resolveRelated(data.items) });
+});
+
+/** Удобрение для капризного слова. */
+app.post("/api/shop/use/fertilizer", async (c) => {
+  const { word_id } = await c.req.json<{ word_id: number }>();
+  needItem("fertilizer");
+  const w = getWord(word_id);
+  if (!w) return c.json({ error: "Не найдено" }, 404);
+  const lang: StudyLang = w.study.includes("he") ? "he" : "en";
+  const conf = getFull(word_id)!.confusions.map((x) => x.he || x.en);
+  const r = await fertilize(w, lang, conf);
+  consume("fertilizer");
+  const notes = r.tip && !w.notes.includes(r.tip) ? (w.notes ? w.notes + "\n" : "") + r.tip : w.notes;
+  updateWord(word_id, { mnemonic: r.mnemonic, notes });
+  addExamples(word_id, r.examples);
+  ensureFacets(word_id);
+  addMoment("fertilize", word_id, `Удобрено: ${w.he || w.en}`);
+  return c.json({ ...getFull(word_id), related: resolveRelated(getWord(word_id)!.related, word_id) });
+});
+
+/** Итог блица: роса за верные ответы (с дневным потолком) и рекорд. */
+app.post("/api/blitz/finish", async (c) => {
+  const { correct, total } = await c.req.json<{ correct: number; total: number }>();
+  const best = Number(getMeta("blitz:best") || 0);
+  const record = correct > best;
+  if (record) setMeta("blitz:best", String(correct));
+  const dew = dewCapped("blitz", Math.floor(Math.max(0, correct) / 3) + (record && best > 0 ? 5 : 0), 20, "блиц");
+  if (record && best > 0) addMoment("blitz", null, `Новый рекорд блица: ${correct}`);
+  return c.json({ dew, best: Math.max(best, correct), record });
+});
+
 // ───────────────────────── настройки и резервная копия ─────────────────────────
 app.get("/api/settings", (c) => c.json(getSettings()));
 app.put("/api/settings", async (c) => {
-  saveSettings(await c.req.json());
+  const patch = await c.req.json();
+  if (patch.accent && patch.accent !== "sage" && !owns("theme-" + patch.accent)) return c.json({ error: "Эту тему сначала нужно купить в лавке" }, 403);
+  saveSettings(patch);
   return c.json(getSettings());
 });
 
-const TABLES = ["words", "forms", "examples", "facets", "reviews", "confusions", "journal", "packs", "pack_runs", "settings", "moments"];
+const TABLES = [
+  "words",
+  "forms",
+  "examples",
+  "facets",
+  "reviews",
+  "confusions",
+  "journal",
+  "packs",
+  "pack_runs",
+  "settings",
+  "moments",
+  "dew_ledger",
+  "inventory",
+  "stories",
+  "offers",
+];
 
 app.get("/api/export", (c) => {
   const dump: Record<string, unknown[]> = {};

@@ -1,6 +1,17 @@
 import type { Facet, FacetState } from "./memory.js";
 import type { StudyLang } from "./lang.js";
 
+/** Слово, которое стоит выучить вместе с текущим (другой биньян, сущ. ↔ прил. и т.п.). */
+export interface RelatedSuggestion {
+  he: string;
+  he_nikud: string;
+  ru: string;
+  pos: string;
+  relation: string;
+  /** если слово уже есть в словаре */
+  existing_id?: number | null;
+}
+
 export interface Word {
   id: number;
   he: string;
@@ -23,6 +34,7 @@ export interface Word {
   study: StudyLang[];
   source: string;
   conj_status: "none" | "pending" | "ready" | "error";
+  related: RelatedSuggestion[];
   created_at: number;
   updated_at: number;
 }
@@ -94,6 +106,7 @@ export interface WordDraft {
   examples: Example[];
   en_forms: WordForm[];
   he_forms: WordForm[];
+  related?: RelatedSuggestion[];
 }
 
 export interface ExerciseItem {
@@ -107,7 +120,8 @@ export interface ExerciseItem {
     | "cloze"
     | "produce"
     | "conjugate"
-    | "analyze";
+    | "analyze"
+    | "dictation";
   lang: StudyLang;
   facet: Facet | null;
   word: WordSummary;

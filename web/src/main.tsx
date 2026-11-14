@@ -6,6 +6,8 @@ import "./styles.css";
 try {
   const t = localStorage.getItem("theme");
   if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  const a = localStorage.getItem("accent");
+  if (a && a !== "sage") document.documentElement.dataset.accent = a;
 } catch {
   /* приватный режим */
 }

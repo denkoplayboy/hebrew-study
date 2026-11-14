@@ -3,6 +3,7 @@ import { getExamples, getForms, getWord, summaries, rowToWord } from "./words.js
 import { facetStrength, retrievability, DAY, type Facet } from "../../shared/memory.js";
 import type { ExerciseItem, WordForm, WordSummary } from "../../shared/types.js";
 import type { StudyLang } from "../../shared/lang.js";
+import { owns, itemById } from "./economy.js";
 
 type Row = Record<string, any>;
 
@@ -404,6 +405,53 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       for (const c of cs) {
         const it = toItem(c, { preferKind: c.facet === "recognize" ? "choice" : undefined });
         if (it) items.push(it);
+      }
+      return { items };
+    }
+    case "dictation": {
+      if (!owns("mech-dictation"))
+        return { items: [], note: `Диктант открывается в лавке за ${itemById("mech-dictation")?.price} росы.`, locked: true } as any;
+      const l: StudyLang = o.lang === "en" ? "en" : "he";
+      const rows = db
+        .prepare(
+          `SELECT f.*, (SELECT COUNT(*) FROM examples e WHERE e.word_id = f.word_id AND e.lang = f.lang) AS ex FROM facets f
+           WHERE f.lang = ? AND f.facet = 'listen' AND f.state <> 'locked' AND f.reps > 0`,
+        )
+        .all(l) as Row[];
+      const cs = rows
+        .filter((r) => r.ex > 0)
+        .map((r) => ({ r, s: facetStrength(r as any, now) - (r.due <= now ? 1 : 0) }))
+        .sort((a, b) => a.s - b.s)
+        .slice(0, Math.min(size, 12));
+      const items: ExerciseItem[] = [];
+      for (const { r } of cs) {
+        const ex = getExamples(r.word_id).filter((e) => e.lang === l);
+        if (!ex.length) continue;
+        // короткие предложения — чаще
+        ex.sort((a, b) => a.text.length - b.text.length);
+        const pickEx = ex[Math.floor(Math.random() * Math.min(2, ex.length))];
+        items.push({ key: `dict:${r.word_id}`, kind: "dictation", lang: l, facet: "listen", word: summary(r.word_id), example: pickEx });
+      }
+      return { items: shuffle(items), note: items.length ? undefined : "Для диктанта нужны знакомые слова с примерами предложений." };
+    }
+    case "blitz": {
+      if (!owns("mech-blitz")) return { items: [], note: `Блиц открывается в лавке за ${itemById("mech-blitz")?.price} росы.`, locked: true } as any;
+      const known = candidates(lang, ["recognize"]).filter((c) => c.reps > 0);
+      if (known.length < 4) return { items: [], note: "Для блица нужно хотя бы 4 знакомых слова." };
+      const items: ExerciseItem[] = [];
+      for (let i = 0; i < 60; i++) {
+        const c = known[Math.floor(Math.random() * known.length)];
+        const w = summary(c.word_id);
+        const dir = Math.random() < 0.6 ? "to_ru" : "to_target";
+        items.push({
+          key: `bz:${i}:${c.word_id}`,
+          kind: "choice",
+          lang: c.lang,
+          facet: "recognize",
+          word: w,
+          direction: dir,
+          options: distractors(w, c.lang, dir === "to_ru" ? "ru" : "target"),
+        });
       }
       return { items };
     }

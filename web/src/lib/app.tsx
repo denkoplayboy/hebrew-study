@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
+import type { RelatedSuggestion } from "../../../shared/types";
 
 export type AIOp = "analyze" | "conjugate" | "check";
 export interface AIProfile {
@@ -16,6 +17,7 @@ export interface Settings {
   showNikud: boolean;
   keyboardMap: boolean;
   ttsRate: number;
+  accent: string;
 }
 
 export interface Me {
@@ -23,6 +25,14 @@ export interface Me {
   needsPassword: boolean;
   ai: { enabled: boolean; model: string; defaultModel?: string; models?: { id: string; name: string; note: string }[] };
   settings: Settings | null;
+  dew?: number;
+  owned?: Record<string, number>;
+}
+
+/** Плашка «добавить также…» после посадки слова. */
+export interface RelatedOffer {
+  source: string;
+  items: RelatedSuggestion[];
 }
 
 interface Toast {
@@ -38,9 +48,14 @@ interface Ctx {
   refreshMe: () => Promise<void>;
   updateSettings: (p: Partial<Settings>) => Promise<void>;
   toast: (text: string, bad?: boolean) => void;
-  omni: { open: boolean; initial: string };
-  openOmni: (initial?: string) => void;
+  omni: { open: boolean; initial: string; auto: boolean };
+  openOmni: (initial?: string, auto?: boolean) => void;
   closeOmni: () => void;
+  dew: number;
+  owned: Record<string, number>;
+  refreshDew: () => void;
+  related: RelatedOffer | null;
+  offerRelated: (o: RelatedOffer | null) => void;
   bump: number; // увеличивается, когда данные изменились (новое слово и т.п.)
   touch: () => void;
 }
@@ -58,6 +73,7 @@ const DEFAULTS: Settings = {
   showNikud: true,
   keyboardMap: true,
   ttsRate: 0.9,
+  accent: "sage",
 };
 
 const AppCtx = createContext<Ctx>(null as unknown as Ctx);
@@ -66,13 +82,39 @@ export const useApp = () => useContext(AppCtx);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [omni, setOmni] = useState({ open: false, initial: "" });
+  const [omni, setOmni] = useState({ open: false, initial: "", auto: false });
   const [bump, setBump] = useState(0);
+  const [dew, setDew] = useState<{ balance: number; owned: Record<string, number> }>({ balance: 0, owned: {} });
+  const [related, setRelated] = useState<RelatedOffer | null>(null);
   const tid = useRef(0);
 
   const refreshMe = useCallback(async () => {
-    setMe(await api.get<Me>("/api/me"));
+    const m = await api.get<Me>("/api/me");
+    setMe(m);
+    if (m.authed) setDew({ balance: m.dew || 0, owned: m.owned || {} });
   }, []);
+  const refreshDew = useCallback(() => {
+    api
+      .get<{ balance: number; owned: Record<string, number> }>("/api/dew")
+      .then((d) => setDew({ balance: d.balance, owned: d.owned }))
+      .catch(() => {});
+  }, []);
+  // роса обновляется вместе с любыми изменениями данных
+  useEffect(() => {
+    if (bump && me?.authed) refreshDew();
+  }, [bump]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // акцентная тема (покупается в лавке)
+  const accent = me?.settings?.accent || "sage";
+  useEffect(() => {
+    try {
+      localStorage.setItem("accent", accent);
+    } catch {
+      /* noop */
+    }
+    if (accent === "sage") delete document.documentElement.dataset.accent;
+    else document.documentElement.dataset.accent = accent;
+  }, [accent]);
   useEffect(() => {
     refreshMe().catch(() => setMe({ authed: false, needsPassword: true, ai: { enabled: false, model: "" }, settings: null }));
   }, [refreshMe]);
@@ -99,8 +141,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateSettings,
     toast,
     omni,
-    openOmni: (initial = "") => setOmni({ open: true, initial }),
-    closeOmni: () => setOmni({ open: false, initial: "" }),
+    openOmni: (initial = "", auto = false) => setOmni({ open: true, initial, auto }),
+    closeOmni: () => setOmni({ open: false, initial: "", auto: false }),
+    dew: dew.balance,
+    owned: dew.owned,
+    refreshDew,
+    related,
+    offerRelated: setRelated,
     bump,
     touch: () => setBump((b) => b + 1),
   };

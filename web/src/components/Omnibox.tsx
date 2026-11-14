@@ -4,7 +4,7 @@ import { Search, Plus, Sparkles, Check, ArrowRight, GitMerge } from "lucide-reac
 import { api, ApiError } from "../lib/api";
 import { useApp } from "../lib/app";
 import { detectLang, posLabel } from "../../../shared/lang";
-import type { WordDraft, WordSummary } from "../../../shared/types";
+import type { RelatedSuggestion, WordDraft, WordSummary } from "../../../shared/types";
 import { Plant, Thirst, mainProgress, WordFace, He } from "./ui";
 import { DraftEditor } from "./DraftEditor";
 
@@ -46,8 +46,21 @@ export function HitRow({ h, onOpen }: { h: Hit; onOpen: () => void }) {
 }
 
 /** Единое окно: ищет по всем трём языкам и формам; если слова нет — добавляет. */
-export function Omnibox({ initial = "", autoFocus, onDone, compact }: { initial?: string; autoFocus?: boolean; onDone?: () => void; compact?: boolean }) {
-  const { ai, toast, touch } = useApp();
+export function Omnibox({
+  initial = "",
+  autoFocus,
+  onDone,
+  compact,
+  autoAnalyze,
+}: {
+  initial?: string;
+  autoFocus?: boolean;
+  onDone?: () => void;
+  compact?: boolean;
+  /** сразу запустить разбор (когда слово выбрано из подсказок) */
+  autoAnalyze?: boolean;
+}) {
+  const { ai, toast, touch, offerRelated } = useApp();
   const nav = useNavigate();
   const [q, setQ] = useState(initial);
   const [hits, setHits] = useState<Hit[] | null>(null);
@@ -111,8 +124,9 @@ export function Omnibox({ initial = "", autoFocus, onDone, compact }: { initial?
   const save = async (d: WordDraft, force = false) => {
     setBusy(true);
     try {
-      const r = await api.post<{ id: number }>("/api/words", { draft: d, force });
+      const r = await api.post<{ id: number; suggestions?: RelatedSuggestion[] }>("/api/words", { draft: d, force });
       toast(`Посажено: ${d.he || d.en || d.ru}`);
+      if (r.suggestions?.length) offerRelated({ source: d.he || d.en || d.ru, items: r.suggestions });
       touch();
       setDraft(null);
       setQ("");
@@ -165,11 +179,13 @@ export function Omnibox({ initial = "", autoFocus, onDone, compact }: { initial?
     if (!batch) return;
     const next = [...batch];
     let n = 0;
+    const sugg: RelatedSuggestion[] = [];
     for (let i = 0; i < next.length; i++) {
       const d = next[i].draft;
       if (next[i].status !== "draft" || !d) continue;
       try {
-        await api.post("/api/words", { draft: d, force: true });
+        const r = await api.post<{ suggestions?: RelatedSuggestion[] }>("/api/words", { draft: d, force: true });
+        for (const s of r.suggestions || []) if (!sugg.some((x) => x.he === s.he)) sugg.push(s);
         next[i] = { ...next[i], status: "saved" };
         n++;
       } catch (e) {
@@ -179,7 +195,16 @@ export function Omnibox({ initial = "", autoFocus, onDone, compact }: { initial?
     }
     touch();
     toast(`Посажено слов: ${n}`);
+    // не предлагать слова, которые только что посадили этим же списком
+    const planted = new Set(next.filter((x) => x.status === "saved").map((x) => x.draft?.he));
+    const rest = sugg.filter((s) => !planted.has(s.he));
+    if (rest.length) offerRelated({ source: "этим списком", items: rest });
   };
+
+  // слово выбрано из подсказок — сразу разбираем
+  useEffect(() => {
+    if (autoAnalyze && initial.trim() && !splitBatch(initial).length) void analyze(initial.trim());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lang = detectLang(q);
 

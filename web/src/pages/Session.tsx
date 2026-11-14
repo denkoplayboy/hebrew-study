@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
-import { X, RotateCcw, Sprout, Unlock } from "lucide-react";
+import { X, RotateCcw, Sprout, Unlock, Droplets } from "lucide-react";
 import { api } from "../lib/api";
 import { useApp, plural } from "../lib/app";
 import type { ExerciseItem } from "../../../shared/types";
@@ -10,6 +10,7 @@ import type { ExResult } from "../exercises/common";
 import { IntroEx, FlashEx, ChoiceEx, ListenEx } from "../exercises/basic";
 import { RecallEx, ClozeEx, ConjugateEx } from "../exercises/typed";
 import { ProduceEx, AnalyzeEx, MatchGame } from "../exercises/advanced";
+import { DictationEx, BlitzGame } from "../exercises/extra";
 
 interface ReviewRes {
   unlocked: string[];
@@ -17,6 +18,7 @@ interface ReviewRes {
   stageAfter: number;
   masteryBefore: number;
   masteryAfter: number;
+  dew?: number;
 }
 
 interface Log {
@@ -39,6 +41,8 @@ const TITLES: Record<string, string> = {
   twins: "Близнецы",
   weak: "Слабые места",
   word: "Тренировка слова",
+  dictation: "Диктант",
+  blitz: "Блиц",
 };
 
 export default function Session() {
@@ -48,6 +52,7 @@ export default function Session() {
   const { touch, toast } = useApp();
   const [queue, setQueue] = useState<ExerciseItem[] | null>(null);
   const [note, setNote] = useState<string | undefined>();
+  const [locked, setLocked] = useState(false);
   const [idx, setIdx] = useState(0);
   const [logs, setLogs] = useState<Log[]>([]);
   const [finished, setFinished] = useState(false);
@@ -69,10 +74,11 @@ export default function Session() {
     requeued.current = new Set();
     t0.current = Date.now();
     api
-      .get<{ items: ExerciseItem[]; note?: string }>(`/api/session?${query}`)
+      .get<{ items: ExerciseItem[]; note?: string; locked?: boolean }>(`/api/session?${query}`)
       .then((r) => {
         setQueue(r.items);
         setNote(r.note);
+        setLocked(!!r.locked);
       })
       .catch((e) => toast(e.message, true));
   }, [query, round, toast]);
@@ -139,13 +145,13 @@ export default function Session() {
         <div className="grow">
           <div className="row between small" style={{ marginBottom: 6 }}>
             <span style={{ fontWeight: 500 }}>{title}</span>
-            {queue && queue.length > 0 && mode !== "match" && (
+            {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
               <span className="muted">
                 {Math.min(idx + 1, queue.length)} / {queue.length}
               </span>
             )}
           </div>
-          <Bar value={progress} thin />
+          {mode !== "blitz" && <Bar value={progress} thin />}
         </div>
       </div>
 
@@ -160,9 +166,15 @@ export default function Session() {
             <Link to="/practice" className="btn">
               К режимам
             </Link>
-            <Link to="/words" className="btn primary">
-              Добавить слова
-            </Link>
+            {locked ? (
+              <Link to="/shop" className="btn primary">
+                В лавку
+              </Link>
+            ) : (
+              <Link to="/words" className="btn primary">
+                Добавить слова
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -180,7 +192,22 @@ export default function Session() {
         />
       )}
 
-      {queue && queue.length > 0 && !finished && mode !== "match" && <Exercise key={queue[idx].key} item={queue[idx]} onNext={next} />}
+      {queue && queue.length > 0 && mode === "blitz" && (
+        <BlitzGame
+          items={queue}
+          onAnswer={(item, r) => void send(item, r)}
+          onFinish={async (correct, total) => {
+            touch();
+            try {
+              return await api.post<{ dew: number; best: number; record: boolean }>("/api/blitz/finish", { correct, total });
+            } catch {
+              return null;
+            }
+          }}
+        />
+      )}
+
+      {queue && queue.length > 0 && !finished && mode !== "match" && mode !== "blitz" && <Exercise key={queue[idx].key} item={queue[idx]} onNext={next} />}
 
       {finished && <Summary logs={logs} mode={mode} seconds={Math.round((Date.now() - t0.current) / 1000)} onAgain={() => setRound((r) => r + 1)} />}
     </div>
@@ -205,6 +232,8 @@ function Exercise({ item, onNext }: { item: ExerciseItem; onNext: (r: ExResult) 
       return <ConjugateEx item={item} onNext={onNext} />;
     case "analyze":
       return <AnalyzeEx item={item} onNext={onNext} />;
+    case "dictation":
+      return <DictationEx item={item} onNext={onNext} />;
     case "produce":
       return <ProduceEx item={item} onNext={onNext} />;
   }
@@ -222,6 +251,7 @@ function Summary({ logs, mode, seconds, onAgain }: { logs: Log[]; mode: string; 
     for (const f of l.review?.unlocked || []) unlocked.push({ word: l.item.word, lang: l.item.lang, facet: f });
   }
   const intros = logs.filter((l) => l.item.kind === "intro").length;
+  const dew = logs.reduce((s, l) => s + (l.review?.dew || 0), 0);
   const confident = graded.filter((l) => l.r.confidence === 3);
   const confidentOk = confident.filter((l) => l.r.correct).length;
 
@@ -240,6 +270,11 @@ function Summary({ logs, mode, seconds, onAgain }: { logs: Log[]; mode: string; 
             </>
           )}
         </p>
+        {dew > 0 && (
+          <p className="row gap-4" style={{ justifyContent: "center" }}>
+            <Droplets size={16} className="drop" /> +{dew} росы
+          </p>
+        )}
         {confident.length >= 3 && (
           <p className="small muted">
             Калибровка: когда ты «уверен», ты прав в {Math.round((confidentOk / confident.length) * 100)}% случаев.

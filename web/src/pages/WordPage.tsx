@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2, Target, Sparkles, RefreshCw, GitCompare } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Target, Sparkles, RefreshCw, GitCompare, Sprout, Search, Store } from "lucide-react";
 import { api } from "../lib/api";
 import { useApp, useData, relTime } from "../lib/app";
 import { FACETS, STAGES, facetInfo } from "../../../shared/memory";
@@ -8,11 +8,12 @@ import { PERSONS, TENSES, binyanLabel, gizraLabel, posLabel, EN_FORMS, type Tens
 import type { WordFull, WordForm } from "../../../shared/types";
 import { Bar, FacetFlower, He, Loading, Mixed, Plant, SpeakBtn, StageBadge } from "../components/ui";
 import { DraftEditor } from "../components/DraftEditor";
+import { SuggestionList } from "../components/Suggestions";
 
 export default function WordPage() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { ai, toast, touch } = useApp();
+  const { ai, toast, touch, owned } = useApp();
   const { data: w, setData, reload } = useData<WordFull>(`/api/words/${id}`, [id]);
   const [lang, setLang] = useState<"he" | "en">("he");
   const [edit, setEdit] = useState<WordFull | null>(null);
@@ -208,7 +209,66 @@ export default function WordPage() {
                 English
               </button>
             </div>
+            {ai && (
+              <div className="row wrap mt-8">
+                {owned["fertilizer"] ? (
+                  <button
+                    className="btn soft sm"
+                    disabled={busy === "fert"}
+                    title="Мнемоника, объяснение и запоминающиеся примеры от ИИ"
+                    onClick={() =>
+                      act(
+                        "fert",
+                        async () => {
+                          setData(await api.post<WordFull>("/api/shop/use/fertilizer", { word_id: w.id }));
+                          touch();
+                        },
+                        "Слово удобрено",
+                      )
+                    }
+                  >
+                    {busy === "fert" ? <span className="spinner" /> : <Sprout size={15} />} Удобрить (есть {owned["fertilizer"]})
+                  </button>
+                ) : (
+                  <Link to="/shop" className="btn ghost sm" title="Удобрение покупается в лавке за росу">
+                    <Store size={15} /> Удобрение — в лавке
+                  </Link>
+                )}
+                {w.root && owned["root-lens"] ? (
+                  <button
+                    className="btn soft sm"
+                    disabled={busy === "lens"}
+                    onClick={() =>
+                      act("lens", async () => {
+                        const r = await api.post<{ id: number }>("/api/shop/use/suggest", { kind: "root", topic: w.root });
+                        touch();
+                        nav(`/offers/${r.id}`);
+                      })
+                    }
+                  >
+                    {busy === "lens" ? <span className="spinner" /> : <Search size={15} />} Лупа корня <span className="he">{w.root}</span>
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
+
+          {w.related.some((r) => !r.existing_id) && (
+            <>
+              <div className="section-title">Стоит посадить рядом</div>
+              <div className="card">
+                <SuggestionList
+                  items={w.related}
+                  onDismiss={(s) =>
+                    act("dismiss", async () => {
+                      await api.post(`/api/words/${w.id}/related/dismiss`, { he: s.he });
+                      setData({ ...w, related: w.related.filter((x) => x.he !== s.he) });
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
 
           {/* навыки */}
           <div className="row between mt-24">

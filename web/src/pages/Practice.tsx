@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Droplet, Layers, ListChecks, Brain, Ear, TextCursorInput, PenLine, Table2, Microscope, Shuffle, GitCompare, Activity, Puzzle } from "lucide-react";
+import { Droplet, Layers, ListChecks, Brain, Ear, TextCursorInput, PenLine, Table2, Microscope, Shuffle, GitCompare, Activity, Puzzle, Headphones, Zap, Lock } from "lucide-react";
 import { useApp, useData } from "../lib/app";
 
 interface Today {
@@ -23,11 +23,13 @@ const MODES = [
   { id: "match", icon: Puzzle, title: "Пары", text: "Соедини слова и переводы на время. Лёгкая разминка.", facets: [], skill: "узнавание" },
   { id: "twins", icon: GitCompare, title: "Близнецы", text: "Слова, которые ты путал между собой, — в одной тренировке.", facets: [], skill: "различение" },
   { id: "weak", icon: Activity, title: "Слабые места", text: "Самые хрупкие навыки по всему саду, даже если ещё не пора.", facets: [], skill: "всё" },
-];
+  { id: "dictation", icon: Headphones, title: "Диктант", text: "Слышишь целое предложение из примеров — записываешь его.", facets: [], skill: "слух + письмо", item: "mech-dictation" },
+  { id: "blitz", icon: Zap, title: "Блиц", text: "60 секунд знакомых слов на скорость. Рекорд и немного росы.", facets: [], skill: "беглость", item: "mech-blitz" },
+] as { id: string; icon: typeof Zap; title: string; text: string; facets: string[]; skill: string; item?: string }[];
 
 export default function Practice() {
   const { data } = useData<{ today: Today }>("/api/home");
-  const { ai } = useApp();
+  const { ai, owned } = useApp();
   const nav = useNavigate();
   const t = data?.today;
   const count = (facets: string[]) => facets.reduce((s, f) => s + (t?.byFacet[f] || 0), 0);
@@ -65,13 +67,24 @@ export default function Practice() {
         {MODES.map((m) => {
           const due = count(m.facets);
           const nw = fresh(m.facets);
+          const isLocked = !!m.item && !owned[m.item];
           return (
-            <button key={m.id} className="card link col gap-6" style={{ textAlign: "left", cursor: "pointer" }} onClick={() => nav(`/practice/${m.id}`)}>
+            <button
+              key={m.id}
+              className="card link col gap-6"
+              style={{ textAlign: "left", cursor: "pointer", opacity: isLocked ? 0.75 : 1 }}
+              onClick={() => nav(isLocked ? "/shop" : `/practice/${m.id}`)}
+            >
               <div className="row between">
                 <span className="brand-mark" style={{ background: "var(--surface-2)", color: "var(--accent-strong)", width: 36, height: 36 }}>
                   <m.icon size={18} />
                 </span>
                 <div className="row gap-4">
+                  {isLocked && (
+                    <span className="badge gold">
+                      <Lock size={11} /> в лавке
+                    </span>
+                  )}
                   {due > 0 && <span className="badge water">{due}</span>}
                   {nw > 0 && ["recall", "context", "produce", "conjugate"].includes(m.id) && <span className="badge accent" title="Навыки, которые недавно открылись">+{nw} новых</span>}
                 </div>

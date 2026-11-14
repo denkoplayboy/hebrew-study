@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { BINYANIM, GZAROT, PERSONS, stripNikud, detectLang, type Tense } from "../../shared/lang.js";
-import type { Example, Pack, PackItem, Word, WordDraft, WordForm } from "../../shared/types.js";
+import type { Example, Pack, PackItem, RelatedSuggestion, Word, WordDraft, WordForm } from "../../shared/types.js";
 import { db, getSettings, type AIOp } from "./db.js";
 
 // Модель по умолчанию — переменная AI_MODEL на fly.io; модель и «усилие» для каждой операции
@@ -11,7 +11,7 @@ const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 const EFFORT_OVERRIDE = process.env.AI_EFFORT as "low" | "medium" | "high" | undefined;
 const MOCK = process.env.AI_MOCK === "1";
 // меняй при правке промптов — чтобы не отдавать из кэша ответы старой версии
-const PROMPT_VERSION = 2;
+const PROMPT_VERSION = 3;
 
 export const AI_MODELS = [
   { id: "claude-opus-5-5", name: "Opus 5.5", note: "самая сильная" },
@@ -187,6 +187,7 @@ const DraftSchema = z.object({
   he_examples: z.array(z.object({ text: z.string(), text_nikud: z.string(), target: z.string(), ru: z.string() })),
   en_examples: z.array(z.object({ text: z.string(), target: z.string(), ru: z.string() })),
   en_forms: z.array(z.object({ form_id: z.enum(["past", "pp", "ing", "3s", "plural"]), form: z.string() })),
+  related: z.array(z.object({ he: z.string(), he_nikud: z.string(), ru: z.string(), pos: z.enum(POS_IDS), relation: z.string() })),
 });
 
 const ANALYZE_SYSTEM = `Ты — лексикограф и преподаватель иврита и английского. ${LEARNER}
@@ -207,6 +208,7 @@ const ANALYZE_SYSTEM = `Ты — лексикограф и преподават�
 - lemma_note — если ввод был не в словарной форме, по-русски поясни, что это была за форма (например «נתפסתי — прош. вр., 1 л. ед. ч.»). Иначе пустая строка.
 - notes — 1–3 коротких замечания: управление (с какой מילת יחס), устойчивые сочетания, регистр, омографы. mnemonic — короткая ассоциация на русском, если получается естественная; иначе пустая строка.
 - tags — 1–3 тематические метки на русском (например «право», «эмоции»).
+- related — 0–3 слова на иврите, которые стоит выучить ВМЕСТЕ с этим, потому что без них картина неполная: тот же корень в парном биньяне (пассив ↔ актив: הוּלַּל → לְהַלֵּל; נִכְנַס → לְהַכְנִיס), прилагательное ↔ существительное, от которого оно образовано (רוּחָנִי → רוּחַ), глагол ↔ его отглагольное существительное (לְהַחְלִיט → הַחְלָטָה). Только частотные слова современного иврита, в словарной форме; he — без огласовок (כתיב מלא), he_nikud — с огласовками, ru — перевод, relation — коротко по-русски, чем связано (например «пиэль: хвалить — активная пара»). Не повторяй само слово. Если ничего действительно полезного нет — пустой список.
 - is_valid = false, если это не слово ни одного из трёх языков.`;
 
 export async function analyzeWord(
@@ -260,6 +262,7 @@ export async function analyzeWord(
     examples,
     en_forms: r.en_forms.map((f) => ({ lang: "en" as const, tense: f.form_id, person: "", form: f.form, nikud: f.form })),
     he_forms: [],
+    related: (r.related || []).map((x) => ({ ...x, he: stripNikud(x.he || x.he_nikud) })),
   };
 }
 
@@ -485,6 +488,106 @@ explain — короткое пояснение по-русски к каждо�
   return { id: "ai-" + Date.now().toString(36), title: r.title, description: r.description, lang: opts.lang, source: "ai", items };
 }
 
+// ───────────────────────── лавка: семена, лупа корня, сказки, удобрение ─────────────────────────
+
+const SuggestSchema = z.object({
+  title: z.string(),
+  intro: z.string(),
+  items: z.array(z.object({ he: z.string(), he_nikud: z.string(), ru: z.string(), pos: z.enum(POS_IDS), relation: z.string() })),
+});
+export type WordSuggestions = { title: string; intro: string; items: RelatedSuggestion[] };
+
+/** Пакет семян (слова по теме) или лупа корня (вся семья корня). */
+export async function suggestWords(opts: { kind: "theme" | "root"; topic: string; known: string[] }): Promise<WordSuggestions> {
+  if (MOCK)
+    return {
+      title: opts.kind === "root" ? `Корень ${opts.topic}` : `Тема: ${opts.topic}`,
+      intro: "Мок-подборка.",
+      items: [
+        { he: "שולחן", he_nikud: "שֻׁלְחָן", ru: "стол", pos: "noun", relation: "мебель" },
+        { he: "כיסא", he_nikud: "כִּסֵּא", ru: "стул", pos: "noun", relation: "мебель" },
+      ],
+    };
+  const task =
+    opts.kind === "root"
+      ? `Корень: ${opts.topic}. Перечисли 8–14 употребительных слов современного иврита от этого корня: глаголы во всех биньянах, где они реально используются (в форме שם הפועל или 3 л. м. р. прош. для פועל/הופעל), существительные (в т.ч. отглагольные), прилагательные. relation — биньян/модель и короткое пояснение по-русски. title — «Семья корня …», intro — 1–2 предложения: общий смысл корня и как он «звучит» в разных биньянах.`
+      : `Тема: ${opts.topic}. Подбери 10–12 самых полезных для жизни в Израиле слов и выражений по теме, уровень ульпана алеф–гимель, от простых к более сложным. relation — где и как это слово встречается (коротко, по-русски). title — короткое название пакета, intro — 1 предложение.`;
+  const r = await ask({
+    op: "analyze",
+    system: `Ты — преподаватель иврита. ${LEARNER}
+Слова давай в словарной форме: he — כתיב מלא без огласовок, he_nikud — с огласовками, ru — перевод. Не предлагай слова из списка «уже знает».`,
+    user: `${task}\n\nУже знает: ${opts.known.slice(0, 400).join(", ") || "—"}`,
+    schema: SuggestSchema,
+    override: { effort: "low" },
+    tag: opts.kind,
+  });
+  return { ...r, items: r.items.map((x) => ({ ...x, he: stripNikud(x.he || x.he_nikud) })) };
+}
+
+const StorySchema = z.object({
+  title: z.string(),
+  sentences: z.array(z.object({ text: z.string(), text_nikud: z.string(), ru: z.string() })),
+  questions: z.array(z.object({ q: z.string(), options: z.array(z.string()), answer_index: z.number().int(), explain: z.string() })),
+  used: z.array(z.string()),
+});
+export type Story = z.infer<typeof StorySchema>;
+
+/** Сказка из слов ученика: короткий связный текст + вопросы на понимание. */
+export async function makeStory(opts: { lang: "he" | "en"; words: { he: string; en: string; ru: string }[] }): Promise<Story> {
+  if (MOCK)
+    return {
+      title: "Мок-сказка",
+      sentences: [{ text: "הגנב נתפס בבוקר.", text_nikud: "הַגַּנָּב נִתְפַּס בַּבֹּקֶר.", ru: "Вора поймали утром." }],
+      questions: [{ q: "Кого поймали?", options: ["вора", "кота"], answer_index: 0, explain: "הגנב — вор." }],
+      used: ["להיתפס"],
+    };
+  const list = opts.words.map((w) => (opts.lang === "he" ? `${w.he} — ${w.ru}` : `${w.en} — ${w.ru}`)).join("\n");
+  return ask({
+    op: "analyze",
+    system: `Ты — автор коротких рассказов для изучающих ${opts.lang === "he" ? "иврит" : "английский"}. ${LEARNER}
+Напиши живой, связный рассказ из 7–10 коротких предложений (бытовая ситуация из жизни в Израиле, с сюжетом и маленьким поворотом в конце), используя как можно больше слов из списка — в естественных формах (спряжения, приставки, мн. ч.). Остальная лексика — простая, уровня ульпана.
+- sentences: text — ${opts.lang === "he" ? "предложение на иврите, כתיב מלא без огласовок; text_nikud — то же с огласовками" : "предложение на английском; text_nikud — пустая строка"}; ru — перевод.
+- questions: 3 вопроса на понимание по-русски, по 3–4 варианта ответа, answer_index — индекс верного, explain — короткое пояснение со ссылкой на фразу из текста.
+- used — слова из списка (в словарной форме, как в списке), которые реально вошли в текст.`,
+    user: `Слова ученика:\n${list}`,
+    schema: StorySchema,
+    tag: "story",
+  });
+}
+
+const FertilizeSchema = z.object({
+  mnemonic: z.string(),
+  tip: z.string(),
+  examples: z.array(z.object({ text: z.string(), text_nikud: z.string(), target: z.string(), ru: z.string() })),
+});
+
+/** Удобрение для «капризного» слова: яркая мнемоника, подсказка и новые запоминающиеся примеры. */
+export async function fertilize(w: Word, lang: "he" | "en", confusions: string[]) {
+  if (MOCK) return { mnemonic: "Мок-мнемоника", tip: "Мок-подсказка", examples: [] as Example[] };
+  const r = await ask({
+    op: "analyze",
+    system: `Ты — специалист по запоминанию слов. ${LEARNER}
+Ученик постоянно забывает это слово. Помоги ему зацепиться:
+- mnemonic — одна яркая, немного абсурдная ассоциация на русском, связывающая ЗВУЧАНИЕ слова со смыслом (опирайся на транскрипцию). 1–2 предложения.
+- tip — чем это слово отличается от похожих (если ученик их путает) или какая у него «логика» (корень, биньян, модель). 1–2 предложения.
+- examples — 2 эмоциональных, запоминающихся предложения со словом (смешных или личных), уровень ульпана. ${lang === "he" ? "text — без огласовок (כתיב מלא), text_nikud — с огласовками" : "text — по-английски, text_nikud — пустая строка"}, target — точная подстрока text, ru — перевод.`,
+    user: `Слово: ${lang === "he" ? w.he_nikud || w.he : w.en} (${w.translit || ""}) — «${w.ru}». ${confusions.length ? "Путает с: " + confusions.join(", ") : ""}`,
+    schema: FertilizeSchema,
+    tag: "fertilize",
+  });
+  return {
+    mnemonic: r.mnemonic,
+    tip: r.tip,
+    examples: r.examples.map((e) => ({
+      lang,
+      text: lang === "he" ? stripNikud(e.text) : e.text,
+      text_nikud: e.text_nikud,
+      target: lang === "he" ? stripNikud(e.target) : e.target,
+      ru: e.ru,
+    })) as Example[],
+  };
+}
+
 // ───────────────────────── мок для локальной разработки ─────────────────────────
 
 function mockDraft(input: string): WordDraft {
@@ -514,6 +617,13 @@ function mockDraft(input: string): WordDraft {
     examples: [],
     en_forms: [],
     he_forms: [],
+    related:
+      lang === "he"
+        ? [
+            { he: "רוח", he_nikud: "רוּחַ", ru: "дух, ветер", pos: "noun", relation: "существительное, от которого образовано (мок)" },
+            { he: "להלל", he_nikud: "לְהַלֵּל", ru: "хвалить", pos: "verb", relation: "пиэль: активная пара (мок)" },
+          ]
+        : [],
   };
 }
 

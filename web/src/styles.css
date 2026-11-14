@@ -1353,3 +1353,65 @@ bdi.he,
 .chip.he {
   font-size: 0.98rem;
 }
+
+/* ───────── роса и плашка «посадить рядом» ───────── */
+.dew-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--water-soft);
+  color: var(--water);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  align-self: flex-start;
+  margin-left: 8px;
+}
+.topbar .dew-chip {
+  margin-left: 0;
+}
+.plaque {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  width: min(420px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: 22px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pop 0.25s ease;
+}
+@media (max-width: 860px) {
+  .plaque {
+    right: 16px;
+    left: 16px;
+    width: auto;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ───────── акцентные темы (покупаются в лавке) ───────── */
+:root[data-accent="olive"] { --accent: #6f6a3c; --accent-strong: #57532c; --accent-soft: #e9e6d3; }
+:root[data-accent="sea"] { --accent: #3f7390; --accent-strong: #2f5b73; --accent-soft: #dde9ef; }
+:root[data-accent="negev"] { --accent: #a8623f; --accent-strong: #8a4d30; --accent-soft: #f3e3d8; }
+:root[data-accent="lavender"] { --accent: #77679a; --accent-strong: #5f5280; --accent-soft: #e8e3f0; }
+:root[data-accent="rimon"] { --accent: #9c3d4a; --accent-strong: #7f2f3b; --accent-soft: #f3dfe2; }
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="olive"]:not([data-theme="light"]) { --accent: #bdb67c; --accent-strong: #d2cc96; --accent-soft: #33321f; }
+  :root[data-accent="sea"]:not([data-theme="light"]) { --accent: #8db8cf; --accent-strong: #a9cbe0; --accent-soft: #22323b; }
+  :root[data-accent="negev"]:not([data-theme="light"]) { --accent: #dd9a76; --accent-strong: #e8b394; --accent-soft: #3d2a20; }
+  :root[data-accent="lavender"]:not([data-theme="light"]) { --accent: #b3a5d6; --accent-strong: #c6bbe3; --accent-soft: #2e2a3a; }
+  :root[data-accent="rimon"]:not([data-theme="light"]) { --accent: #e08a97; --accent-strong: #eba4af; --accent-soft: #3e2427; }
+}
+:root[data-theme="dark"][data-accent="olive"] { --accent: #bdb67c; --accent-strong: #d2cc96; --accent-soft: #33321f; }
+:root[data-theme="dark"][data-accent="sea"] { --accent: #8db8cf; --accent-strong: #a9cbe0; --accent-soft: #22323b; }
+:root[data-theme="dark"][data-accent="negev"] { --accent: #dd9a76; --accent-strong: #e8b394; --accent-soft: #3d2a20; }
+:root[data-theme="dark"][data-accent="lavender"] { --accent: #b3a5d6; --accent-strong: #c6bbe3; --accent-soft: #2e2a3a; }
+:root[data-theme="dark"][data-accent="rimon"] { --accent: #e08a97; --accent-strong: #eba4af; --accent-soft: #3e2427; }

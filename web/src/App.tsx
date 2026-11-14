@@ -13,6 +13,8 @@ import {
   ChartColumn,
   Settings as SettingsIcon,
   Search,
+  Store,
+  Droplets,
 } from "lucide-react";
 import { AppProvider, useApp } from "./lib/app";
 import { setUnauthorizedHandler, api } from "./lib/api";
@@ -32,6 +34,10 @@ import PackRun from "./pages/PackRun";
 import Stats from "./pages/Stats";
 import SettingsPage from "./pages/Settings";
 import More from "./pages/More";
+import Shop from "./pages/Shop";
+import Story from "./pages/Story";
+import Offer from "./pages/Offer";
+import { RelatedPlaque } from "./components/Suggestions";
 
 export const NAV = [
   { to: "/", label: "Сад", icon: Sprout, end: true },
@@ -42,6 +48,7 @@ export const NAV = [
   { to: "/journal", label: "Дневник", icon: NotebookPen },
   { to: "/reader", label: "Читалка", icon: ScanText },
   { to: "/lab", label: "Лаборатория", icon: FlaskConical },
+  { to: "/shop", label: "Лавка", icon: Store },
   { to: "/stats", label: "Статистика", icon: ChartColumn },
   { to: "/settings", label: "Настройки", icon: SettingsIcon },
 ];
@@ -61,7 +68,7 @@ function BrandMark() {
 }
 
 function Shell() {
-  const { me, omni, openOmni, closeOmni } = useApp();
+  const { me, omni, openOmni, closeOmni, dew } = useApp();
   const loc = useLocation();
   const nav = useNavigate();
   const inSession = loc.pathname.startsWith("/practice/") || /^\/lab\/.+/.test(loc.pathname);
@@ -96,13 +103,16 @@ function Shell() {
               <div className="brand-sub">сад слов · עברית · English</div>
             </div>
           </Link>
+          <Link to="/shop" className="dew-chip" title="Роса — валюта сада. Тратится в лавке">
+            <Droplets size={16} /> {dew} <span className="muted small">росы</span>
+          </Link>
           <button className="btn soft block" style={{ justifyContent: "flex-start" }} onClick={() => openOmni()}>
             <Search size={17} /> Найти или добавить <span className="kbd-hint" style={{ marginLeft: "auto" }}>/</span>
           </button>
           <nav className="nav">
             {NAV.map((n, i) => (
               <div key={n.to}>
-                {(i === 4 || i === 8) && <div className="nav-sep" />}
+                {(i === 4 || i === 9) && <div className="nav-sep" />}
                 <NavLink to={n.to} end={n.end}>
                   <n.icon size={18} /> {n.label}
                 </NavLink>
@@ -122,9 +132,14 @@ function Shell() {
               <BrandMark />
               <div className="brand-name">Шореш</div>
             </Link>
-            <button className="btn soft sm" onClick={() => openOmni()}>
-              <Search size={16} /> Найти / добавить
-            </button>
+            <div className="row gap-6">
+              <Link to="/shop" className="dew-chip" title="Роса">
+                <Droplets size={15} /> {dew}
+              </Link>
+              <button className="btn soft sm" onClick={() => openOmni()}>
+                <Search size={16} /> Найти / добавить
+              </button>
+            </div>
           </div>
         )}
         <Routes>
@@ -142,6 +157,9 @@ function Shell() {
           <Route path="/stats" element={<Stats />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/more" element={<More />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/stories/:id" element={<Story />} />
+          <Route path="/offers/:id" element={<Offer />} />
           <Route path="*" element={<div className="page">Страница не найдена. <a onClick={() => nav("/")}>В сад</a></div>} />
         </Routes>
       </main>
@@ -159,9 +177,10 @@ function Shell() {
           </NavLink>
         </nav>
       )}
+      {!omni.open && <RelatedPlaque />}
       {omni.open && (
         <Modal onClose={closeOmni}>
-          <Omnibox initial={omni.initial} autoFocus onDone={closeOmni} compact />
+          <Omnibox initial={omni.initial} autoFocus onDone={closeOmni} compact autoAnalyze={omni.auto} />
         </Modal>
       )}
     </div>

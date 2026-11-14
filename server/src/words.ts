@@ -21,7 +21,7 @@ import {
   type FacetState,
   type Grade,
 } from "../../shared/memory.js";
-import type { Example, Word, WordDraft, WordForm, WordFull, WordProgress, WordSummary } from "../../shared/types.js";
+import type { Example, RelatedSuggestion, Word, WordDraft, WordForm, WordFull, WordProgress, WordSummary } from "../../shared/types.js";
 
 // ───────────────────────── строки → объекты ─────────────────────────
 
@@ -59,6 +59,7 @@ export function rowToWord(r: Row): Word {
     study: parseJSON(r.study, ["he"]),
     source: r.source,
     conj_status: r.conj_status,
+    related: parseJSON(r.related, []),
     created_at: r.created_at,
     updated_at: r.updated_at,
   };
@@ -289,9 +290,9 @@ export function createWord(d: Partial<WordDraft> & { source?: string }): number 
   const info = db
     .prepare(
       `INSERT INTO words (he, he_nikud, ru, en, ru_alt, en_alt, translit, pos, gender, plural, plural_nikud, root, binyan,
-        gizra, notes, mnemonic, tags, study, source, conj_status, norm_he, norm_ru, norm_en, created_at, updated_at)
+        gizra, notes, mnemonic, tags, study, source, conj_status, related, norm_he, norm_ru, norm_en, created_at, updated_at)
        VALUES (@he, @he_nikud, @ru, @en, @ru_alt, @en_alt, @translit, @pos, @gender, @plural, @plural_nikud, @root, @binyan,
-        @gizra, @notes, @mnemonic, @tags, @study, @source, @conj_status, @norm_he, @norm_ru, @norm_en, @now, @now)`,
+        @gizra, @notes, @mnemonic, @tags, @study, @source, @conj_status, @related, @norm_he, @norm_ru, @norm_en, @now, @now)`,
     )
     .run({
       ...w,
@@ -300,6 +301,7 @@ export function createWord(d: Partial<WordDraft> & { source?: string }): number 
       study: JSON.stringify(study),
       source: d.source || "manual",
       conj_status: "none",
+      related: JSON.stringify((d.related || []).slice(0, 6)),
       ...n,
       now,
     });
@@ -477,6 +479,23 @@ export function findDuplicates(d: Partial<WordDraft>): SearchHit[] {
   if (d.input_lang === "en" || !he) primary("en", d.en);
   if (!he && !d.en) primary("ru", d.ru);
   return [...out.values()];
+}
+
+/** Родственные слова, которых ещё нет в словаре (у существующих проставляется existing_id). */
+export function resolveRelated(list: RelatedSuggestion[], selfId?: number): RelatedSuggestion[] {
+  const out: RelatedSuggestion[] = [];
+  const seen = new Set<string>();
+  for (const r of list || []) {
+    const he = r.he || stripNikud(r.he_nikud || "");
+    const key = normHe(he);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    const hit = search(he, 5).find((h) => h.match === "exact" && h.word.id !== selfId);
+    const self = selfId ? getWord(selfId) : null;
+    if (self && normHe(self.he) === key) continue;
+    out.push({ ...r, he, existing_id: hit ? hit.word.id : null });
+  }
+  return out;
 }
 
 /** Быстрый локальный поиск леммы по словоформе (для читалки и дневника). */

@@ -178,6 +178,42 @@ const MIGRATIONS: string[] = [
     ts INTEGER NOT NULL
   );
   `,
+  // 3 — родственные слова, роса и лавка
+  `
+  ALTER TABLE words ADD COLUMN related TEXT NOT NULL DEFAULT '[]';
+
+  CREATE TABLE dew_ledger (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    ref TEXT
+  );
+  CREATE INDEX dew_ledger_ts ON dew_ledger(ts);
+
+  CREATE TABLE inventory (
+    item TEXT PRIMARY KEY,
+    qty INTEGER NOT NULL DEFAULT 0,
+    acquired_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE stories (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    lang TEXT NOT NULL DEFAULT 'he',
+    title TEXT NOT NULL,
+    data TEXT NOT NULL,
+    read_at INTEGER
+  );
+
+  CREATE TABLE offers (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL,
+    data TEXT NOT NULL
+  );
+  `,
 ];
 
 function migrate() {
@@ -207,6 +243,7 @@ export interface Settings {
   showNikud: boolean;
   keyboardMap: boolean;
   ttsRate: number;
+  accent: string;
 }
 export const DEFAULT_SETTINGS: Settings = {
   aiProfile: {
@@ -221,6 +258,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showNikud: true,
   keyboardMap: true,
   ttsRate: 0.9,
+  accent: "sage",
 };
 
 export function getSettings(): Settings {
