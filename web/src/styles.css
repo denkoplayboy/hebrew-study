@@ -1415,3 +1415,219 @@ bdi.he,
 :root[data-theme="dark"][data-accent="negev"] { --accent: #dd9a76; --accent-strong: #e8b394; --accent-soft: #3d2a20; }
 :root[data-theme="dark"][data-accent="lavender"] { --accent: #b3a5d6; --accent-strong: #c6bbe3; --accent-soft: #2e2a3a; }
 :root[data-theme="dark"][data-accent="rimon"] { --accent: #e08a97; --accent-strong: #eba4af; --accent-soft: #3e2427; }
+
+:root[data-accent="night"] { --accent: #8a6d2f; --accent-strong: #6f5623; --accent-soft: #efe6d2; }
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="night"]:not([data-theme="light"]) { --accent: #d9b863; --accent-strong: #e6c97d; --accent-soft: #3a3222; }
+}
+:root[data-theme="dark"][data-accent="night"] { --accent: #d9b863; --accent-strong: #e6c97d; --accent-soft: #3a3222; }
+
+/* ───────── игровое поле «Шук» ───────── */
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1060px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+}
+.gcell {
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 9px 2px 4px;
+  cursor: pointer;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  font-size: 0.7rem;
+  color: var(--text-2);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.gcell:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+.gcell.corner {
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+}
+.gcell.owned {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 65%, var(--surface));
+}
+.gcell.here {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.gcell.pickable:hover {
+  box-shadow: 0 0 0 2px var(--water);
+}
+.gband {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+.gname {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+.gicon {
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.gpips {
+  display: flex;
+  gap: 3px;
+  height: 9px;
+  align-items: center;
+}
+.gpips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: block;
+}
+.gpips i.on {
+  background: var(--accent);
+}
+.gpips.static i {
+  width: 8px;
+  height: 8px;
+}
+.gprice {
+  font-size: 0.64rem;
+  color: var(--muted);
+}
+.gtoken {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  animation: hop 0.28s ease;
+}
+@keyframes hop {
+  40% {
+    transform: translateY(-6px) scale(1.1);
+  }
+}
+.gcenter {
+  grid-row: 2 / 6;
+  grid-column: 2 / 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 35%, var(--accent-soft), transparent 70%);
+  min-width: 0;
+}
+.gtitle {
+  font-size: 2.8rem;
+  color: var(--accent-strong);
+  line-height: 1;
+}
+.gdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.die.rolling {
+  animation: shake 0.25s infinite;
+}
+@keyframes shake {
+  25% {
+    transform: rotate(-14deg);
+  }
+  75% {
+    transform: rotate(14deg);
+  }
+}
+.option.sel-opt {
+  outline: 2px solid var(--accent);
+}
+@media (max-width: 600px) {
+  .board {
+    gap: 3px;
+    padding: 5px;
+    border-radius: 20px;
+  }
+  .gcell {
+    border-radius: 9px;
+    padding: 7px 1px 2px;
+    font-size: 0.55rem;
+    gap: 1px;
+  }
+  .gicon {
+    width: 15px;
+    height: 15px;
+  }
+  .gpips i {
+    width: 4px;
+    height: 4px;
+  }
+  .gcenter {
+    gap: 6px;
+    padding: 4px;
+  }
+  .gtitle {
+    font-size: 1.7rem;
+  }
+  .gcenter .die {
+    width: 40px;
+    height: 40px;
+  }
+  .gcenter .btn.lg {
+    height: 40px;
+    font-size: 0.85rem;
+    padding: 0 12px;
+  }
+  .gtoken {
+    width: 16px;
+    height: 16px;
+    right: 2px;
+    bottom: 2px;
+  }
+  .gtoken svg {
+    width: 10px;
+    height: 10px;
+  }
+}

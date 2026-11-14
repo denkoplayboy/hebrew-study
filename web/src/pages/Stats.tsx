@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useData, relTime, plural } from "../lib/app";
 import { FACETS, STAGES, facetInfo } from "../../../shared/memory";
 import { Bar, Loading, Plant } from "../components/ui";
+import { Forecast } from "../components/Forecast";
 
 interface LangGarden {
   total: number;
@@ -108,6 +109,10 @@ export default function Stats() {
             <span className="d">своё употребление</span>
           </div>
         </div>
+      </div>
+
+      <div className="mt-16">
+        <Forecast />
       </div>
 
       <div className="grid grid-2 stack-sm mt-16">

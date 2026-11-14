@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2, Target, Sparkles, RefreshCw, GitCompare, Sprout, Search, Store } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Target, Sparkles, RefreshCw, GitCompare, Search } from "lucide-react";
 import { api } from "../lib/api";
 import { useApp, useData, relTime } from "../lib/app";
 import { FACETS, STAGES, facetInfo } from "../../../shared/memory";
@@ -13,7 +13,7 @@ import { SuggestionList } from "../components/Suggestions";
 export default function WordPage() {
   const { id } = useParams();
   const nav = useNavigate();
-  const { ai, toast, touch, owned } = useApp();
+  const { ai, toast, touch, perks } = useApp();
   const { data: w, setData, reload } = useData<WordFull>(`/api/words/${id}`, [id]);
   const [lang, setLang] = useState<"he" | "en">("he");
   const [edit, setEdit] = useState<WordFull | null>(null);
@@ -209,46 +209,22 @@ export default function WordPage() {
                 English
               </button>
             </div>
-            {ai && (
+            {ai && w.root && perks.rootPrice != null && (
               <div className="row wrap mt-8">
-                {owned["fertilizer"] ? (
-                  <button
-                    className="btn soft sm"
-                    disabled={busy === "fert"}
-                    title="Мнемоника, объяснение и запоминающиеся примеры от ИИ"
-                    onClick={() =>
-                      act(
-                        "fert",
-                        async () => {
-                          setData(await api.post<WordFull>("/api/shop/use/fertilizer", { word_id: w.id }));
-                          touch();
-                        },
-                        "Слово удобрено",
-                      )
-                    }
-                  >
-                    {busy === "fert" ? <span className="spinner" /> : <Sprout size={15} />} Удобрить (есть {owned["fertilizer"]})
-                  </button>
-                ) : (
-                  <Link to="/shop" className="btn ghost sm" title="Удобрение покупается в лавке за росу">
-                    <Store size={15} /> Удобрение — в лавке
-                  </Link>
-                )}
-                {w.root && owned["root-lens"] ? (
-                  <button
-                    className="btn soft sm"
-                    disabled={busy === "lens"}
-                    onClick={() =>
-                      act("lens", async () => {
-                        const r = await api.post<{ id: number }>("/api/shop/use/suggest", { kind: "root", topic: w.root });
-                        touch();
-                        nav(`/offers/${r.id}`);
-                      })
-                    }
-                  >
-                    {busy === "lens" ? <span className="spinner" /> : <Search size={15} />} Лупа корня <span className="he">{w.root}</span>
-                  </button>
-                ) : null}
+                <button
+                  className="btn soft sm"
+                  disabled={busy === "lens"}
+                  title="Архив корней на игровом поле: ИИ покажет всю семью корня"
+                  onClick={() =>
+                    act("lens", async () => {
+                      const r = await api.post<{ id: number }>("/api/game/suggest", { kind: "root", topic: w.root });
+                      touch();
+                      nav(`/offers/${r.id}`);
+                    })
+                  }
+                >
+                  {busy === "lens" ? <span className="spinner" /> : <Search size={15} />} Семья корня <span className="he">{w.root}</span> · {perks.rootPrice} росы
+                </button>
               </div>
             )}
           </div>

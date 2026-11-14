@@ -1,6 +1,50 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
 import type { RelatedSuggestion } from "../../../shared/types";
+import { HE_FONTS, type ActiveEffects, type Perks } from "../../../shared/board";
+
+export const NO_PERKS: Perks = {
+  levels: {},
+  fonts: ["frank"],
+  accents: ["sage"],
+  plants: ["classic"],
+  rollDiscount: 0,
+  startBonus: 0,
+  freeDailyRoll: false,
+  forecast: false,
+  edgeMode: false,
+  csvExport: false,
+  dictation: false,
+  dictationBonus: 0,
+  blitz: false,
+  blitzMarathon: false,
+  blitzCapMult: 1,
+  effects: [],
+  effectDiscount: 0,
+  storyPrice: null,
+  seedsPrice: null,
+  rootPrice: null,
+};
+export const NO_EFFECTS: ActiveEffects = { dew_x2_until: 0, golden_until: 0, hint: 0, retry: 0 };
+
+/** Подключает шрифт иврита из Google Fonts и делает его основным для текста на иврите. */
+export function applyHeFont(id: string) {
+  const f = HE_FONTS.find((x) => x.id === id) || HE_FONTS[0];
+  const root = document.documentElement;
+  if (f.id === "frank") {
+    root.style.removeProperty("--font-he");
+    return;
+  }
+  const linkId = "he-font-" + f.id;
+  if (!document.getElementById(linkId)) {
+    const l = document.createElement("link");
+    l.id = linkId;
+    l.rel = "stylesheet";
+    l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.family).replace(/%20/g, "+")}:wght@400;500;700&display=swap`;
+    document.head.appendChild(l);
+  }
+  root.style.setProperty("--font-he", `"${f.family}", "Frank Ruhl Libre", "Noto Serif Hebrew", serif`);
+}
 
 export type AIOp = "analyze" | "conjugate" | "check";
 export interface AIProfile {
@@ -18,6 +62,8 @@ export interface Settings {
   keyboardMap: boolean;
   ttsRate: number;
   accent: string;
+  heFont: string;
+  plantStyle: string;
 }
 
 export interface Me {
@@ -26,7 +72,8 @@ export interface Me {
   ai: { enabled: boolean; model: string; defaultModel?: string; models?: { id: string; name: string; note: string }[] };
   settings: Settings | null;
   dew?: number;
-  owned?: Record<string, number>;
+  perks?: Perks | null;
+  effects?: ActiveEffects | null;
 }
 
 /** Плашка «добавить также…» после посадки слова. */
@@ -52,7 +99,9 @@ interface Ctx {
   openOmni: (initial?: string, auto?: boolean) => void;
   closeOmni: () => void;
   dew: number;
-  owned: Record<string, number>;
+  perks: Perks;
+  effects: ActiveEffects;
+  setEffects: (e: ActiveEffects) => void;
   refreshDew: () => void;
   related: RelatedOffer | null;
   offerRelated: (o: RelatedOffer | null) => void;
@@ -74,6 +123,8 @@ const DEFAULTS: Settings = {
   keyboardMap: true,
   ttsRate: 0.9,
   accent: "sage",
+  heFont: "frank",
+  plantStyle: "classic",
 };
 
 const AppCtx = createContext<Ctx>(null as unknown as Ctx);
@@ -84,19 +135,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [omni, setOmni] = useState({ open: false, initial: "", auto: false });
   const [bump, setBump] = useState(0);
-  const [dew, setDew] = useState<{ balance: number; owned: Record<string, number> }>({ balance: 0, owned: {} });
+  const [dew, setDew] = useState<{ balance: number; perks: Perks; effects: ActiveEffects }>({ balance: 0, perks: NO_PERKS, effects: NO_EFFECTS });
   const [related, setRelated] = useState<RelatedOffer | null>(null);
   const tid = useRef(0);
 
   const refreshMe = useCallback(async () => {
     const m = await api.get<Me>("/api/me");
     setMe(m);
-    if (m.authed) setDew({ balance: m.dew || 0, owned: m.owned || {} });
+    if (m.authed) setDew({ balance: m.dew || 0, perks: m.perks || NO_PERKS, effects: m.effects || NO_EFFECTS });
   }, []);
   const refreshDew = useCallback(() => {
     api
-      .get<{ balance: number; owned: Record<string, number> }>("/api/dew")
-      .then((d) => setDew({ balance: d.balance, owned: d.owned }))
+      .get<{ balance: number; perks: Perks; effects: ActiveEffects }>("/api/dew")
+      .then((d) => setDew({ balance: d.balance, perks: d.perks, effects: d.effects }))
       .catch(() => {});
   }, []);
   // роса обновляется вместе с любыми изменениями данных
@@ -115,6 +166,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (accent === "sage") delete document.documentElement.dataset.accent;
     else document.documentElement.dataset.accent = accent;
   }, [accent]);
+
+  // шрифт иврита (открывается Типографией на игровом поле)
+  const heFont = me?.settings?.heFont || "frank";
+  useEffect(() => {
+    applyHeFont(heFont);
+    try {
+      localStorage.setItem("heFont", heFont);
+    } catch {
+      /* noop */
+    }
+  }, [heFont]);
   useEffect(() => {
     refreshMe().catch(() => setMe({ authed: false, needsPassword: true, ai: { enabled: false, model: "" }, settings: null }));
   }, [refreshMe]);
@@ -144,7 +206,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     openOmni: (initial = "", auto = false) => setOmni({ open: true, initial, auto }),
     closeOmni: () => setOmni({ open: false, initial: "", auto: false }),
     dew: dew.balance,
-    owned: dew.owned,
+    perks: dew.perks,
+    effects: dew.effects,
+    setEffects: (e: ActiveEffects) => setDew((d) => ({ ...d, effects: e })),
     refreshDew,
     related,
     offerRelated: setRelated,

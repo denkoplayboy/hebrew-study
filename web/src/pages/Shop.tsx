@@ -1,351 +1,690 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Droplets, Headphones, Zap, BookHeart, Package, Search, Sprout, Palette, Check, Clock, Lock, ArrowRight } from "lucide-react";
+import {
+  Droplets,
+  Dice5,
+  Bus,
+  Clover,
+  GraduationCap,
+  Stamp,
+  Moon,
+  Receipt,
+  ShoppingBasket,
+  Plane,
+  MapPin,
+  Type,
+  Palette,
+  Landmark,
+  Telescope,
+  Headphones,
+  Zap,
+  Flower2,
+  Coffee,
+  BookHeart,
+  Library,
+  Sprout,
+  Lock,
+  Check,
+  Sparkles,
+  ArrowRight,
+  Timer,
+} from "lucide-react";
 import { api } from "../lib/api";
-import { useApp, useData, relTime, plural } from "../lib/app";
-import { Loading, Modal } from "../components/ui";
+import { useApp, useData, relTime } from "../lib/app";
+import { BUILDINGS, CELLS, DISTRICTS, EFFECTS, cellGridPos, type Cell, type Perks, type ActiveEffects } from "../../../shared/board";
+import { He, Loading, Modal, Mixed, Collapsible } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
+import { DesignPickers } from "../components/DesignPickers";
 
-interface Item {
-  id: string;
-  kind: "mechanic" | "consumable" | "theme";
-  title: string;
-  he: string;
-  description: string;
-  price: number;
-  finalPrice: number;
-  onFair: boolean;
-  qty: number;
-  ai?: boolean;
-  icon: string;
-  accent?: { light: string; dark: string };
+interface Q {
+  kind: "word" | "verb";
+  prompt: string;
+  sub: string;
+  promptHe: boolean;
+  options: { label: string; he: boolean }[];
 }
-interface ShopData {
+type Pending =
+  | { type: "buy"; cell: number }
+  | { type: "quiz"; reward: number; consolation: number; q: Q; title: string }
+  | { type: "ulpan"; qs: Q[] }
+  | { type: "misrad"; fee: number; q: Q }
+  | { type: "shuk"; offers: { id: string; label: string }[] }
+  | { type: "airport"; fee: number };
+
+interface GCell extends Cell {
+  owned: boolean;
+  level: number;
+  complete: boolean;
+  nextPrice: number | null;
+}
+interface GameView {
+  pos: number;
+  laps: number;
+  pending: Pending | null;
+  upgradeDiscount: number;
+  roll: { cost: number; paidCost: number; free: boolean; freeRolls: number; dailyFree: boolean; rollsToday: number };
   balance: number;
+  perks: Perks;
+  effects: ActiveEffects;
+  cells: GCell[];
+  log: { id: number; ts: number; kind: string; text: string; amount: number | null }[];
   today: number;
-  week: number;
   ai: boolean;
-  fair: { week: number; items: string[]; discount: number; endsAt: number };
-  items: Item[];
-  ledger: { id: number; ts: number; amount: number; reason: string }[];
-  stories: { id: number; ts: number; title: string; read_at: number | null }[];
-  offers: { id: number; ts: number; kind: string; title: string }[];
-  blitzBest: number;
+}
+interface GEvent {
+  text: string;
+  amount?: number;
+  tone?: "good" | "bad" | "info";
 }
 
-const ICONS: Record<string, typeof Zap> = { Headphones, Zap, BookHeart, Package, Search, Sprout, Palette };
-
-const THEME_OF: Record<string, string> = {
-  "theme-olive": "olive",
-  "theme-sea": "sea",
-  "theme-negev": "negev",
-  "theme-lavender": "lavender",
-  "theme-rimon": "rimon",
+const ICONS: Record<string, typeof Bus> = {
+  Type,
+  Palette,
+  Landmark,
+  Telescope,
+  Headphones,
+  Zap,
+  Flower2,
+  Coffee,
+  BookHeart,
+  Library,
+};
+const SPECIAL_ICON: Record<string, typeof Bus> = {
+  start: Bus,
+  mazal: Clover,
+  ulpan: GraduationCap,
+  misrad: Stamp,
+  shabbat: Moon,
+  arnona: Receipt,
+  shuk: ShoppingBasket,
+  airport: Plane,
 };
 
-const SEED_IDEAS = ["У врача", "Банк и деньги", "Аренда квартиры", "На работе", "Эмоции и характер", "Покупки и рынок", "Государственные учреждения", "Сленг и разговорные фразы"];
+const DIE_DOTS: Record<number, [number, number][]> = {
+  1: [[50, 50]],
+  2: [[28, 28], [72, 72]],
+  3: [[25, 25], [50, 50], [75, 75]],
+  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
+  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+  6: [[28, 22], [72, 22], [28, 50], [72, 50], [28, 78], [72, 78]],
+};
+
+function Die({ value, rolling }: { value: number; rolling: boolean }) {
+  return (
+    <svg width="56" height="56" viewBox="0 0 100 100" className={rolling ? "die rolling" : "die"} aria-label={`Кубик: ${value}`}>
+      <rect x="4" y="4" width="92" height="92" rx="22" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="3" />
+      {DIE_DOTS[value].map(([x, y], k) => (
+        <circle key={k} cx={x} cy={y} r="8.5" fill="var(--text)" />
+      ))}
+    </svg>
+  );
+}
+
+const district = (id?: string) => DISTRICTS.find((d) => d.id === id);
+
+function untilText(ts: number) {
+  const m = Math.max(1, Math.round((ts - Date.now()) / 60000));
+  return `ещё ${m} мин`;
+}
 
 export default function Shop() {
-  const { data, reload } = useData<ShopData>("/api/shop");
-  const { toast, touch, settings, updateSettings } = useApp();
+  const { data: view, setData: setView, reload } = useData<GameView>("/api/game");
+  const { toast, touch, ai } = useApp();
   const nav = useNavigate();
-  const [busy, setBusy] = useState<string | null>(null);
-  const [use, setUse] = useState<null | "seeds" | "root-lens">(null);
+  const [token, setToken] = useState<number | null>(null);
+  const [die, setDie] = useState(1);
+  const [rolling, setRolling] = useState(false);
+  const [events, setEvents] = useState<GEvent[]>([]);
+  const [detail, setDetail] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [revealed, setRevealed] = useState<{ qs: Q[]; correct: number[]; picked: number[] } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [suggest, setSuggest] = useState<null | "theme" | "root">(null);
   const [topic, setTopic] = useState("");
+  const timer = useRef<number[]>([]);
 
-  if (!data)
+  useEffect(() => {
+    if (view && token === null) setToken(view.pos);
+  }, [view, token]);
+  useEffect(() => () => timer.current.forEach(clearTimeout), []);
+
+  if (!view)
     return (
       <div className="page">
-        <Loading h={300} />
+        <Loading h={420} />
       </div>
     );
 
-  const buy = async (it: Item) => {
-    setBusy(it.id);
+  const apply = (v: GameView, ev?: GEvent[]) => {
+    setView({ ...v, today: view.today, ai: view.ai });
+    if (ev) setEvents(ev);
+    touch();
+  };
+
+  const doRoll = async () => {
+    if (rolling || busy) return;
+    setRolling(true);
+    setRevealed(null);
+    setAnswers([]);
+    const spin = window.setInterval(() => setDie(1 + Math.floor(Math.random() * 6)), 80);
     try {
-      await api.post("/api/shop/buy", { item: it.id });
-      toast(`Куплено: ${it.title}`);
-      touch();
-      reload();
+      const r = await api.post<{ die: number; path: number[]; events: GEvent[]; view: GameView }>("/api/game/roll");
+      await new Promise((res) => setTimeout(res, 450));
+      clearInterval(spin);
+      setDie(r.die);
+      // фишка шагает по клеткам
+      r.path.forEach((cell, k) => timer.current.push(window.setTimeout(() => setToken(cell), 180 * (k + 1))));
+      timer.current.push(
+        window.setTimeout(
+          () => {
+            setToken(r.view.pos);
+            apply(r.view, r.events);
+            setRolling(false);
+          },
+          180 * (r.path.length + 1),
+        ),
+      );
     } catch (e) {
+      clearInterval(spin);
+      setRolling(false);
       toast((e as Error).message, true);
-    } finally {
-      setBusy(null);
     }
   };
 
-  const useStory = async () => {
-    setBusy("use-story");
+  const act = async (action: string, payload?: Record<string, unknown>) => {
+    setBusy(true);
     try {
-      const r = await api.post<{ id: number }>("/api/shop/use/story", { lang: "he" });
+      const qs = p?.type === "quiz" || p?.type === "misrad" ? [p.q] : p?.type === "ulpan" ? p.qs : [];
+      const r = await api.post<{ events: GEvent[]; view: GameView; correct?: number | number[] }>("/api/game/act", { action, payload });
+      if (r.correct !== undefined && qs.length)
+        setRevealed({
+          qs,
+          correct: Array.isArray(r.correct) ? r.correct : [r.correct],
+          picked: Array.isArray(payload?.answers) ? (payload!.answers as number[]) : [payload?.answer as number],
+        });
+      setToken(r.view.pos);
+      apply(r.view, r.events);
+    } catch (e) {
+      toast((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const buildUp = async (cell: number) => {
+    setBusy(true);
+    try {
+      const r = await api.post<{ unlocked: string; view: GameView }>("/api/game/build", { cell });
+      apply(r.view);
+      toast(`Открыто: ${r.unlocked}`);
+    } catch (e) {
+      toast((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const buyEffect = async (id: string) => {
+    setBusy(true);
+    try {
+      apply(await api.post<GameView>("/api/game/effect", { id }));
+      toast("Эффект активирован — действует в уроках");
+    } catch (e) {
+      toast((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const story = async () => {
+    setBusy(true);
+    try {
+      const r = await api.post<{ id: number }>("/api/game/story", { lang: "he" });
       touch();
       nav(`/stories/${r.id}`);
     } catch (e) {
       toast((e as Error).message, true);
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
-  const useSuggest = async () => {
-    if (!use || !topic.trim()) return;
-    setBusy("use-suggest");
+  const runSuggest = async () => {
+    if (!suggest || !topic.trim()) return;
+    setBusy(true);
     try {
-      const r = await api.post<{ id: number }>("/api/shop/use/suggest", { kind: use === "root-lens" ? "root" : "theme", topic });
+      const r = await api.post<{ id: number }>("/api/game/suggest", { kind: suggest, topic });
       touch();
-      setUse(null);
-      setTopic("");
       nav(`/offers/${r.id}`);
     } catch (e) {
       toast((e as Error).message, true);
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
-  const applyTheme = (accent: string) => updateSettings({ accent }).then(() => toast("Тема применена")).catch((e) => toast(e.message, true));
+  const p = view.pending;
+  const here = view.cells[view.pos];
+  const owned = view.cells.filter((c) => c.owned);
+  const fx = view.effects;
+  const pk = view.perks;
 
-  const fairItems = data.items.filter((i) => i.onFair);
-  const groups: { kind: Item["kind"]; title: string; hint: string }[] = [
-    { kind: "mechanic", title: "Механики", hint: "Новые режимы тренировок — открываются навсегда." },
-    { kind: "consumable", title: "Подарки сада", hint: "Одноразовые: каждый раз ИИ создаёт что-то новое под твой словарь." },
-    { kind: "theme", title: "Оформление", hint: "Цвет сада. Покупается навсегда, переключается когда угодно." },
-  ];
-
-  const daysLeft = Math.max(1, Math.ceil((data.fair.endsAt - Date.now()) / 86400000));
-
-  const card = (it: Item, fair = false) => {
-    const Icon = ICONS[it.icon] || Package;
-    const owned = it.kind !== "consumable" && it.qty > 0;
-    const themeId = THEME_OF[it.id];
-    const active = themeId && settings.accent === themeId;
-    const canAfford = data.balance >= it.finalPrice;
-    return (
-      <div key={(fair ? "f-" : "") + it.id} className="card col gap-6" style={fair ? { borderColor: "color-mix(in srgb, var(--gold) 45%, var(--border))" } : undefined}>
-        <div className="row between">
-          <span
-            className="brand-mark"
-            style={{
-              background: it.accent ? `linear-gradient(135deg, ${it.accent.light}, ${it.accent.dark})` : "var(--surface-2)",
-              color: it.accent ? "#fff" : "var(--accent-strong)",
-              width: 38,
-              height: 38,
-            }}
-          >
-            <Icon size={18} />
-          </span>
-          <div className="row gap-4">
-            {it.ai && <span className="badge water">ИИ</span>}
-            {it.kind === "consumable" && it.qty > 0 && <span className="badge accent">есть: {it.qty}</span>}
-            {it.onFair && <span className="badge gold">−{Math.round(data.fair.discount * 100)}%</span>}
-          </div>
-        </div>
-        <div>
-          <div style={{ fontWeight: 500 }}>{it.title}</div>
-          <div className="he muted small" style={{ textAlign: "left" }}>
-            {it.he}
-          </div>
-        </div>
-        <div className="small text-2 grow">{it.description}</div>
-        <div className="row between mt-8">
-          {owned ? (
-            themeId ? (
-              active ? (
-                <span className="badge accent">
-                  <Check size={12} /> включена
-                </span>
-              ) : (
-                <button className="btn sm soft" onClick={() => applyTheme(themeId)}>
-                  Применить
-                </button>
-              )
-            ) : (
-              <span className="badge accent">
-                <Check size={12} /> открыто
-              </span>
-            )
-          ) : (
-            <span className="row gap-4" style={{ fontWeight: 500 }}>
-              <Droplets size={15} className="drop" />
-              {it.onFair && <s className="muted small">{it.price}</s>} {it.finalPrice}
-            </span>
-          )}
-          {!owned && (
-            <button className="btn sm primary" disabled={!canAfford || busy === it.id || (it.ai && !data.ai)} onClick={() => buy(it)} title={!canAfford ? "Не хватает росы" : ""}>
-              {busy === it.id ? <span className="spinner" /> : !canAfford ? <Lock size={13} /> : null} Купить
-            </button>
-          )}
-          {it.id === "mech-dictation" && owned && (
-            <Link to="/practice/dictation" className="btn sm soft">
-              Открыть <ArrowRight size={13} />
-            </Link>
-          )}
-          {it.id === "mech-blitz" && owned && (
-            <Link to="/practice/blitz" className="btn sm soft">
-              Играть <ArrowRight size={13} />
-            </Link>
-          )}
-        </div>
-        {it.kind === "consumable" && it.qty > 0 && (
-          <>
-            {it.id === "story" && (
-              <button className="btn sm soft" onClick={useStory} disabled={busy === "use-story"}>
-                {busy === "use-story" ? <span className="spinner" /> : null} Написать сказку
-              </button>
-            )}
-            {(it.id === "seeds" || it.id === "root-lens") && (
-              <button className="btn sm soft" onClick={() => setUse(it.id as "seeds" | "root-lens")}>
-                Использовать
-              </button>
-            )}
-            {it.id === "fertilizer" && <span className="tiny muted">Применяется на странице слова — кнопка «Удобрить». Капризные слова — в статистике.</span>}
-          </>
-        )}
-      </div>
-    );
+  const onCell = (i: number) => {
+    if (p?.type === "airport" && i !== view.pos) {
+      if (confirm(`Лететь в «${CELLS[i].name}» за ${p.fee} росы?`)) act("fly", { cell: i });
+      return;
+    }
+    setDetail(i);
   };
 
+  // ───────── вопрос с вариантами ─────────
+  const QuestionView = ({ q, idx, onPick, picked, correct }: { q: Q; idx?: number; onPick: (k: number) => void; picked?: number; correct?: number }) => (
+    <div className="col gap-6">
+      <div className="center">
+        {q.promptHe ? <He text={q.prompt} nikud style={{ fontSize: "1.9rem" }} /> : <b>{q.prompt}</b>}
+        <div className="small muted">{q.sub}</div>
+      </div>
+      <div className="options" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        {q.options.map((o, k) => {
+          const cls = correct === undefined ? (picked === k ? " sel-opt" : "") : k === correct ? " correct" : k === picked ? " wrong" : "";
+          return (
+            <button key={k + ":" + idx} className={"option" + cls + (o.he ? " he-opt" : "")} style={{ minHeight: 46, justifyContent: "center" }} onClick={() => onPick(k)} disabled={correct !== undefined || busy}>
+              {o.he ? <He text={o.label} nikud /> : o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const pendingView = () => {
+    if (!p) return null;
+    switch (p.type) {
+      case "buy": {
+        const c = view.cells[p.cell];
+        const b = BUILDINGS[c.building!];
+        const d = district(c.district);
+        return (
+          <div className="col gap-6">
+            <div className="row">
+              <span className="gdot" style={{ background: d?.color }} />
+              <b style={{ fontWeight: 500 }}>
+                {c.name} · {d?.name}
+              </b>
+            </div>
+            <div className="small text-2">
+              Здесь можно построить <b>{b.name}</b>: {b.pitch}
+            </div>
+            <div className="row wrap">
+              <button className="btn primary" disabled={busy || view.balance < c.price!} onClick={() => act("buy")}>
+                Купить участок · {c.price} <Droplets size={14} />
+              </button>
+              <button className="btn ghost" onClick={() => act("skip")} disabled={busy}>
+                Пропустить
+              </button>
+            </div>
+          </div>
+        );
+      }
+      case "quiz":
+        return (
+          <div className="col gap-6">
+            <b style={{ fontWeight: 500 }}>{p.title}</b>
+            <span className="small muted">
+              Верно — +{p.reward} росы, мимо — +{p.consolation}
+            </span>
+            <QuestionView q={p.q} onPick={(k) => act("answer", { answer: k })} />
+          </div>
+        );
+      case "misrad":
+        return (
+          <div className="col gap-6">
+            <b style={{ fontWeight: 500 }}>Мисрад а-пним</b>
+            <span className="small muted">Чиновник просит справку. Ответь верно — пройдёшь бесплатно и получишь +5. Ошибёшься — пошлина {p.fee}.</span>
+            <QuestionView q={p.q} onPick={(k) => act("answer", { answer: k })} />
+            <button className="btn ghost sm" onClick={() => act("pay")} disabled={busy}>
+              Просто заплатить {p.fee} росы
+            </button>
+          </div>
+        );
+      case "ulpan": {
+        const k = answers.length;
+        if (k < p.qs.length)
+          return (
+            <div className="col gap-6">
+              <b style={{ fontWeight: 500 }}>
+                Ульпан · вопрос {k + 1} из {p.qs.length}
+              </b>
+              <QuestionView
+                q={p.qs[k]}
+                idx={k}
+                onPick={(a) => {
+                  const next = [...answers, a];
+                  setAnswers(next);
+                  if (next.length === p.qs.length) act("answer", { answers: next });
+                }}
+              />
+            </div>
+          );
+        return <span className="spinner" />;
+      }
+      case "shuk":
+        return (
+          <div className="col gap-6">
+            <b style={{ fontWeight: 500 }}>Шук Махане Иегуда — выбери товар дня</b>
+            <div className="options">
+              {p.offers.map((o, k) => (
+                <button key={o.id} className="option" onClick={() => act("pick", { index: k })} disabled={busy}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      case "airport":
+        return (
+          <div className="col gap-6">
+            <b style={{ fontWeight: 500 }}>Бен-Гурион</b>
+            <span className="small text-2">Нажми на любую клетку поля, чтобы улететь туда за {p.fee} росы.</span>
+            <button className="btn ghost sm" onClick={() => act("stay")} disabled={busy}>
+              Остаться
+            </button>
+          </div>
+        );
+    }
+  };
+
+  const mustResolve = p?.type === "misrad";
+  const lastResult = revealed && !p;
+
   return (
-    <div className="page">
+    <div className="page" style={{ maxWidth: 1180 }}>
       <div className="page-head">
         <div>
-          <h1>Лавка садовника</h1>
-          <p>Роса капает за настоящую работу памяти и тратится на новые механики, подарки ИИ и оформление.</p>
+          <h1>Лавка · игра «Шук»</h1>
+          <p>Роса за уроки → броски кубика → участки и здания, которые открывают новое для учёбы и оформления.</p>
         </div>
-        <div className="card row" style={{ padding: "10px 16px" }}>
-          <Droplets size={22} className="drop" />
-          <div>
-            <div style={{ fontSize: "1.5rem", fontWeight: 500, lineHeight: 1 }}>{data.balance}</div>
-            <div className="tiny muted">
-              сегодня +{data.today} · за неделю +{data.week}
+        <Link to="/practice" className="btn soft">
+          Заработать росу <ArrowRight size={15} />
+        </Link>
+      </div>
+
+      <div className="game-layout">
+        {/* ───────── поле ───────── */}
+        <div className="board">
+          {view.cells.map((c) => {
+            const { row, col } = cellGridPos(c.i);
+            const d = district(c.district);
+            const b = c.building ? BUILDINGS[c.building] : null;
+            const Icon = c.kind === "plot" ? (c.owned && c.level > 0 && b ? ICONS[b.icon] : MapPin) : SPECIAL_ICON[c.kind];
+            const corner = c.i % 5 === 0;
+            return (
+              <button
+                key={c.i}
+                className={"gcell" + (c.owned ? " owned" : "") + (corner ? " corner" : "") + (p?.type === "airport" ? " pickable" : "") + (token === c.i ? " here" : "")}
+                style={{ gridRow: row, gridColumn: col }}
+                onClick={() => onCell(c.i)}
+                title={c.name}
+              >
+                {d && <span className="gband" style={{ background: d.color }} />}
+                <Icon size={18} className="gicon" style={c.kind === "plot" && !c.owned ? { opacity: 0.45 } : undefined} />
+                <span className="gname">{c.short}</span>
+                {c.kind === "plot" && (
+                  <span className="gpips">
+                    {c.owned ? (
+                      [1, 2, 3].map((k) => <i key={k} className={k <= c.level ? "on" : ""} />)
+                    ) : (
+                      <span className="gprice">{c.price}</span>
+                    )}
+                  </span>
+                )}
+                {token === c.i && (
+                  <span className="gtoken">
+                    <Sprout size={14} />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          <div className="gcenter">
+            <div className="he gtitle">שׁוּק</div>
+            <div className="row" style={{ justifyContent: "center", gap: 14 }}>
+              <Die value={die} rolling={rolling} />
+              <div className="col gap-4" style={{ alignItems: "flex-start" }}>
+                <span className="row gap-4" style={{ fontWeight: 500, fontSize: "1.25rem" }}>
+                  <Droplets size={18} className="drop" /> {view.balance}
+                </span>
+                <span className="tiny muted">сегодня за уроки +{view.today}</span>
+              </div>
+            </div>
+            <button className="btn primary lg" onClick={doRoll} disabled={rolling || busy || mustResolve || (!view.roll.free && view.balance < view.roll.paidCost)}>
+              <Dice5 size={19} /> {view.roll.free ? "Бросить бесплатно" : `Бросить · ${view.roll.cost}`}
+            </button>
+            <div className="tiny muted center">
+              {view.roll.freeRolls > 0 && `бесплатных бросков: ${view.roll.freeRolls} · `}
+              {view.roll.dailyFree && "ежедневный бросок банка доступен · "}
+              {!view.roll.free && view.balance < view.roll.paidCost ? "не хватает росы — пора на урок" : `платных бросков сегодня: ${view.roll.rollsToday}`}
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="hero">
-        <div className="row between wrap">
-          <div>
-            <h2>Ярмарка недели</h2>
-            <p className="text-2 small">
-              Три товара со скидкой {Math.round(data.fair.discount * 100)}%. Ассортимент сменится через {daysLeft} {plural(daysLeft, "день", "дня", "дней")}.
-            </p>
+        {/* ───────── ход и решения ───────── */}
+        <div className="col gap-16">
+          <div className="card col gap-6">
+            <div className="row between">
+              <h3>{here.name}</h3>
+              <span className="he muted">{here.he}</span>
+            </div>
+            {events.length > 0 && (
+              <div className="col gap-4">
+                {events.map((e, k) => (
+                  <div key={k} className="small" style={{ color: e.tone === "good" ? "var(--ok)" : e.tone === "bad" ? "var(--bad)" : "var(--text-2)" }}>
+                    <Mixed text={e.text} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {lastResult &&
+              revealed.qs.map((q, k) => (
+                <div key={k} className="card soft" style={{ padding: 10 }}>
+                  <QuestionView q={q} idx={k} onPick={() => {}} picked={revealed.picked[k]} correct={revealed.correct[k]} />
+                </div>
+              ))}
+            {p ? <div className="mt-8">{pendingView()}</div> : !events.length && <p className="small muted">{here.hint || "Бросай кубик."}</p>}
           </div>
-          <span className="badge gold">
-            <Clock size={12} /> неделя {data.fair.week}
-          </span>
-        </div>
-        <div className="grid grid-3 stack-sm mt-16">{fairItems.map((i) => card(i, true))}</div>
-      </div>
 
-      {groups.map((g) => (
-        <div key={g.kind}>
-          <div className="section-title">{g.title}</div>
-          <p className="small muted" style={{ marginTop: -4, marginBottom: 12 }}>
-            {g.hint}
-          </p>
-          <div className="grid grid-auto">{data.items.filter((i) => i.kind === g.kind).map((i) => card(i))}</div>
-          {g.kind === "theme" && settings.accent !== "sage" && (
-            <button className="btn ghost sm mt-8" onClick={() => applyTheme("sage")}>
-              Вернуть шалфей (по умолчанию)
-            </button>
+          {(fx.dew_x2_until || fx.golden_until || fx.hint || fx.retry || view.upgradeDiscount) > 0 && (
+            <div className="card col gap-6">
+              <h3>Активные эффекты</h3>
+              <div className="chips">
+                {fx.dew_x2_until > 0 && (
+                  <span className="chip static on">
+                    <Timer size={13} /> Двойная роса · {untilText(fx.dew_x2_until)}
+                  </span>
+                )}
+                {fx.golden_until > 0 && (
+                  <span className="chip static on">
+                    <Sparkles size={13} /> Золотой час · {untilText(fx.golden_until)}
+                  </span>
+                )}
+                {fx.hint > 0 && <span className="chip static">Подсказки без штрафа: {fx.hint}</span>}
+                {fx.retry > 0 && <span className="chip static">Вторые попытки: {fx.retry}</span>}
+                {view.upgradeDiscount > 0 && <span className="chip static">−{Math.round(view.upgradeDiscount * 100)}% на следующую постройку</span>}
+              </div>
+            </div>
+          )}
+
+          <div className="card col gap-6">
+            <div className="card-title" style={{ marginBottom: 4 }}>
+              <h3>Мои здания</h3>
+              <span className="small muted">
+                {owned.length} из 10 участков · круг {view.laps}
+              </span>
+            </div>
+            {owned.length === 0 && <p className="small muted">Пока ничего. Остановись на свободном участке и купи его — на каждом можно построить своё здание.</p>}
+            {owned.map((c) => {
+              const b = BUILDINGS[c.building!];
+              const Icon = ICONS[b.icon];
+              return (
+                <div key={c.i} className="hit" style={{ padding: "8px 6px" }} onClick={() => setDetail(c.i)}>
+                  <span className="brand-mark" style={{ width: 34, height: 34, background: district(c.district)?.color, color: "#fff" }}>
+                    <Icon size={16} />
+                  </span>
+                  <div className="grow" style={{ minWidth: 0 }}>
+                    <div>
+                      {c.level ? b.name : `Участок без здания`} <span className="muted small">· {c.name}</span>
+                    </div>
+                    <div className="tiny muted">{c.level ? b.levels[c.level - 1] : `Можно построить: ${b.name}`}</div>
+                  </div>
+                  <span className="gpips static">
+                    {[1, 2, 3].map((k) => (
+                      <i key={k} className={k <= c.level ? "on" : ""} />
+                    ))}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* активности зданий */}
+          {pk.effects.length > 0 && (
+            <div className="card col gap-6">
+              <h3 className="row gap-6">
+                <Coffee size={16} /> Кафе «Ход» — эффекты для уроков
+              </h3>
+              {EFFECTS.filter((e) => pk.effects.includes(e.id)).map((e) => {
+                const price = Math.round(e.price * (1 - pk.effectDiscount));
+                return (
+                  <div key={e.id} className="row between">
+                    <div className="grow">
+                      <div>{e.name}</div>
+                      <div className="tiny muted">{e.hint}</div>
+                    </div>
+                    <button className="btn sm soft" disabled={busy || view.balance < price} onClick={() => buyEffect(e.id)}>
+                      {price} <Droplets size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {(pk.storyPrice != null || pk.seedsPrice != null) && (
+            <div className="card col gap-6">
+              <h3 className="row gap-6">
+                <Sparkles size={16} /> Здания с ИИ
+              </h3>
+              {!ai && <p className="small" style={{ color: "var(--clay)" }}>Нужен ключ ИИ (ANTHROPIC_API_KEY).</p>}
+              {pk.storyPrice != null && (
+                <div className="row between">
+                  <div className="grow">
+                    <div>Кафе «Сиппур»: сказка из твоих слов</div>
+                    <div className="tiny muted">Рассказ из слов, которые пора повторить, и вопросы на понимание</div>
+                  </div>
+                  <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.storyPrice} onClick={story}>
+                    {pk.storyPrice} <Droplets size={13} />
+                  </button>
+                </div>
+              )}
+              {pk.seedsPrice != null && (
+                <div className="row between">
+                  <div className="grow">
+                    <div>Архив корней: слова по теме</div>
+                    <div className="tiny muted">10–12 полезных слов по теме, которых у тебя ещё нет</div>
+                  </div>
+                  <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.seedsPrice} onClick={() => setSuggest("theme")}>
+                    {pk.seedsPrice} <Droplets size={13} />
+                  </button>
+                </div>
+              )}
+              {pk.rootPrice != null && (
+                <div className="row between">
+                  <div className="grow">
+                    <div>Архив корней: семья корня</div>
+                    <div className="tiny muted">Все слова одного корня во всех биньянах</div>
+                  </div>
+                  <button className="btn sm soft" disabled={busy || !ai || view.balance < pk.rootPrice} onClick={() => setSuggest("root")}>
+                    {pk.rootPrice} <Droplets size={13} />
+                  </button>
+                </div>
+              )}
+              <GiftsLinks />
+            </div>
           )}
         </div>
-      ))}
+      </div>
 
-      {(data.stories.length > 0 || data.offers.length > 0) && (
-        <>
-          <div className="section-title">Твои подарки</div>
-          <div className="grid grid-2 stack-sm">
-            <div className="card">
-              <div className="card-title">
-                <h3>Сказки</h3>
-              </div>
-              {data.stories.length ? (
-                data.stories.map((s) => (
-                  <Link key={s.id} to={`/stories/${s.id}`} className="hit">
-                    <BookHeart size={16} />
-                    <span className="grow">{s.title}</span>
-                    <span className="tiny muted">{s.read_at ? "прочитана" : "новая"}</span>
-                  </Link>
-                ))
-              ) : (
-                <p className="small muted">Пока нет.</p>
-              )}
-            </div>
-            <div className="card">
-              <div className="card-title">
-                <h3>Семена и семьи корней</h3>
-              </div>
-              {data.offers.length ? (
-                data.offers.map((o) => (
-                  <Link key={o.id} to={`/offers/${o.id}`} className="hit">
-                    {o.kind === "root" ? <Search size={16} /> : <Package size={16} />}
-                    <span className="grow">{o.title}</span>
-                    <span className="tiny muted">{relTime(o.ts)}</span>
-                  </Link>
-                ))
-              ) : (
-                <p className="small muted">Пока нет.</p>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      <div className="section-title">Как капает роса</div>
-      <div className="grid grid-2 stack-sm">
-        <div className="card small text-2 col gap-6">
-          <div>
-            <b>Повторение в срок</b> — 1–4 капли в зависимости от навыка: узнавание 1, вспоминание и контекст 2, своя фраза 4. Повторять заранее ради росы
-            бесполезно — капает только то, что «хотело пить».
-          </div>
-          <div>
-            <b>Рост слова</b> — деревце +5, дерево +10, укоренилось +25.
-          </div>
-          <div>
-            <b>Сам употребил слово</b> в дневнике или чужом упражнении — ещё +3, а в первый раз +6.
-          </div>
-          <div>
-            <b>Сад полит полностью</b> — +10 раз в день. Наборы, сказки и блиц — немного сверху.
-          </div>
-          <div className="muted">Никаких наград за вход, серий и потерь — только за работу памяти.</div>
-        </div>
+      <div className="grid grid-2 stack-sm mt-24">
         <div className="card">
           <div className="card-title">
-            <h3>История росы</h3>
+            <h3>Журнал поля</h3>
           </div>
-          <div className="col gap-4" style={{ maxHeight: 260, overflowY: "auto" }}>
-            {data.ledger.map((l) => (
+          <div className="col gap-4" style={{ maxHeight: 280, overflowY: "auto" }}>
+            {view.log.length === 0 && <p className="small muted">Здесь будут ходы, покупки и постройки.</p>}
+            {view.log.map((l) => (
               <div key={l.id} className="row small">
-                <span className="grow text-2">{l.reason}</span>
-                <span className="tiny muted">{relTime(l.ts)}</span>
-                <b style={{ fontWeight: 500, color: l.amount > 0 ? "var(--ok)" : "var(--clay)", width: 44, textAlign: "right" }}>
-                  {l.amount > 0 ? "+" : ""}
-                  {l.amount}
-                </b>
+                <span className="grow text-2">
+                  <Mixed text={l.text} />
+                </span>
+                <span className="tiny muted nowrap">{relTime(l.ts)}</span>
+                {l.amount !== null && l.amount !== 0 && (
+                  <b style={{ fontWeight: 500, width: 44, textAlign: "right", color: l.amount > 0 ? "var(--ok)" : "var(--clay)" }}>
+                    {l.amount > 0 ? "+" : ""}
+                    {l.amount}
+                  </b>
+                )}
               </div>
             ))}
           </div>
         </div>
+        <div className="card small text-2 col gap-6">
+          <h3 style={{ color: "var(--text)" }}>Правила</h3>
+          <div>
+            <b>Роса</b> капает только за уроки: повторение в срок, рост слов, самостоятельное употребление, полностью политый сад.
+          </div>
+          <div>
+            <b>Бросок</b> стоит {10 - pk.rollDiscount} росы; после трёх платных бросков за день — дороже (+5, потом +10). Шабат и некоторые карты дают бесплатные броски.
+          </div>
+          <div>
+            <b>Участок</b> покупается, только когда фишка на нём стоит. <b>Здание</b> на своём участке можно строить и улучшать в любой момент — 3 уровня, каждый что-то
+            открывает.
+          </div>
+          <div>
+            <b>Рента</b>: остановился на своём участке — получаешь росу (больше с уровнем здания). Собрал оба участка района — рента ×2 и постройки на 20% дешевле.
+          </div>
+          <Collapsible title="клетки">
+            <div className="col gap-4">
+              {CELLS.filter((c) => c.kind !== "plot").map((c) => (
+                <div key={c.i}>
+                  <b>{c.name}</b> — {c.hint}
+                </div>
+              ))}
+            </div>
+          </Collapsible>
+        </div>
       </div>
 
-      {use && (
-        <Modal onClose={() => setUse(null)}>
+      {detail !== null && (
+        <CellModal
+          c={view.cells[detail]}
+          view={view}
+          busy={busy}
+          onClose={() => setDetail(null)}
+          onBuild={() => buildUp(detail)}
+          onReload={reload}
+        />
+      )}
+
+      {suggest && (
+        <Modal onClose={() => setSuggest(null)}>
           <div className="col gap-16">
-            <h2>{use === "root-lens" ? "Лупа корня" : "Пакет семян"}</h2>
-            <p className="small text-2">
-              {use === "root-lens"
-                ? "Введи корень — ИИ покажет всю его семью: глаголы во всех биньянах, существительные, прилагательные."
-                : "Выбери тему — ИИ подберёт полезные слова, которых в твоём саду ещё нет."}
-            </p>
-            {use === "root-lens" ? (
-              <HebrewInput lang="he" value={topic} onChange={setTopic} placeholder="ת-פ-ס" autoFocus onEnter={useSuggest} />
+            <h2>{suggest === "root" ? "Семья корня" : "Слова по теме"}</h2>
+            {suggest === "root" ? (
+              <HebrewInput lang="he" value={topic} onChange={setTopic} placeholder="ת-פ-ס" autoFocus onEnter={runSuggest} />
             ) : (
               <>
-                <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Тема" autoFocus onKeyDown={(e) => e.key === "Enter" && useSuggest()} />
+                <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Тема" autoFocus onKeyDown={(e) => e.key === "Enter" && runSuggest()} />
                 <div className="chips">
-                  {SEED_IDEAS.map((t) => (
+                  {["У врача", "Банк и деньги", "Аренда квартиры", "На работе", "Эмоции", "Сленг"].map((t) => (
                     <button key={t} className="chip" onClick={() => setTopic(t)}>
                       {t}
                     </button>
@@ -353,13 +692,141 @@ export default function Shop() {
                 </div>
               </>
             )}
-            <button className="btn primary lg" onClick={useSuggest} disabled={!topic.trim() || busy === "use-suggest"}>
-              {busy === "use-suggest" ? <span className="spinner" /> : null} Подобрать слова
+            <button className="btn primary lg" onClick={runSuggest} disabled={!topic.trim() || busy}>
+              {busy ? <span className="spinner" /> : null} Подобрать слова
             </button>
           </div>
         </Modal>
       )}
-      <p className="tiny muted center mt-24">Лучший блиц: {data.blitzBest || "—"}</p>
     </div>
   );
+}
+
+function GiftsLinks() {
+  const { data: stories } = useData<{ id: number; title: string; read_at: number | null }[]>("/api/stories");
+  const { data: offers } = useData<{ id: number; title: string; kind: string }[]>("/api/offers");
+  if (!stories?.length && !offers?.length) return null;
+  return (
+    <Collapsible title={`мои сказки и подборки (${(stories?.length || 0) + (offers?.length || 0)})`}>
+      <div className="col gap-4">
+        {stories?.map((s) => (
+          <Link key={"s" + s.id} to={`/stories/${s.id}`} className="hit" style={{ padding: "4px 6px" }}>
+            <BookHeart size={14} /> <span className="grow small">{s.title}</span> <span className="tiny muted">{s.read_at ? "прочитана" : "новая"}</span>
+          </Link>
+        ))}
+        {offers?.map((o) => (
+          <Link key={"o" + o.id} to={`/offers/${o.id}`} className="hit" style={{ padding: "4px 6px" }}>
+            <Library size={14} /> <span className="grow small">{o.title}</span>
+          </Link>
+        ))}
+      </div>
+    </Collapsible>
+  );
+}
+
+function CellModal({ c, view, busy, onClose, onBuild }: { c: GCell; view: GameView; busy: boolean; onClose: () => void; onBuild: () => void; onReload: () => void }) {
+  const d = district(c.district);
+  const b = c.building ? BUILDINGS[c.building] : null;
+  const Icon = b ? ICONS[b.icon] : SPECIAL_ICON[c.kind];
+  return (
+    <Modal onClose={onClose}>
+      <div className="col gap-16">
+        <div className="row">
+          <span className="brand-mark" style={{ width: 44, height: 44, background: d?.color || "var(--accent)", color: "#fff" }}>
+            <Icon size={20} />
+          </span>
+          <div className="grow">
+            <h2>{c.name}</h2>
+            <div className="small muted">
+              <span className="he">{c.he}</span>
+              {d && ` · район ${d.name}${c.complete ? " (собран целиком)" : ""}`}
+            </div>
+          </div>
+        </div>
+        {!b && <p className="text-2">{c.hint}</p>}
+        {b && (
+          <>
+            <div>
+              <div style={{ fontWeight: 500 }}>
+                {b.name} <span className="he muted">{b.he}</span>
+                {b.kind === "ai" && <span className="badge water" style={{ marginLeft: 8 }}>ИИ</span>}
+              </div>
+              <p className="small text-2 mt-8">{b.pitch}</p>
+            </div>
+            <div className="col gap-6">
+              {b.levels.map((lv, k) => (
+                <div key={k} className="row top" style={{ opacity: c.level > k ? 1 : 0.7 }}>
+                  <span className={"badge " + (c.level > k ? "accent" : "")} style={{ minWidth: 54, justifyContent: "center" }}>
+                    {c.level > k ? <Check size={12} /> : <Lock size={11} />} ур. {k + 1}
+                  </span>
+                  <span className="small">{lv}</span>
+                </div>
+              ))}
+            </div>
+            <div className="small muted">
+              Рента при остановке: {[3, 8, 14, 22][c.level] * (c.complete ? 2 : 1)} росы{c.complete ? " (район собран ×2)" : ""}
+            </div>
+            {!c.owned ? (
+              <p className="small" style={{ color: "var(--clay)" }}>
+                Участок стоит {c.price} росы. Купить можно, когда фишка остановится здесь.
+              </p>
+            ) : c.level < 3 ? (
+              <button className="btn primary lg" disabled={busy || c.nextPrice === null || view.balance < (c.nextPrice || 0)} onClick={onBuild}>
+                {c.level ? `Улучшить до уровня ${c.level + 1}` : `Построить: ${b.name}`} · {c.nextPrice} <Droplets size={15} />
+              </button>
+            ) : (
+              <span className="badge gold">Максимальный уровень</span>
+            )}
+            {c.owned && c.level > 0 && <BuildingLinks building={b.id} perks={view.perks} />}
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+/** Куда ведёт построенное здание. */
+function BuildingLinks({ building, perks }: { building: string; perks: Perks }) {
+  if (["typography", "gallery", "greenhouse"].includes(building))
+    return (
+      <div className="card soft">
+        <DesignPickers only={building === "typography" ? "fonts" : building === "gallery" ? "accents" : "plants"} />
+      </div>
+    );
+  if (building === "observatory")
+    return (
+      <div className="row wrap">
+        <Link to="/stats" className="btn soft sm">
+          Прогноз в статистике
+        </Link>
+        {perks.edgeMode && (
+          <Link to="/practice/edge" className="btn soft sm">
+            Режим «На грани»
+          </Link>
+        )}
+        {perks.csvExport && (
+          <>
+            <a className="btn soft sm" href="/api/export/words?format=csv">
+              Экспорт CSV
+            </a>
+            <a className="btn soft sm" href="/api/export/words?format=tsv">
+              TSV для Anki
+            </a>
+          </>
+        )}
+      </div>
+    );
+  if (building === "studio")
+    return (
+      <Link to="/practice/dictation" className="btn soft sm">
+        Открыть «Диктант»
+      </Link>
+    );
+  if (building === "stadium")
+    return (
+      <Link to="/practice/blitz" className="btn soft sm">
+        Открыть «Блиц»
+      </Link>
+    );
+  return null;
 }

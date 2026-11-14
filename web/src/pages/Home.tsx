@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Droplet, Sprout, ArrowRight, Leaf, NotebookPen, Table2 } from "lucide-react";
 import { useApp, useData, plural, relTime } from "../lib/app";
 import { Omnibox } from "../components/Omnibox";
+import { Forecast } from "../components/Forecast";
 import { Plant, Thirst, WordFace, Loading, mainProgress } from "../components/ui";
 import { STAGES } from "../../../shared/memory";
 import type { WordSummary } from "../../../shared/types";
@@ -118,6 +119,10 @@ export default function Home() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-16">
+        <Forecast compact />
       </div>
 
       <div className="row between mt-24">

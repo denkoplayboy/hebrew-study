@@ -5,7 +5,7 @@ import { normHe, normEn, stripNikud } from "../../../shared/lang";
 import type { ExerciseItem } from "../../../shared/types";
 import { He } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
-import { useSpeak, hasVoice } from "../lib/app";
+import { useSpeak, hasVoice, useApp } from "../lib/app";
 import { Diff } from "../pages/Journal";
 import { ContinueBar, Feedback, KindLabel, targetOf, type ExProps, type ExResult } from "./common";
 
@@ -97,11 +97,12 @@ export function BlitzGame({
 }: {
   items: ExerciseItem[];
   onAnswer: (item: ExerciseItem, r: ExResult) => void;
-  onFinish: (correct: number, total: number) => Promise<{ dew: number; best: number; record: boolean } | null>;
+  onFinish: (correct: number, total: number, seconds: number) => Promise<{ dew: number; best: number; record: boolean } | null>;
 }) {
-  const DURATION = 60;
+  const { perks } = useApp();
+  const [DURATION, setDuration] = useState(60);
   const [started, setStarted] = useState(false);
-  const [left, setLeft] = useState(DURATION);
+  const [left, setLeft] = useState(60);
   const [i, setI] = useState(0);
   const [score, setScore] = useState({ ok: 0, total: 0 });
   const [flash, setFlash] = useState<null | "ok" | "bad">(null);
@@ -119,7 +120,7 @@ export function BlitzGame({
   useEffect(() => {
     if (left <= 0 && !over) {
       setOver(true);
-      onFinish(scoreRef.current.ok, scoreRef.current.total).then(setResult);
+      onFinish(scoreRef.current.ok, scoreRef.current.total, DURATION).then(setResult);
     }
   }, [left]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -158,9 +159,16 @@ export function BlitzGame({
         <Zap size={40} color="var(--gold)" />
         <h2>Блиц</h2>
         <p className="text-2">60 секунд. Только знакомые слова. Ошибка стоит времени, а не очков. Клавиши 1–4 работают.</p>
-        <button className="btn primary lg" onClick={() => (setStarted(true), (shown.current = Date.now()))}>
-          Старт
-        </button>
+        <div className="row wrap" style={{ justifyContent: "center" }}>
+          <button className="btn primary lg" onClick={() => (setDuration(60), setLeft(60), setStarted(true), (shown.current = Date.now()))}>
+            Старт · 60 с
+          </button>
+          {perks.blitzMarathon && (
+            <button className="btn lg" onClick={() => (setDuration(120), setLeft(120), setStarted(true), (shown.current = Date.now()))}>
+              Марафон · 120 с
+            </button>
+          )}
+        </div>
       </div>
     );
 

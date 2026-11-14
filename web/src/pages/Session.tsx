@@ -49,7 +49,7 @@ export default function Session() {
   const { mode = "mix" } = useParams();
   const [sp] = useSearchParams();
   const nav = useNavigate();
-  const { touch, toast } = useApp();
+  const { touch, toast, effects } = useApp();
   const [queue, setQueue] = useState<ExerciseItem[] | null>(null);
   const [note, setNote] = useState<string | undefined>();
   const [locked, setLocked] = useState(false);
@@ -144,7 +144,11 @@ export default function Session() {
         </button>
         <div className="grow">
           <div className="row between small" style={{ marginBottom: 6 }}>
-            <span style={{ fontWeight: 500 }}>{title}</span>
+            <span style={{ fontWeight: 500 }}>
+              {title}
+              {effects.dew_x2_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>роса ×2</span>}
+              {effects.golden_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>золотой час</span>}
+            </span>
             {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
               <span className="muted">
                 {Math.min(idx + 1, queue.length)} / {queue.length}
@@ -196,10 +200,10 @@ export default function Session() {
         <BlitzGame
           items={queue}
           onAnswer={(item, r) => void send(item, r)}
-          onFinish={async (correct, total) => {
+          onFinish={async (correct, total, seconds) => {
             touch();
             try {
-              return await api.post<{ dew: number; best: number; record: boolean }>("/api/blitz/finish", { correct, total });
+              return await api.post<{ dew: number; best: number; record: boolean }>("/api/blitz/finish", { correct, total, seconds });
             } catch {
               return null;
             }

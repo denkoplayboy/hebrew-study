@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { applyHeFont } from "./lib/app";
 import "./styles.css";
 
 try {
@@ -8,6 +9,8 @@ try {
   if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
   const a = localStorage.getItem("accent");
   if (a && a !== "sage") document.documentElement.dataset.accent = a;
+  const f = localStorage.getItem("heFont");
+  if (f && f !== "frank") applyHeFont(f);
 } catch {
   /* приватный режим */
 }

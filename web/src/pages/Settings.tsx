@@ -4,9 +4,10 @@ import { api } from "../lib/api";
 import { useApp, speak, hasVoice } from "../lib/app";
 import { Switch } from "../components/ui";
 import { AISection } from "../components/AISection";
+import { DesignPickers } from "../components/DesignPickers";
 
 export default function SettingsPage() {
-  const { me, settings, updateSettings, toast, refreshMe, touch } = useApp();
+  const { me, settings, updateSettings, toast, refreshMe, touch, perks } = useApp();
   const file = useRef<HTMLInputElement>(null);
   const [theme, setTheme] = useState(() => {
     try {
@@ -113,6 +114,12 @@ export default function SettingsPage() {
         </Row>
       </div>
 
+      <div className="section-title">Оформление</div>
+      <div className="card">
+        <DesignPickers />
+        <p className="tiny muted mt-16">Новые шрифты, цвета и виды сада открываются зданиями на игровом поле в Лавке.</p>
+      </div>
+
       <div className="section-title">ИИ</div>
       {me?.ai.enabled ? (
         <AISection />
@@ -137,6 +144,18 @@ export default function SettingsPage() {
           </button>
           <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
         </div>
+        {perks.csvExport ? (
+          <div className="row wrap">
+            <a className="btn soft" href="/api/export/words?format=csv">
+              Словарь в CSV
+            </a>
+            <a className="btn soft" href="/api/export/words?format=tsv">
+              Словарь в TSV для Anki
+            </a>
+          </div>
+        ) : (
+          <p className="tiny muted">Экспорт словаря в CSV и Anki открывает Обсерватория уровня 3 на игровом поле.</p>
+        )}
       </div>
 
       {me?.needsPassword && (

@@ -4,7 +4,7 @@ import { checkAnswer, stripNikud, tenseLabel, personLabel, binyanLabel, normHe, 
 import { He, SpeakBtn } from "../components/ui";
 import { HebrewInput, type HebrewInputHandle } from "../components/HebrewInput";
 import { useSpeak } from "../lib/app";
-import { acceptedOf, CheckButtons, ContinueBar, Feedback, gradeTyped, KindLabel, Reveal, targetOf, WordHint, type ExProps } from "./common";
+import { acceptedOf, CheckButtons, ContinueBar, Feedback, gradeTyped, KindLabel, Reveal, RetryOffer, targetOf, useTokens, WordHint, type ExProps } from "./common";
 import type { Facet } from "../../../shared/memory";
 
 type Verdict = "exact" | "close" | "wrong";
@@ -22,6 +22,10 @@ export function RecallEx({ item, onNext }: ExProps) {
   const [val, setVal] = useState("");
   const [hint, setHint] = useState(0);
   const [res, setRes] = useState<{ verdict: Verdict; conf: 1 | 2 | 3 | null; ms: number } | null>(null);
+  const tokens = useTokens();
+  const [freeHint, setFreeHint] = useState(false);
+  const [retried, setRetried] = useState(false);
+  const [offerRetry, setOfferRetry] = useState(false);
   const [override, setOverride] = useState(false);
   const start = useRef(Date.now());
   const speak = useSpeak();
@@ -32,13 +36,15 @@ export function RecallEx({ item, onNext }: ExProps) {
     if (!val.trim() || res) return;
     const verdict = checkAnswer(lang, val, acceptedOf(w, lang));
     setRes({ verdict, conf, ms: Date.now() - start.current });
+    if (verdict === "wrong" && !retried && tokens.retry > 0) return setOfferRetry(true);
     speak(targetOf(w, lang), lang);
   };
 
   const finish = () => {
     if (!res) return;
     const verdict: Verdict = override ? "exact" : res.verdict;
-    const g = gradeTyped(verdict, res.conf, res.ms, hint > 0);
+    let g = gradeTyped(verdict, res.conf, res.ms, hint > 0 && !freeHint);
+    if (retried && verdict !== "wrong") g = Math.min(g, 2) as typeof g;
     const main = item.facet as Facet;
     const other: Facet = main === "spell" ? "recall" : "spell";
     const otherGrade = other === "spell" ? (verdict === "exact" ? g : 1) : verdict === "wrong" ? 1 : 3;
@@ -49,7 +55,7 @@ export function RecallEx({ item, onNext }: ExProps) {
       ms: res.ms,
       also: [{ facet: other, grade: otherGrade as 1 | 2 | 3 | 4 }],
       requeue: verdict === "wrong",
-      detail: { given: val, verdict, hint },
+      detail: { given: val, verdict, hint, freeHint, retried },
     });
   };
 
@@ -79,10 +85,35 @@ export function RecallEx({ item, onNext }: ExProps) {
       {!res ? (
         <>
           <CheckButtons onCheck={check} disabled={!val.trim()} />
-          <button className="btn ghost sm" style={{ alignSelf: "center" }} onClick={() => setHint((h) => Math.min(h + 1, stripNikud(target).length - 1))}>
+          <button
+            className="btn ghost sm"
+            style={{ alignSelf: "center" }}
+            onClick={async () => {
+              if (!freeHint && tokens.hint > 0 && (await tokens.use("hint"))) setFreeHint(true);
+              setHint((h) => Math.min(h + 1, stripNikud(target).length - 1));
+            }}
+          >
             <Lightbulb size={15} /> Подсказка {hint > 0 && `(${hint})`}
+            {(freeHint || tokens.hint > 0) && <span className="badge accent">без штрафа{!freeHint && ` · ${tokens.hint}`}</span>}
           </button>
         </>
+      ) : offerRetry ? (
+        <RetryOffer
+          left={tokens.retry}
+          onReveal={() => {
+            setOfferRetry(false);
+            speak(targetOf(w, lang), lang);
+          }}
+          onRetry={async () => {
+            if (await tokens.use("retry")) {
+              setRetried(true);
+              setOfferRetry(false);
+              setRes(null);
+              setVal("");
+              requestAnimationFrame(() => inputRef.current?.focus());
+            }
+          }}
+        />
       ) : (
         <>
           {res.verdict === "exact" || override ? (
@@ -125,6 +156,10 @@ export function ClozeEx({ item, onNext }: ExProps) {
   const [val, setVal] = useState("");
   const [hint, setHint] = useState(false);
   const [res, setRes] = useState<{ verdict: Verdict; conf: 1 | 2 | 3 | null; ms: number; lemmaOnly: boolean } | null>(null);
+  const tokens = useTokens();
+  const [freeHint, setFreeHint] = useState(false);
+  const [retried, setRetried] = useState(false);
+  const [offerRetry, setOfferRetry] = useState(false);
   const start = useRef(Date.now());
   const speak = useSpeak();
   const parts = useMemo(() => {
@@ -141,12 +176,14 @@ export function ClozeEx({ item, onNext }: ExProps) {
       lemmaOnly = true;
     }
     setRes({ verdict, conf, ms: Date.now() - start.current, lemmaOnly });
+    if (verdict === "wrong" && !retried && tokens.retry > 0) return setOfferRetry(true);
     speak(lang === "he" ? ex.text_nikud || ex.text : ex.text, lang);
   };
   const finish = () => {
     if (!res) return;
-    let g = gradeTyped(res.verdict, res.conf, res.ms, hint);
+    let g = gradeTyped(res.verdict, res.conf, res.ms, hint && !freeHint);
     if (res.lemmaOnly) g = 2;
+    if (retried && res.verdict !== "wrong") g = Math.min(g, 2) as typeof g;
     onNext({
       grade: g,
       correct: res.verdict !== "wrong",
@@ -154,7 +191,7 @@ export function ClozeEx({ item, onNext }: ExProps) {
       ms: res.ms,
       also: res.verdict !== "wrong" ? [{ facet: "recall", grade: 3 }] : [],
       requeue: res.verdict === "wrong",
-      detail: { given: val, verdict: res.verdict, target: ex.target },
+      detail: { given: val, verdict: res.verdict, target: ex.target, freeHint, retried },
     });
   };
 
@@ -183,11 +220,35 @@ export function ClozeEx({ item, onNext }: ExProps) {
         <>
           <CheckButtons onCheck={check} disabled={!val.trim()} />
           {!hint && (
-            <button className="btn ghost sm" style={{ alignSelf: "center" }} onClick={() => setHint(true)}>
+            <button
+              className="btn ghost sm"
+              style={{ alignSelf: "center" }}
+              onClick={async () => {
+                if (tokens.hint > 0 && (await tokens.use("hint"))) setFreeHint(true);
+                setHint(true);
+              }}
+            >
               <Lightbulb size={15} /> Какое это слово?
+              {tokens.hint > 0 && <span className="badge accent">без штрафа · {tokens.hint}</span>}
             </button>
           )}
         </>
+      ) : offerRetry ? (
+        <RetryOffer
+          left={tokens.retry}
+          onReveal={() => {
+            setOfferRetry(false);
+            speak(lang === "he" ? ex.text_nikud || ex.text : ex.text, lang);
+          }}
+          onRetry={async () => {
+            if (await tokens.use("retry")) {
+              setRetried(true);
+              setOfferRetry(false);
+              setRes(null);
+              setVal("");
+            }
+          }}
+        />
       ) : (
         <>
           {res.verdict === "exact" ? (
@@ -227,24 +288,29 @@ export function ConjugateEx({ item, onNext }: ExProps) {
   const [res, setRes] = useState<{ verdict: Verdict; conf: 1 | 2 | 3 | null; ms: number } | null>(null);
   const start = useRef(Date.now());
   const speak = useSpeak();
+  const tokens = useTokens();
+  const [retried, setRetried] = useState(false);
+  const [offerRetry, setOfferRetry] = useState(false);
   const t = tenseLabel(f.tense);
   const p = personLabel(f.tense, f.person);
   const row = (item.forms || []).filter((x) => x.tense === f.tense);
 
   const check = (conf: 1 | 2 | 3 | null) => {
     if (!val.trim() || res) return;
-    setRes({ verdict: checkAnswer(lang, val, [f.form, f.nikud]), conf, ms: Date.now() - start.current });
+    const verdict = checkAnswer(lang, val, [f.form, f.nikud]);
+    setRes({ verdict, conf, ms: Date.now() - start.current });
+    if (verdict === "wrong" && !retried && tokens.retry > 0) return setOfferRetry(true);
     speak(f.nikud || f.form, lang);
   };
   const finish = () => {
     if (!res) return;
     onNext({
-      grade: gradeTyped(res.verdict, res.conf, res.ms, false),
+      grade: (retried && res.verdict !== "wrong" ? Math.min(2, gradeTyped(res.verdict, res.conf, res.ms, false)) : gradeTyped(res.verdict, res.conf, res.ms, false)) as 1 | 2 | 3 | 4,
       correct: res.verdict !== "wrong",
       confidence: res.conf,
       ms: res.ms,
       requeue: res.verdict === "wrong",
-      detail: { tense: f.tense, person: f.person, binyan: w.binyan, given: val, verdict: res.verdict },
+      detail: { tense: f.tense, person: f.person, binyan: w.binyan, given: val, verdict: res.verdict, retried },
     });
   };
 
@@ -282,6 +348,22 @@ export function ConjugateEx({ item, onNext }: ExProps) {
       <HebrewInput lang={lang} value={val} onChange={setVal} big autoFocus disabled={!!res} onEnter={() => (res ? finish() : check(2))} />
       {!res ? (
         <CheckButtons onCheck={check} disabled={!val.trim()} />
+      ) : offerRetry ? (
+        <RetryOffer
+          left={tokens.retry}
+          onReveal={() => {
+            setOfferRetry(false);
+            speak(f.nikud || f.form, lang);
+          }}
+          onRetry={async () => {
+            if (await tokens.use("retry")) {
+              setRetried(true);
+              setOfferRetry(false);
+              setRes(null);
+              setVal("");
+            }
+          }}
+        />
       ) : (
         <>
           <Feedback kind={res.verdict === "exact" ? "ok" : res.verdict === "close" ? "close" : "bad"} title={res.verdict === "exact" ? "Верно" : res.verdict === "close" ? "Почти — проверь написание" : "Правильная форма"}>

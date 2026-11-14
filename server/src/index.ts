@@ -45,26 +45,20 @@ import {
   type UsageInfo,
   suggestWords,
   makeStory,
-  fertilize,
 } from "./ai.js";
 import {
+  activeEffects,
   addDew,
   balance,
-  buy,
-  CATALOG,
-  consume,
   dewCapped,
   dewForReview,
   dewForWatered,
   dewStats,
   ensureWelcome,
-  inventory,
-  itemById,
-  ledger,
-  owns,
-  priceOf,
-  weeklyFair,
+  spendDew,
+  useEffectToken,
 } from "./economy.js";
+import { act, aiActivityPrice, build, buyEffect, GameError, gameView, perks, roll } from "./game.js";
 import { buildSession, todayCounts } from "./session.js";
 import { fullStats, gardenStats, rhythm, rootsGarden } from "./stats.js";
 import { getPack, importWords, listPacks, loadContent, savePack } from "./content.js";
@@ -125,11 +119,12 @@ app.get("/api/me", (c) => {
     ai: aiInfo(),
     settings: authed ? getSettings() : null,
     dew: authed ? balance() : 0,
-    owned: authed ? inventory() : {},
+    perks: authed ? perks() : null,
+    effects: authed ? activeEffects() : null,
   });
 });
 
-app.get("/api/dew", (c) => c.json({ balance: balance(), owned: inventory(), ...dewStats() }));
+app.get("/api/dew", (c) => c.json({ balance: balance(), perks: perks(), effects: activeEffects(), ...dewStats() }));
 
 
 // ───────────────────────── главная ─────────────────────────
@@ -324,6 +319,10 @@ function reviewWithDew(r: Parameters<typeof applyReview>[0]) {
     wordLabel: w?.he || w?.en || "",
     ref: String(r.word_id),
   });
+  // Студия «Коль»: бонус за диктант слово в слово
+  const studio = perks().dictationBonus;
+  if (studio && !r.practice && r.mode === "dictation" && Number((r.detail as Row | undefined)?.score) === 100)
+    dew += addDew(studio, "Студия «Коль»: диктант слово в слово", String(r.word_id));
   if (!r.practice) dew += dewForWatered(todayCounts().dueFacets);
   return { ...res, dew };
 }
@@ -602,39 +601,45 @@ app.post("/api/ai/compare", async (c) => {
   return c.json({ results });
 });
 
-// ───────────────────────── лавка ─────────────────────────
-app.get("/api/shop", (c) => {
-  const owned = inventory();
-  const fair = weeklyFair();
-  return c.json({
-    balance: balance(),
-    ...dewStats(),
-    fair,
-    ai: aiEnabled(),
-    items: CATALOG.map((i) => ({ ...i, finalPrice: priceOf(i), onFair: fair.items.includes(i.id), qty: owned[i.id] || 0 })),
-    ledger: ledger(25),
-    stories: db.prepare("SELECT id, ts, title, lang, read_at FROM stories ORDER BY ts DESC LIMIT 20").all(),
-    offers: db.prepare("SELECT id, ts, kind, title FROM offers ORDER BY ts DESC LIMIT 20").all(),
-    blitzBest: Number(getMeta("blitz:best") || 0),
-  });
-});
-
-app.post("/api/shop/buy", async (c) => {
-  const { item } = await c.req.json<{ item: string }>();
-  const def = itemById(item);
-  if (def?.ai && !aiEnabled()) return c.json({ error: "Для этого товара нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
-  const r = buy(item);
-  return r.ok ? c.json(r) : c.json({ error: r.error }, 400);
-});
-
-function needItem(id: string) {
-  if (!owns(id)) throw new AIError(`Сначала купи «${itemById(id)?.title}» в лавке`);
+// ───────────────────────── игровое поле «Шук» ─────────────────────────
+function gameErr<T>(fn: () => T) {
+  try {
+    return fn();
+  } catch (e) {
+    if (e instanceof GameError) throw new AIError(e.message);
+    throw e;
+  }
 }
 
-/** Сказка из слов, которые хотят пить (или самых слабых). */
-app.post("/api/shop/use/story", async (c) => {
+app.get("/api/game", (c) => c.json({ ...gameView(), today: dewStats().today, ai: aiEnabled() }));
+app.post("/api/game/roll", (c) => c.json(gameErr(() => roll())));
+app.post("/api/game/act", async (c) => {
+  const { action, payload } = await c.req.json<{ action: string; payload?: Record<string, unknown> }>();
+  return c.json(gameErr(() => act(action, payload)));
+});
+app.post("/api/game/build", async (c) => {
+  const { cell } = await c.req.json<{ cell: number }>();
+  return c.json(gameErr(() => build(cell)));
+});
+app.post("/api/game/effect", async (c) => {
+  const { id } = await c.req.json<{ id: string }>();
+  return c.json(gameErr(() => buyEffect(id)));
+});
+
+/** Жетоны «Подсказка без штрафа» и «Вторая попытка» тратятся прямо в упражнениях. */
+app.post("/api/effects/use", async (c) => {
+  const { type } = await c.req.json<{ type: "hint" | "retry" }>();
+  if (type !== "hint" && type !== "retry") return c.json({ error: "Неизвестный эффект" }, 400);
+  const ok = useEffectToken(type);
+  return ok ? c.json({ ok, effects: activeEffects() }) : c.json({ error: "Жетоны закончились" }, 400);
+});
+
+/** Кафе «Сиппур»: сказка из слов, которые хотят пить (или самых слабых). */
+app.post("/api/game/story", async (c) => {
   const { lang = "he" } = await c.req.json<{ lang?: StudyLang }>().catch(() => ({ lang: "he" as StudyLang }));
-  needItem("story");
+  if (!aiEnabled()) return c.json({ error: "Для сказок нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  const price = gameErr(() => aiActivityPrice("story"));
+  if (balance() < price) return c.json({ error: `Не хватает росы: сказка стоит ${price}` }, 400);
   const now = Date.now();
   const rows = db
     .prepare(
@@ -645,7 +650,7 @@ app.post("/api/shop/use/story", async (c) => {
   if (rows.length < 3) return c.json({ error: "Нужно хотя бы 3 слова в саду" }, 400);
   const words = rows.map(rowToWord);
   const story = await makeStory({ lang, words });
-  consume("story");
+  spendDew(price, "Кафе «Сиппур»: сказка");
   const ids = words.filter((w) => story.used.some((u) => normHe(u) === normHe(w.he) || u.toLowerCase() === w.en.toLowerCase())).map((w) => w.id);
   const info = db
     .prepare("INSERT INTO stories(ts, lang, title, data) VALUES (?, ?, ?, ?)")
@@ -681,20 +686,22 @@ app.post("/api/stories/:id/read", async (c) => {
   return c.json({ ok: true, dew, correct, total });
 });
 
-/** Пакет семян или лупа корня: ИИ предлагает слова, сохраняем подборку. */
-app.post("/api/shop/use/suggest", async (c) => {
+/** Архив корней: ИИ предлагает слова по теме или всю семью корня. */
+app.post("/api/game/suggest", async (c) => {
   const { kind, topic } = await c.req.json<{ kind: "theme" | "root"; topic: string }>();
-  const item = kind === "root" ? "root-lens" : "seeds";
-  needItem(item);
+  if (!aiEnabled()) return c.json({ error: "Для архива нужен ИИ (ANTHROPIC_API_KEY)" }, 400);
+  const price = gameErr(() => aiActivityPrice(kind === "root" ? "root" : "theme"));
   if (!topic?.trim()) return c.json({ error: kind === "root" ? "Укажи корень" : "Укажи тему" }, 400);
+  if (balance() < price) return c.json({ error: `Не хватает росы: нужно ${price}` }, 400);
   const known = (db.prepare("SELECT he FROM words WHERE he <> '' ORDER BY created_at DESC LIMIT 400").all() as Row[]).map((r) => r.he);
   const res = await suggestWords({ kind, topic: topic.trim(), known });
-  consume(item);
+  spendDew(price, kind === "root" ? "Архив корней: семья корня" : "Архив корней: слова по теме");
   const info = db
     .prepare("INSERT INTO offers(ts, kind, title, data) VALUES (?, ?, ?, ?)")
     .run(Date.now(), kind, res.title, JSON.stringify({ topic, intro: res.intro, items: res.items }));
   return c.json({ id: Number(info.lastInsertRowid) });
 });
+app.get("/api/offers", (c) => c.json(db.prepare("SELECT id, ts, kind, title FROM offers ORDER BY ts DESC LIMIT 30").all()));
 app.get("/api/offers/:id", (c) => {
   const r = db.prepare("SELECT * FROM offers WHERE id = ?").get(Number(c.req.param("id"))) as Row | undefined;
   if (!r) return c.json({ error: "Не найдено" }, 404);
@@ -702,40 +709,54 @@ app.get("/api/offers/:id", (c) => {
   return c.json({ id: r.id, ts: r.ts, kind: r.kind, title: r.title, intro: data.intro, topic: data.topic, items: resolveRelated(data.items) });
 });
 
-/** Удобрение для капризного слова. */
-app.post("/api/shop/use/fertilizer", async (c) => {
-  const { word_id } = await c.req.json<{ word_id: number }>();
-  needItem("fertilizer");
-  const w = getWord(word_id);
-  if (!w) return c.json({ error: "Не найдено" }, 404);
-  const lang: StudyLang = w.study.includes("he") ? "he" : "en";
-  const conf = getFull(word_id)!.confusions.map((x) => x.he || x.en);
-  const r = await fertilize(w, lang, conf);
-  consume("fertilizer");
-  const notes = r.tip && !w.notes.includes(r.tip) ? (w.notes ? w.notes + "\n" : "") + r.tip : w.notes;
-  updateWord(word_id, { mnemonic: r.mnemonic, notes });
-  addExamples(word_id, r.examples);
-  ensureFacets(word_id);
-  addMoment("fertilize", word_id, `Удобрено: ${w.he || w.en}`);
-  return c.json({ ...getFull(word_id), related: resolveRelated(getWord(word_id)!.related, word_id) });
+/** Итог блица: роса за верные ответы (с дневным потолком — его поднимает Стадион) и рекорд. */
+app.post("/api/blitz/finish", async (c) => {
+  const { correct, total, seconds = 60 } = await c.req.json<{ correct: number; total: number; seconds?: number }>();
+  const p = perks();
+  const key = seconds > 60 ? "blitz:best:120" : "blitz:best";
+  const best = Number(getMeta(key) || 0);
+  const record = correct > best;
+  if (record) setMeta(key, String(correct));
+  const recordBonus = record && best > 0 ? (p.levels.stadium >= 3 ? 10 : 5) : 0;
+  const dew = dewCapped("blitz", Math.floor(Math.max(0, correct) / 3) + recordBonus, Math.round(20 * p.blitzCapMult), "блиц");
+  if (record && best > 0) addMoment("blitz", null, `Новый рекорд блица: ${correct}`);
+  void total;
+  return c.json({ dew, best: Math.max(best, correct), record });
 });
 
-/** Итог блица: роса за верные ответы (с дневным потолком) и рекорд. */
-app.post("/api/blitz/finish", async (c) => {
-  const { correct, total } = await c.req.json<{ correct: number; total: number }>();
-  const best = Number(getMeta("blitz:best") || 0);
-  const record = correct > best;
-  if (record) setMeta("blitz:best", String(correct));
-  const dew = dewCapped("blitz", Math.floor(Math.max(0, correct) / 3) + (record && best > 0 ? 5 : 0), 20, "блиц");
-  if (record && best > 0) addMoment("blitz", null, `Новый рекорд блица: ${correct}`);
-  return c.json({ dew, best: Math.max(best, correct), record });
+/** Экспорт словаря (Обсерватория, уровень 3): CSV или TSV для импорта в Anki. */
+app.get("/api/export/words", (c) => {
+  if (!perks().csvExport) return c.json({ error: "Экспорт открывает Обсерватория уровня 3" }, 403);
+  const fmt = c.req.query("format") === "tsv" ? "tsv" : "csv";
+  const words = (db.prepare("SELECT * FROM words ORDER BY created_at").all() as Row[]).map(rowToWord);
+  const sep = fmt === "tsv" ? "\t" : ",";
+  const esc = (v: string) => (fmt === "tsv" ? (v || "").replace(/[\t\n]/g, " ") : `"${(v || "").replace(/"/g, '""')}"`);
+  const head = ["he", "he_nikud", "translit", "ru", "ru_alt", "en", "pos", "root", "binyan", "notes"];
+  const lines = words.map((w) => head.map((h) => esc(String((w as any)[h] ?? ""))).join(sep));
+  const body = (fmt === "csv" ? head.join(sep) + "\n" : "") + lines.join("\n");
+  c.header("Content-Type", fmt === "csv" ? "text/csv; charset=utf-8" : "text/tab-separated-values; charset=utf-8");
+  c.header("Content-Disposition", `attachment; filename="shoresh-words.${fmt}"`);
+  return c.body((fmt === "csv" ? "\ufeff" : "") + body);
+});
+
+/** Прогноз нагрузки (Обсерватория, уровень 1): сколько навыков станут «жаждущими» в каждый из 14 дней. */
+app.get("/api/forecast", (c) => {
+  if (!perks().forecast) return c.json({ error: "Прогноз открывает Обсерватория" }, 403);
+  const start = new Date().setHours(0, 0, 0, 0);
+  const rows = db.prepare("SELECT due FROM facets WHERE state = 'review' AND reps > 0 AND due < ?").all(start + 14 * 86400000) as { due: number }[];
+  const days = Array.from({ length: 14 }, (_, i) => ({ day: start + i * 86400000, count: 0 }));
+  for (const r of rows) days[Math.max(0, Math.floor((r.due - start) / 86400000))].count++;
+  return c.json({ days });
 });
 
 // ───────────────────────── настройки и резервная копия ─────────────────────────
 app.get("/api/settings", (c) => c.json(getSettings()));
 app.put("/api/settings", async (c) => {
   const patch = await c.req.json();
-  if (patch.accent && patch.accent !== "sage" && !owns("theme-" + patch.accent)) return c.json({ error: "Эту тему сначала нужно купить в лавке" }, 403);
+  const pk = perks();
+  if (patch.accent && !pk.accents.includes(patch.accent)) return c.json({ error: "Эту тему открывает Галерея на игровом поле" }, 403);
+  if (patch.heFont && !pk.fonts.includes(patch.heFont)) return c.json({ error: "Этот шрифт открывает Типография на игровом поле" }, 403);
+  if (patch.plantStyle && !pk.plants.includes(patch.plantStyle)) return c.json({ error: "Этот сад открывает Оранжерея на игровом поле" }, 403);
   saveSettings(patch);
   return c.json(getSettings());
 });
@@ -753,9 +774,11 @@ const TABLES = [
   "settings",
   "moments",
   "dew_ledger",
-  "inventory",
   "stories",
   "offers",
+  "properties",
+  "effects",
+  "game_log",
 ];
 
 app.get("/api/export", (c) => {

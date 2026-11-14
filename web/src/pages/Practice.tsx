@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Droplet, Layers, ListChecks, Brain, Ear, TextCursorInput, PenLine, Table2, Microscope, Shuffle, GitCompare, Activity, Puzzle, Headphones, Zap, Lock } from "lucide-react";
+import { Droplet, Layers, ListChecks, Brain, Ear, TextCursorInput, PenLine, Table2, Microscope, Shuffle, GitCompare, Activity, Puzzle, Headphones, Zap, Lock, Telescope } from "lucide-react";
 import { useApp, useData } from "../lib/app";
 
 interface Today {
@@ -23,13 +23,14 @@ const MODES = [
   { id: "match", icon: Puzzle, title: "Пары", text: "Соедини слова и переводы на время. Лёгкая разминка.", facets: [], skill: "узнавание" },
   { id: "twins", icon: GitCompare, title: "Близнецы", text: "Слова, которые ты путал между собой, — в одной тренировке.", facets: [], skill: "различение" },
   { id: "weak", icon: Activity, title: "Слабые места", text: "Самые хрупкие навыки по всему саду, даже если ещё не пора.", facets: [], skill: "всё" },
-  { id: "dictation", icon: Headphones, title: "Диктант", text: "Слышишь целое предложение из примеров — записываешь его.", facets: [], skill: "слух + письмо", item: "mech-dictation" },
-  { id: "blitz", icon: Zap, title: "Блиц", text: "60 секунд знакомых слов на скорость. Рекорд и немного росы.", facets: [], skill: "беглость", item: "mech-blitz" },
-] as { id: string; icon: typeof Zap; title: string; text: string; facets: string[]; skill: string; item?: string }[];
+  { id: "edge", icon: Telescope, title: "На грани", text: "Слова, которые вот-вот начнут увядать: успеть до жажды.", facets: [], skill: "всё", perk: "edgeMode", where: "Обсерватория ур. 2 (Кармель)" },
+  { id: "dictation", icon: Headphones, title: "Диктант", text: "Слышишь целое предложение из примеров — записываешь его.", facets: [], skill: "слух + письмо", perk: "dictation", where: "Студия «Коль» (Цфат)" },
+  { id: "blitz", icon: Zap, title: "Блиц", text: "Знакомые слова на скорость. Рекорды и немного росы.", facets: [], skill: "беглость", perk: "blitz", where: "Стадион (Тверия)" },
+] as { id: string; icon: typeof Zap; title: string; text: string; facets: string[]; skill: string; perk?: "edgeMode" | "dictation" | "blitz"; where?: string }[];
 
 export default function Practice() {
   const { data } = useData<{ today: Today }>("/api/home");
-  const { ai, owned } = useApp();
+  const { ai, perks } = useApp();
   const nav = useNavigate();
   const t = data?.today;
   const count = (facets: string[]) => facets.reduce((s, f) => s + (t?.byFacet[f] || 0), 0);
@@ -67,7 +68,7 @@ export default function Practice() {
         {MODES.map((m) => {
           const due = count(m.facets);
           const nw = fresh(m.facets);
-          const isLocked = !!m.item && !owned[m.item];
+          const isLocked = !!m.perk && !perks[m.perk];
           return (
             <button
               key={m.id}
@@ -82,7 +83,7 @@ export default function Practice() {
                 <div className="row gap-4">
                   {isLocked && (
                     <span className="badge gold">
-                      <Lock size={11} /> в лавке
+                      <Lock size={11} /> на поле
                     </span>
                   )}
                   {due > 0 && <span className="badge water">{due}</span>}
@@ -91,7 +92,7 @@ export default function Practice() {
               </div>
               <div style={{ fontWeight: 500 }}>{m.title}</div>
               <div className="small text-2">{m.text}</div>
-              <div className="tiny muted">навык: {m.skill}</div>
+              <div className="tiny muted">{isLocked ? `откроет: ${m.where}` : `навык: ${m.skill}`}</div>
               {m.id === "produce" && !ai && <div className="tiny" style={{ color: "var(--clay)" }}>без ИИ — самопроверка</div>}
             </button>
           );

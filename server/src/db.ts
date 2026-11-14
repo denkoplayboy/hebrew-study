@@ -214,6 +214,26 @@ const MIGRATIONS: string[] = [
     data TEXT NOT NULL
   );
   `,
+  // 4 — игровое поле «Шук»
+  `
+  CREATE TABLE properties (
+    cell INTEGER PRIMARY KEY,
+    level INTEGER NOT NULL DEFAULT 0,
+    bought_at INTEGER NOT NULL
+  );
+  CREATE TABLE effects (
+    type TEXT PRIMARY KEY,
+    uses INTEGER NOT NULL DEFAULT 0,
+    until INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE TABLE game_log (
+    id INTEGER PRIMARY KEY,
+    ts INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    text TEXT NOT NULL,
+    amount INTEGER
+  );
+  `,
 ];
 
 function migrate() {
@@ -244,6 +264,8 @@ export interface Settings {
   keyboardMap: boolean;
   ttsRate: number;
   accent: string;
+  heFont: string;
+  plantStyle: string;
 }
 export const DEFAULT_SETTINGS: Settings = {
   aiProfile: {
@@ -259,6 +281,8 @@ export const DEFAULT_SETTINGS: Settings = {
   keyboardMap: true,
   ttsRate: 0.9,
   accent: "sage",
+  heFont: "frank",
+  plantStyle: "classic",
 };
 
 export function getSettings(): Settings {

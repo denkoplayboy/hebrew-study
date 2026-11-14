@@ -488,7 +488,7 @@ explain — короткое пояснение по-русски к каждо�
   return { id: "ai-" + Date.now().toString(36), title: r.title, description: r.description, lang: opts.lang, source: "ai", items };
 }
 
-// ───────────────────────── лавка: семена, лупа корня, сказки, удобрение ─────────────────────────
+// ───────────────────────── здания с ИИ: архив корней и сказки ─────────────────────────
 
 const SuggestSchema = z.object({
   title: z.string(),
@@ -553,39 +553,6 @@ export async function makeStory(opts: { lang: "he" | "en"; words: { he: string; 
     schema: StorySchema,
     tag: "story",
   });
-}
-
-const FertilizeSchema = z.object({
-  mnemonic: z.string(),
-  tip: z.string(),
-  examples: z.array(z.object({ text: z.string(), text_nikud: z.string(), target: z.string(), ru: z.string() })),
-});
-
-/** Удобрение для «капризного» слова: яркая мнемоника, подсказка и новые запоминающиеся примеры. */
-export async function fertilize(w: Word, lang: "he" | "en", confusions: string[]) {
-  if (MOCK) return { mnemonic: "Мок-мнемоника", tip: "Мок-подсказка", examples: [] as Example[] };
-  const r = await ask({
-    op: "analyze",
-    system: `Ты — специалист по запоминанию слов. ${LEARNER}
-Ученик постоянно забывает это слово. Помоги ему зацепиться:
-- mnemonic — одна яркая, немного абсурдная ассоциация на русском, связывающая ЗВУЧАНИЕ слова со смыслом (опирайся на транскрипцию). 1–2 предложения.
-- tip — чем это слово отличается от похожих (если ученик их путает) или какая у него «логика» (корень, биньян, модель). 1–2 предложения.
-- examples — 2 эмоциональных, запоминающихся предложения со словом (смешных или личных), уровень ульпана. ${lang === "he" ? "text — без огласовок (כתיב מלא), text_nikud — с огласовками" : "text — по-английски, text_nikud — пустая строка"}, target — точная подстрока text, ru — перевод.`,
-    user: `Слово: ${lang === "he" ? w.he_nikud || w.he : w.en} (${w.translit || ""}) — «${w.ru}». ${confusions.length ? "Путает с: " + confusions.join(", ") : ""}`,
-    schema: FertilizeSchema,
-    tag: "fertilize",
-  });
-  return {
-    mnemonic: r.mnemonic,
-    tip: r.tip,
-    examples: r.examples.map((e) => ({
-      lang,
-      text: lang === "he" ? stripNikud(e.text) : e.text,
-      text_nikud: e.text_nikud,
-      target: lang === "he" ? stripNikud(e.target) : e.target,
-      ru: e.ru,
-    })) as Example[],
-  };
 }
 
 // ───────────────────────── мок для локальной разработки ─────────────────────────

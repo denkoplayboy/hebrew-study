@@ -27,7 +27,95 @@ export function Mixed({ text }: { text: string }) {
 }
 
 // ───────── растение-стадия ─────────
-export function Plant({ stage, size = 28, title }: { stage: number; size?: number; title?: string }) {
+/** Растение-стадия. Вид деревьев (стадии 3–5) открывается Оранжереей на игровом поле. */
+export function Plant({ stage, size = 28, title, style }: { stage: number; size?: number; title?: string; style?: string }) {
+  const { settings } = useApp();
+  const kind = style || settings.plantStyle || "classic";
+  if (kind === "classic" || stage < 3) return <ClassicPlant stage={stage} size={size} title={title} />;
+  const leaf = "var(--accent)";
+  const soil = "var(--border-strong)";
+  const label = title || STAGES[stage]?.ru;
+  const roots =
+    stage === 5 ? (
+      <g stroke="var(--gold)" strokeWidth="1.3" strokeLinecap="round" fill="none">
+        <path d="M16 26.5 C15 28.5 13 29.5 10.5 30" />
+        <path d="M16 26.5 C17 28.5 19 29.5 21.5 30" />
+        <path d="M16 26.5 V31" />
+      </g>
+    ) : null;
+  const big = stage >= 4;
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-label={label} role="img">
+      <title>{label}</title>
+      <path d="M5 26.5 H27" stroke={soil} strokeWidth="1.6" strokeLinecap="round" />
+      {roots}
+      {kind === "olive" && (
+        <g>
+          <path d={big ? "M16 26.5 C14 23 18 20 15.5 16 C15 14.5 16.5 13 16 11" : "M16 26.5 C14.5 23.5 17.5 21 16 17"} stroke="#8a7055" strokeWidth={big ? 2.6 : 2.1} fill="none" strokeLinecap="round" />
+          {(big
+            ? [
+                [10, 12, 4.4],
+                [16, 9, 4.8],
+                [22, 12, 4.4],
+                [13, 15.5, 3.6],
+                [19.5, 15.5, 3.6],
+              ]
+            : [
+                [12.5, 14.5, 3.6],
+                [16, 12, 4],
+                [19.5, 14.5, 3.6],
+              ]
+          ).map(([x, y, r], k) => (
+            <ellipse key={k} cx={x} cy={y} rx={r} ry={r * 0.72} fill="#8d9c6c" opacity={0.85 - k * 0.05} />
+          ))}
+          {stage === 5 && [[11, 13], [20.5, 11], [16, 15]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r="0.9" fill="#3d3a2a" />)}
+        </g>
+      )}
+      {kind === "palm" && (
+        <g>
+          <path d={big ? "M16 26.5 C16.5 21 15.5 15 16.5 9" : "M16 26.5 C16.4 22 15.6 17.5 16.2 13"} stroke="#9b7a52" strokeWidth={big ? 2.6 : 2.2} fill="none" strokeLinecap="round" strokeDasharray="2.2 0.8" />
+          {(big
+            ? ["M16.5 9 C12 6.5 8 8 5.5 11.5", "M16.5 9 C21 6.5 25 8 27 11.5", "M16.5 9 C13.5 8 10.5 11 9 15", "M16.5 9 C19.5 8 22.5 11 24 15", "M16.5 9 C16 6 17.5 4 19 3"]
+            : ["M16.2 13 C13 11 10 12 8.5 14.5", "M16.2 13 C19.5 11 22.5 12 24 14.5", "M16.2 13 C14 12.5 12 15 11.5 17.5", "M16.2 13 C18.5 12.5 20.5 15 21 17.5"]
+          ).map((d, k) => (
+            <path key={k} d={d} stroke={leaf} strokeWidth="2" fill="none" strokeLinecap="round" />
+          ))}
+          {stage === 5 && [[14.5, 11.2], [16.3, 11.8], [18.2, 11.2]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r="1.2" fill="var(--gold)" />)}
+        </g>
+      )}
+      {kind === "rimon" && (
+        <g>
+          <path d="M16 26.5 V16" stroke="#8a6048" strokeWidth={big ? 2.6 : 2.2} strokeLinecap="round" />
+          <path d="M16 20 L12.5 17 M16 19 L19.5 16.5" stroke="#8a6048" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="16" cy={big ? 11 : 12.5} r={big ? 7.5 : 6} fill={leaf} />
+          {big && <circle cx="10.5" cy="14" r="4" fill={leaf} opacity="0.85" />}
+          {big && <circle cx="21.5" cy="14" r="4" fill={leaf} opacity="0.85" />}
+          {(stage === 5
+            ? [
+                [12.5, 10.5],
+                [19.5, 9.5],
+                [15.5, 14.5],
+                [21.5, 14.5],
+              ]
+            : stage === 4
+              ? [
+                  [13, 11],
+                  [19.5, 13],
+                ]
+              : [[17.5, 11]]
+          ).map(([x, y], k) => (
+            <g key={k}>
+              <circle cx={x} cy={y} r="1.9" fill="#b8404f" />
+              <path d={`M${x - 0.6} ${y - 1.9} l0.6 -0.8 l0.6 0.8`} stroke="#7e2a36" strokeWidth="0.6" fill="none" />
+            </g>
+          ))}
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function ClassicPlant({ stage, size = 28, title }: { stage: number; size?: number; title?: string }) {
   const leaf = "var(--accent)";
   const trunk = "var(--clay)";
   const soil = "var(--border-strong)";

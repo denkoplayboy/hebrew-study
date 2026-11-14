@@ -3,7 +3,7 @@ import { getExamples, getForms, getWord, summaries, rowToWord } from "./words.js
 import { facetStrength, retrievability, DAY, type Facet } from "../../shared/memory.js";
 import type { ExerciseItem, WordForm, WordSummary } from "../../shared/types.js";
 import type { StudyLang } from "../../shared/lang.js";
-import { owns, itemById } from "./economy.js";
+import { perks } from "./game.js";
 
 type Row = Record<string, any>;
 
@@ -394,6 +394,16 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       }
       return { items: items.slice(0, size), note: items.length ? undefined : "Пока нет пар-близнецов: они появятся, когда ты перепутаешь похожие слова." };
     }
+    case "edge": {
+      if (!perks().edgeMode) return { items: [], note: "Режим «На грани» открывает Обсерватория уровня 2 — на игровом поле в Лавке.", locked: true } as any;
+      // навыки, которые ещё не «хотят пить», но вот-вот захотят
+      const target = getSettings().retention;
+      const cs = candidates(lang)
+        .filter((c) => c.reps > 0 && c.due > now && c.R < target + 0.04)
+        .sort((a, b) => a.R - b.R);
+      const items = interleave(fromCands(cs));
+      return { items, note: items.length ? undefined : "Сейчас ничего не стоит на грани — сад в отличной форме." };
+    }
     case "weak": {
       const cs = candidates(lang).filter((c) => c.reps > 0).sort((a, b) => a.strength - b.strength);
       return { items: interleave(fromCands(cs)) };
@@ -409,8 +419,7 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       return { items };
     }
     case "dictation": {
-      if (!owns("mech-dictation"))
-        return { items: [], note: `Диктант открывается в лавке за ${itemById("mech-dictation")?.price} росы.`, locked: true } as any;
+      if (!perks().dictation) return { items: [], note: "Диктант открывается Студией «Коль» в Цфате — на игровом поле в Лавке.", locked: true } as any;
       const l: StudyLang = o.lang === "en" ? "en" : "he";
       const rows = db
         .prepare(
@@ -435,11 +444,12 @@ export function buildSession(o: SessionOpts): { items: ExerciseItem[]; note?: st
       return { items: shuffle(items), note: items.length ? undefined : "Для диктанта нужны знакомые слова с примерами предложений." };
     }
     case "blitz": {
-      if (!owns("mech-blitz")) return { items: [], note: `Блиц открывается в лавке за ${itemById("mech-blitz")?.price} росы.`, locked: true } as any;
+      if (!perks().blitz) return { items: [], note: "Блиц открывается Стадионом в Тверии — на игровом поле в Лавке.", locked: true } as any;
       const known = candidates(lang, ["recognize"]).filter((c) => c.reps > 0);
       if (known.length < 4) return { items: [], note: "Для блица нужно хотя бы 4 знакомых слова." };
       const items: ExerciseItem[] = [];
-      for (let i = 0; i < 60; i++) {
+      const marathon = (o.size || 0) > 60 && perks().blitzMarathon;
+      for (let i = 0; i < (marathon ? 140 : 70); i++) {
         const c = known[Math.floor(Math.random() * known.length)];
         const w = summary(c.word_id);
         const dir = Math.random() < 0.6 ? "to_ru" : "to_target";

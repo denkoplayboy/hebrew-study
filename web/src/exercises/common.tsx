@@ -5,6 +5,7 @@ import type { Facet, Grade } from "../../../shared/memory";
 import { posLabel } from "../../../shared/lang";
 import { He, SpeakBtn } from "../components/ui";
 import { useApp } from "../lib/app";
+import { api } from "../lib/api";
 
 export interface ExResult {
   grade: Grade;
@@ -140,6 +141,41 @@ export function Feedback({ kind, title, children }: { kind: "ok" | "bad" | "clos
     <div className={"feedback " + kind}>
       <div style={{ fontWeight: 500 }}>{title}</div>
       {children && <div className="answer mt-8">{children}</div>}
+    </div>
+  );
+}
+
+/** Жетоны из Кафе «Ход»: подсказка без штрафа и вторая попытка. */
+export function useTokens() {
+  const { effects, setEffects, toast } = useApp();
+  const use = async (type: "hint" | "retry") => {
+    try {
+      const r = await api.post<{ effects: typeof effects }>("/api/effects/use", { type });
+      setEffects(r.effects);
+      return true;
+    } catch (e) {
+      toast((e as Error).message, true);
+      return false;
+    }
+  };
+  return { hint: effects.hint, retry: effects.retry, use };
+}
+
+/** Промежуточный экран после ошибки, если есть жетон «Вторая попытка»: ответ ещё не раскрыт. */
+export function RetryOffer({ left, onRetry, onReveal }: { left: number; onRetry: () => void; onReveal: () => void }) {
+  return (
+    <div className="col gap-6">
+      <Feedback kind="bad" title="Не то. Попробуешь ещё раз?">
+        <span className="small">Жетон «Вторая попытка» — осталось {left}. Ответ пока не показан.</span>
+      </Feedback>
+      <div className="row" style={{ justifyContent: "center" }}>
+        <button className="btn primary" onClick={onRetry}>
+          Ещё попытка
+        </button>
+        <button className="btn ghost" onClick={onReveal}>
+          Показать ответ
+        </button>
+      </div>
     </div>
   );
 }
