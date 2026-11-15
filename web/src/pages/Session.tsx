@@ -192,9 +192,13 @@ export default function Session() {
               mode !== "blitz" && <Bar value={progress} thin />
             )}
           </div>
-          {effects.dew_x2_until > Date.now() && <span className="badge water">роса ×2</span>}
-          {effects.golden_until > Date.now() && <span className="badge water">золотой час</span>}
         </div>
+        {(effects.dew_x2_until > Date.now() || effects.golden_until > Date.now()) && (
+          <div className="session-line">
+            {effects.dew_x2_until > Date.now() && <span className="badge water">роса ×2</span>}
+            {effects.golden_until > Date.now() && <span className="badge water">золотой час</span>}
+          </div>
+        )}
       </div>
 
       {shieldFor && (

@@ -1113,6 +1113,8 @@ p {
 .session-line + .session-line {
   min-height: 24px;
   padding-left: 54px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .session-title {
   display: flex;
@@ -1346,13 +1348,14 @@ p {
 /* ряд уроков: каждое упражнение — блок */
 .course {
   display: flex;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 5px 3px;
   align-items: flex-end;
-  height: 22px;
+  min-height: 22px;
 }
 .course i {
-  flex: 1;
-  min-width: 3px;
+  flex: 1 0 14px;
+  max-width: 44px;
   height: 8px;
   border-radius: 2px 2px 1px 1px;
   background: var(--surface-3);
