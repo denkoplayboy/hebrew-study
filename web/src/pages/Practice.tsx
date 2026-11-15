@@ -60,7 +60,7 @@ export default function Practice() {
       </button>
 
       <h2 className="section-title">Отдельные навыки</h2>
-      <div className="slab" style={{ ["--qc" as string]: "var(--q-practice)", padding: 6 }}>
+      <div className="slab on-plinth" style={{ ["--qc" as string]: "var(--q-practice)", padding: 6 }}>
         {MODES.map((m) => {
           const due = count(m.facets);
           const nw = fresh(m.facets);

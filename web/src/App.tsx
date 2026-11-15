@@ -51,7 +51,7 @@ export const NAV = [
   { to: "/reader", label: "Читалка", icon: ScanText, q: "var(--q-lexicon)" },
   { to: "/lab", label: "Лаборатория", icon: FlaskConical, q: "var(--q-practice)" },
   { to: "/shop", label: "Лавка", icon: Store, q: "var(--q-shuk)" },
-  { to: "/stats", label: "Статистика", icon: ChartColumn, q: "var(--on-hall-2)" },
+  { to: "/stats", label: "Статистика", icon: ChartColumn, q: "var(--accent)" },
   { to: "/settings", label: "Настройки", icon: SettingsIcon, q: "var(--on-hall-2)" },
 ];
 

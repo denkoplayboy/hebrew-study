@@ -96,12 +96,12 @@ export default function WordPage() {
 
   return (
     <div className="page">
-      <div className="qstrip">
-        <button className="btn ghost sm" onClick={() => nav(-1)}>
-          <ArrowLeft size={16} /> Назад
+      <div className="qstrip on-plinth" style={{ ["--qc" as string]: "var(--q-lexicon)" }}>
+        <button className="btn ghost sm icon" onClick={() => nav(-1)} aria-label="Назад" title="Назад">
+          <ArrowLeft size={18} />
         </button>
         <Link to="/words" className="qstrip-place">
-          <QuarterMark color="var(--q-lexicon)" size={20} /> <span className="hide-xs">Словарь</span>
+          <QuarterMark color="var(--q-lexicon)" size={22} /> Словарь
         </Link>
         <div className="row gap-6">
           <button className="btn soft sm" onClick={() => setEdit(edit ? null : w)}>

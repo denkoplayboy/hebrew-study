@@ -146,7 +146,7 @@ export default function Home() {
       </div>
 
       <h2 className="section-title">Что ты знаешь на самом деле</h2>
-      <div className="slab">
+      <div className="slab on-plinth">
         <div className="ledger">
           <Metric
             v={g.passive}
@@ -184,7 +184,7 @@ export default function Home() {
       </div>
 
       <h2 className="section-title">Ритм и прогноз</h2>
-      <div className="slab" style={{ ["--qc" as string]: "var(--q-practice)" }}>
+      <div className="slab on-plinth" style={{ ["--qc" as string]: "var(--q-practice)" }}>
         <div className="slab-sec">
           <Forecast compact bare />
         </div>
@@ -199,7 +199,7 @@ export default function Home() {
       </div>
 
       <h2 className="section-title">Недавно в саду</h2>
-      <div className="slab" style={{ ["--qc" as string]: "var(--q-lexicon)" }}>
+      <div className="slab on-plinth" style={{ ["--qc" as string]: "var(--q-lexicon)" }}>
         <div className="slab-sec tight">
           {data.recent.length ? (
             data.recent.map((w) => {

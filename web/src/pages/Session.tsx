@@ -165,34 +165,36 @@ export default function Session() {
   return (
     <div className="session">
       <div className="session-top" data-single={["mix", "weak", "twins", "word", "edge"].includes(mode) ? undefined : ""}>
-        <button className="btn ghost icon" onClick={() => nav(-1)} aria-label="Выйти">
-          <X size={20} />
-        </button>
-        <div className="grow">
-          <div className="row between small" style={{ marginBottom: 8 }}>
-            <span className="row gap-6 wrap" style={{ fontWeight: 600, fontSize: "1rem" }}>
-              <span className="sess-title">{title}</span>
-              <span id="ex-kind-slot" className="ex-kind-slot" />
-              {effects.dew_x2_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>роса ×2</span>}
-              {effects.golden_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>золотой час</span>}
+        <div className="session-line">
+          <button className="btn ghost icon" onClick={() => nav(-1)} aria-label="Выйти">
+            <X size={20} />
+          </button>
+          <span className="session-title grow">
+            <span className="sess-title">{title}</span>
+            <span id="ex-kind-slot" className="ex-kind-slot" />
+          </span>
+          {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
+            <span className="muted num nowrap">
+              {Math.min(idx + 1, queue.length)} / {queue.length}
             </span>
-            {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
-              <span className="muted num nowrap">
-                {Math.min(idx + 1, queue.length)} / {queue.length}
-              </span>
-            )}
-          </div>
-          {mode !== "blitz" && mode !== "match" && queue && queue.length > 0 ? (
-            <Course total={queue.length} idx={finished ? queue.length : idx} results={logs.map((l) => l.r.correct)} />
-          ) : (
-            mode !== "blitz" && <Bar value={progress} thin />
+          )}
+          {effects.skip > 0 && queue && queue.length > 0 && !finished && mode !== "blitz" && mode !== "match" && queue[idx]?.kind !== "intro" && (
+            <button className="btn ghost sm" onClick={skip} title="Пропустить упражнение без последствий">
+              Пропуск · {effects.skip}
+            </button>
           )}
         </div>
-        {effects.skip > 0 && queue && queue.length > 0 && !finished && mode !== "blitz" && mode !== "match" && queue[idx]?.kind !== "intro" && (
-          <button className="btn ghost sm" onClick={skip} title="Пропустить упражнение без последствий">
-            Пропуск · {effects.skip}
-          </button>
-        )}
+        <div className="session-line">
+          <div className="grow">
+            {mode !== "blitz" && mode !== "match" && queue && queue.length > 0 ? (
+              <Course total={queue.length} idx={finished ? queue.length : idx} results={logs.map((l) => l.r.correct)} />
+            ) : (
+              mode !== "blitz" && <Bar value={progress} thin />
+            )}
+          </div>
+          {effects.dew_x2_until > Date.now() && <span className="badge water">роса ×2</span>}
+          {effects.golden_until > Date.now() && <span className="badge water">золотой час</span>}
+        </div>
       </div>
 
       {shieldFor && (
