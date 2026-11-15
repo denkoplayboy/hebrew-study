@@ -164,19 +164,20 @@ export default function Session() {
 
   return (
     <div className="session">
-      <div className="session-top">
+      <div className="session-top" data-single={["mix", "weak", "twins", "word", "edge"].includes(mode) ? undefined : ""}>
         <button className="btn ghost icon" onClick={() => nav(-1)} aria-label="Выйти">
           <X size={20} />
         </button>
         <div className="grow">
           <div className="row between small" style={{ marginBottom: 8 }}>
-            <span style={{ fontWeight: 600, fontSize: "1rem" }}>
-              {title}
+            <span className="row gap-6 wrap" style={{ fontWeight: 600, fontSize: "1rem" }}>
+              <span className="sess-title">{title}</span>
+              <span id="ex-kind-slot" className="ex-kind-slot" />
               {effects.dew_x2_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>роса ×2</span>}
               {effects.golden_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>золотой час</span>}
             </span>
             {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
-              <span className="muted num">
+              <span className="muted num nowrap">
                 {Math.min(idx + 1, queue.length)} / {queue.length}
               </span>
             )}

@@ -7,7 +7,7 @@ import { checkAnswer, detectLang } from "../../../shared/lang";
 import type { Pack, PackItem } from "../../../shared/types";
 import { Bar, Loading, Mixed } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
-import { ContinueBar, Feedback } from "../exercises/common";
+import { ContinueBar, Feedback, KindLabel } from "../exercises/common";
 
 function shuffle<T>(a: T[]): T[] {
   return [...a].sort(() => Math.random() - 0.5);
@@ -92,10 +92,11 @@ export default function PackRun() {
         </button>
         <div className="grow">
           <div className="row between small" style={{ marginBottom: 6 }}>
-            <span style={{ fontWeight: 500 }}>
+            <span className="row gap-6 wrap" style={{ fontWeight: 600, fontSize: "1rem" }}>
               <Mixed text={pack.title} />
+              <span id="ex-kind-slot" className="ex-kind-slot" />
             </span>
-            <span className="muted">
+            <span className="muted num">
               {Math.min(i + 1, items.length)} / {items.length}
             </span>
           </div>
@@ -140,7 +141,7 @@ function PackItemView({ item, lang, onNext }: { item: PackItem; lang: "he" | "en
     case "info":
       return (
         <div className="ex-card">
-          <div className="ex-kind">Теория</div>
+          <KindLabel>Теория</KindLabel>
           <h2>{item.title}</h2>
           <div className="text-2" style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>
             <Mixed text={item.body || ""} />
@@ -165,7 +166,7 @@ function ChoiceItem({ item, onNext }: { item: PackItem; onNext: (ok: boolean) =>
   const ok = picked === correct;
   return (
     <div className="ex-card">
-      <div className="ex-kind">Выбери ответ</div>
+      <KindLabel>Выбери ответ</KindLabel>
       <div className="ex-prompt">
         <Txt s={item.prompt || ""} big />
       </div>
@@ -200,7 +201,7 @@ function TypedItem({ item, lang, onNext }: { item: PackItem; lang: "he" | "en"; 
   const ok = override || (verdict !== null && verdict !== "wrong");
   return (
     <div className="ex-card">
-      <div className="ex-kind">{item.type === "translate" ? "Переведи" : "Заполни пропуск"}</div>
+      <KindLabel>{item.type === "translate" ? "Переведи" : "Заполни пропуск"}</KindLabel>
       <div className="ex-prompt">
         <Txt s={item.prompt || ""} big />
       </div>
@@ -248,7 +249,7 @@ function OrderItem({ item, onNext }: { item: PackItem; onNext: (ok: boolean) => 
   void t0;
   return (
     <div className="ex-card">
-      <div className="ex-kind">Собери предложение</div>
+      <KindLabel>Собери предложение</KindLabel>
       {item.prompt && (
         <div className="center text-2">
           <Txt s={item.prompt} />

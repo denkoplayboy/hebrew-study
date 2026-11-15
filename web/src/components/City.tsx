@@ -105,23 +105,28 @@ function Tree({ x, y, z, r = 0.32, color = "#5d7f3a" }: { x: number; y: number; 
 }
 
 function Label({ at, title, sub, accent, below, align = "center" }: { at: P; title: string; sub?: string; accent: string; below?: boolean; align?: "center" | "start" | "end" }) {
-  const w = Math.max(title.length * 8.2, sub ? sub.length * 6.9 : 0) + 24;
+  const w = Math.max(title.length * 8.2, sub ? sub.length * 7.6 : 0) + 36;
   const h = sub ? 40 : 26;
   const raw = align === "start" ? at[0] : align === "end" ? at[0] - w : at[0] - w / 2;
   const x = Math.min(Math.max(raw, 4), W - w - 4);
   const y = below ? at[1] + 10 : at[1] - h - 8;
+  const cx = x + 13;
+  const cy = y + 13;
   return (
     <g className="q-label" pointerEvents="none">
       <line x1={at[0]} y1={at[1]} x2={Math.min(Math.max(at[0], x + 6), x + w - 6)} y2={below ? y : y + h} stroke="#f6f3ec" strokeOpacity={0.55} strokeWidth={1} />
       <circle cx={at[0]} cy={at[1]} r={2.4} fill="#f6f3ec" />
-      <rect x={x} y={y + 2} width={w} height={h} rx={5} fill="#000" opacity={0.35} />
+      <rect x={x + 2} y={y + 3} width={w} height={h} rx={5} fill="#000" opacity={0.35} />
       <rect x={x} y={y} width={w} height={h} rx={5} fill="#f6f3ec" />
-      <rect x={x} y={y} width={5} height={h} rx={2} fill={accent} />
-      <text x={x + 13} y={y + 17} fontSize={14} fontWeight={600} fill="#1b2023" fontFamily="var(--font)">
+      {/* кубик квартала */}
+      <polygon points={`${cx},${cy - 6} ${cx + 6},${cy - 3} ${cx},${cy} ${cx - 6},${cy - 3}`} fill={accent} />
+      <polygon points={`${cx - 6},${cy - 3} ${cx},${cy} ${cx},${cy + 6} ${cx - 6},${cy + 3}`} fill="#d2cabb" />
+      <polygon points={`${cx + 6},${cy - 3} ${cx},${cy} ${cx},${cy + 6} ${cx + 6},${cy + 3}`} fill="#a79e8d" />
+      <text x={x + 25} y={y + 17} fontSize={14} fontWeight={600} fill="#1b2023" fontFamily="var(--font)">
         {title}
       </text>
       {sub && (
-        <text x={x + 13} y={y + 33} fontSize={12} fill="#3e474b" fontFamily="var(--font)">
+        <text x={x + 25} y={y + 32} fontSize={13} fill="#3e474b" fontFamily="var(--font)" style={{ fontVariant: "all-small-caps", letterSpacing: "0.06em" }}>
           {sub}
         </text>
       )}

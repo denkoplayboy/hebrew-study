@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRight } from "lucide-react";
 import type { ExerciseItem, WordSummary } from "../../../shared/types";
 import type { Facet, Grade } from "../../../shared/memory";
@@ -48,12 +49,17 @@ export function acceptedOf(w: WordSummary, lang: "he" | "en"): string[] {
   return [w.en, ...(w.en_alt ? w.en_alt.split(/[,;]/) : [])];
 }
 
+/** Вид упражнения: показывается в шапке урока (в слоте #ex-kind-slot), а не надписью над заданием. */
 export function KindLabel({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
-  return (
-    <div className="ex-kind">
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => setSlot(document.getElementById("ex-kind-slot")), []);
+  if (!slot) return null;
+  return createPortal(
+    <>
       {icon}
       {children}
-    </div>
+    </>,
+    slot,
   );
 }
 

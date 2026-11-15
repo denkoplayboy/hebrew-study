@@ -9,6 +9,7 @@ import type { WordFull, WordForm } from "../../../shared/types";
 import { Bar, FacetFlower, He, Loading, Mixed, Plant, SpeakBtn, StageBadge } from "../components/ui";
 import { DraftEditor } from "../components/DraftEditor";
 import { SuggestionList } from "../components/Suggestions";
+import { QuarterMark } from "../components/City";
 
 export default function WordPage() {
   const { id } = useParams();
@@ -95,10 +96,13 @@ export default function WordPage() {
 
   return (
     <div className="page">
-      <div className="row between" style={{ marginBottom: 12 }}>
+      <div className="qstrip">
         <button className="btn ghost sm" onClick={() => nav(-1)}>
           <ArrowLeft size={16} /> Назад
         </button>
+        <Link to="/words" className="qstrip-place">
+          <QuarterMark color="var(--q-lexicon)" size={20} /> <span className="hide-xs">Словарь</span>
+        </Link>
         <div className="row gap-6">
           <button className="btn soft sm" onClick={() => setEdit(edit ? null : w)}>
             <Pencil size={15} /> {edit ? "Отмена" : "Изменить"}

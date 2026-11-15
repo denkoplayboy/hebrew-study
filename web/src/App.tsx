@@ -178,7 +178,11 @@ function Shell() {
               {n.label}
             </NavLink>
           ))}
-          <NavLink to="/more" style={{ ["--qc" as string]: "var(--q-shuk)" }}>
+          <NavLink
+            to="/more"
+            className={({ isActive }) => (isActive || !NAV.slice(0, 4).some((n) => (n.end ? loc.pathname === n.to : loc.pathname.startsWith(n.to))) ? "active" : "")}
+            style={{ ["--qc" as string]: loc.pathname === "/more" ? "var(--on-hall)" : quarter.q }}
+          >
             <Ellipsis size={22} />
             Ещё
           </NavLink>

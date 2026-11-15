@@ -4,6 +4,7 @@ import { useData, relTime, plural } from "../lib/app";
 import { FACETS, STAGES, facetInfo } from "../../../shared/memory";
 import { Bar, Loading, Plant } from "../components/ui";
 import { Forecast } from "../components/Forecast";
+import { QuarterHead } from "../components/City";
 
 interface LangGarden {
   total: number;
@@ -55,22 +56,25 @@ export default function Stats() {
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Статистика</h1>
-          <p>Не очки, а честная картина памяти: что живо, что увядает и где ты ошибаешься.</p>
-        </div>
-        {data.garden.en.total > 0 && (
-          <div className="pill-tabs">
-            <button className={lang === "he" ? "on" : ""} onClick={() => setLang("he")}>
-              עברית
-            </button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>
-              English
-            </button>
-          </div>
-        )}
-      </div>
+      <QuarterHead
+        quarter="garden"
+        color="var(--accent)"
+        title="Статистика"
+        sub="Не очки, а честная картина памяти: что живо, что увядает и где ты ошибаешься."
+        data={{ stages: g.stages, total: g.total }}
+        actions={
+          data.garden.en.total > 0 && (
+            <div className="pill-tabs" style={{ background: "var(--hall-2)", boxShadow: "none" }}>
+              <button className={lang === "he" ? "on" : ""} style={lang === "he" ? undefined : { color: "var(--on-hall-2)" }} onClick={() => setLang("he")}>
+                עברית
+              </button>
+              <button className={lang === "en" ? "on" : ""} style={lang === "en" ? undefined : { color: "var(--on-hall-2)" }} onClick={() => setLang("en")}>
+                English
+              </button>
+            </div>
+          )
+        }
+      />
 
       <div className="card">
         <div className="card-title">

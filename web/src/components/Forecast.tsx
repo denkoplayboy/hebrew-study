@@ -1,14 +1,14 @@
 import { useData } from "../lib/app";
 
 /** Прогноз нагрузки на 14 дней: высота блока — точное число навыков к повторению. */
-export function Forecast({ compact }: { compact?: boolean }) {
+export function Forecast({ compact, bare }: { compact?: boolean; bare?: boolean }) {
   const { data } = useData<{ days: { day: number; count: number }[] }>("/api/forecast");
   if (!data) return null;
   const max = Math.max(1, ...data.days.map((d) => d.count));
   const wd = new Intl.DateTimeFormat("ru-RU", { weekday: "short" });
   const sum = data.days.reduce((a, d) => a + d.count, 0);
   return (
-    <div className="card">
+    <div className={bare ? undefined : "card"}>
       <div className="card-title">
         <h3>Прогноз на две недели</h3>
         <span className="small muted num">{sum} повторений</span>
@@ -31,7 +31,7 @@ export function Forecast({ compact }: { compact?: boolean }) {
                   width: "100%",
                   borderRadius: "3px 3px 1px 1px",
                   height: d.count ? `${Math.max(8, (d.count / max) * 100)}%` : 4,
-                  background: d.count ? (i === 0 ? "var(--lamp)" : "var(--q-practice)") : "var(--surface-3)",
+                  background: d.count ? (i === 0 ? "var(--water)" : "var(--q-practice)") : "var(--surface-3)",
                   boxShadow: d.count ? "inset 0 -3px 0 rgba(0,0,0,.22)" : "var(--carve)",
                 }}
               />

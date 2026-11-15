@@ -6,10 +6,10 @@
   /* пол зала и камень (дневной свет) */
   --bg: #dce2e3;
   --bg-deep: #cfd6d8;
-  --surface: #f5f3ee;
-  --surface-2: #ebe8e1;
-  --surface-3: #dfdbd2;
-  --stone-side: #c3bcae;
+  --surface: #f3f3ef;
+  --surface-2: #e8e8e2;
+  --surface-3: #dbdbd3;
+  --stone-side: #bdb8aa;
   --stone-shade: #a1998a;
   --border: #d8d3c9;
   --border-strong: #b6ae9f;
@@ -50,12 +50,13 @@
   --water: #275f8c;
   --water-soft: #d9e6f0;
   --ok: #45702a;
+  --state-ink: #ffffff;
   --ok-soft: #e0ebd5;
   --bad: #ad3b26;
   --bad-soft: #f5ddd6;
 
-  --lift: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 10px 18px -10px rgba(20, 26, 30, 0.42), 0 2px 4px -2px rgba(20, 26, 30, 0.18);
-  --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 22px 40px -16px rgba(20, 26, 30, 0.5), 0 4px 10px -4px rgba(20, 26, 30, 0.2);
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 6px 10px 18px -10px rgba(20, 26, 30, 0.42), 2px 2px 4px -2px rgba(20, 26, 30, 0.18);
+  --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.75) inset, 10px 22px 40px -16px rgba(20, 26, 30, 0.5), 3px 4px 10px -4px rgba(20, 26, 30, 0.2);
   --carve: inset 0 2px 3px rgba(20, 26, 30, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
   --shadow: var(--lift);
   --shadow-lg: var(--lift-lg);
@@ -66,7 +67,7 @@
   --r-xl: 18px;
   --face: 4px;
   --font: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-he: "Frank Ruhl Libre", "Noto Serif Hebrew", "David", serif;
+  --font-he: "Frank Ruhl Libre", "Golos Text", "Noto Serif Hebrew", "David", serif;
   --sidebar: 252px;
   color-scheme: light;
 }
@@ -105,11 +106,12 @@
     --water: #8cbbe0;
     --water-soft: #1e2f3c;
     --ok: #a3c97d;
+    --state-ink: #121a0b;
     --ok-soft: #26331f;
     --bad: #ef8f78;
     --bad-soft: #43251e;
-    --lift: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 12px 20px -10px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
-    --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 24px 44px -16px rgba(0, 0, 0, 0.8), 0 4px 10px -4px rgba(0, 0, 0, 0.5);
+    --lift: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 6px 12px 20px -10px rgba(0, 0, 0, 0.7), 2px 2px 4px -2px rgba(0, 0, 0, 0.5);
+    --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 10px 24px 44px -16px rgba(0, 0, 0, 0.8), 3px 4px 10px -4px rgba(0, 0, 0, 0.5);
     --carve: inset 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     color-scheme: dark;
   }
@@ -147,11 +149,12 @@
   --water: #8cbbe0;
   --water-soft: #1e2f3c;
   --ok: #a3c97d;
+  --state-ink: #121a0b;
   --ok-soft: #26331f;
   --bad: #ef8f78;
   --bad-soft: #43251e;
-  --lift: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 12px 20px -10px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
-  --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 24px 44px -16px rgba(0, 0, 0, 0.8), 0 4px 10px -4px rgba(0, 0, 0, 0.5);
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 6px 12px 20px -10px rgba(0, 0, 0, 0.7), 2px 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --lift-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 10px 24px 44px -16px rgba(0, 0, 0, 0.8), 3px 4px 10px -4px rgba(0, 0, 0, 0.5);
   --carve: inset 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   color-scheme: dark;
 }
@@ -707,6 +710,11 @@ p {
 }
 .chip.static {
   cursor: default;
+  border-bottom-width: 1px;
+}
+.chip.static:not(.on),
+.chip.static:not(.on):hover {
+  background: transparent;
 }
 .chips {
   display: flex;
@@ -1092,7 +1100,30 @@ p {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin: 0 -16px 20px;
+  padding: 0 16px 12px;
+  border-bottom: 4px solid var(--q-practice);
+}
+.ex-kind-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.ex-kind-slot:not(:empty)::before {
+  content: "·";
+  color: var(--muted);
+}
+.session-top[data-single] .sess-title:has(+ .ex-kind-slot:not(:empty)) {
+  display: none;
+}
+.session-top[data-single] .ex-kind-slot::before {
+  content: none;
+}
+.session-top[data-single] .ex-kind-slot {
+  color: var(--text);
+  font-weight: 600;
 }
 .ex-card {
   background: var(--surface);
@@ -1106,14 +1137,6 @@ p {
   flex-direction: column;
   gap: 18px;
   animation: pop 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.ex-kind {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--q-practice);
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 .ex-prompt {
   text-align: center;
@@ -1175,22 +1198,35 @@ p {
   border-radius: 12px;
   padding: 14px 16px;
   animation: pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: var(--carve);
+  box-shadow: var(--lift);
+  --fb: var(--surface-3);
+  background: var(--fb);
+  border-bottom: 5px solid color-mix(in srgb, var(--fb) 62%, #000);
 }
 .feedback.ok {
-  background: var(--ok-soft);
-  color: var(--ok);
+  --fb: var(--ok);
+  color: var(--state-ink);
 }
 .feedback.bad {
-  background: var(--bad-soft);
-  color: var(--bad);
+  --fb: var(--bad);
+  color: var(--state-ink);
 }
 .feedback.close {
-  background: var(--gold-soft);
-  color: var(--gold);
+  --fb: var(--lamp);
+  color: var(--lamp-ink);
 }
-.feedback .answer {
-  color: var(--text);
+.feedback .answer,
+.feedback .muted,
+.feedback .text-2,
+.feedback .small,
+.feedback .drop {
+  color: inherit;
+}
+.feedback .btn.ghost {
+  color: inherit;
+}
+.feedback .btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 .confidence {
   display: grid;
@@ -1316,8 +1352,8 @@ p {
 }
 .course i.now {
   height: 22px;
-  background: var(--lamp);
-  box-shadow: inset 0 -3px 0 var(--lamp-side);
+  background: var(--surface);
+  box-shadow: inset 0 4px 0 var(--q-practice), inset 0 -3px 0 var(--stone-side), 2px 3px 6px -3px rgba(0, 0, 0, 0.4);
 }
 
 /* ───────── визуализации ───────── */
@@ -1414,6 +1450,11 @@ p {
 }
 .hero h2 {
   font-size: 1.4rem;
+}
+.hero p,
+.card p,
+.slab p {
+  max-width: 72ch;
 }
 .facet-list {
   display: flex;
@@ -1678,7 +1719,8 @@ bdi.he,
   gap: 6px;
   aspect-ratio: 1;
   width: 100%;
-  max-width: 660px;
+  max-width: min(640px, calc(100vh - 250px));
+  min-width: min(100%, 340px);
   margin: 0 auto;
   padding: 10px;
   background: var(--hall);
@@ -2085,6 +2127,87 @@ bdi.he,
   }
 }
 
+/* плита на цоколе квартала: несколько разделов в одном блоке */
+.slab {
+  position: relative;
+  isolation: isolate;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: var(--face) solid var(--stone-side);
+  border-radius: var(--r-lg);
+  box-shadow: var(--lift);
+  margin-bottom: 18px;
+}
+/* цоколь квартала под плитой: уже плиты, цвета квартала, со своей тенью */
+.slab::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(-14px - var(--face));
+  height: 14px;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--qc, var(--accent)) 82%, #fff), color-mix(in srgb, var(--qc, var(--accent)) 70%, #000));
+  box-shadow: 6px 8px 14px -8px rgba(20, 26, 30, 0.45);
+  z-index: -1;
+}
+.slab-sec {
+  padding: 18px;
+}
+.slab-sec + .slab-sec {
+  border-top: 1px solid var(--border);
+}
+.slab-sec.tight {
+  padding: 6px;
+}
+.slab .ledger {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.slab .ledger > div {
+  padding: 16px 18px;
+}
+.mode-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 4px 14px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  min-height: 60px;
+  border: 0;
+  background: none;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.mode-row:hover {
+  background: var(--surface-2);
+}
+.mode-row + .mode-row {
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+}
+.mode-row .t {
+  font-weight: 600;
+}
+.mode-row .s {
+  grid-column: 2;
+  font-size: 0.875rem;
+  color: var(--text-2);
+  max-width: 68ch;
+}
+.mode-row .m {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 /* шапка раздела с кварталом макета */
 .qhead {
   position: relative;
@@ -2164,6 +2287,44 @@ bdi.he,
   }
 }
 
+/* узкая полоса зала с кварталом — для вложенных страниц */
+.qstrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--hall);
+  color: var(--on-hall);
+  border-radius: 12px;
+  border-bottom: 4px solid #07090a;
+  padding: 6px;
+  margin-bottom: 16px;
+  box-shadow: var(--lift);
+}
+.qstrip .btn.ghost {
+  color: var(--on-hall);
+}
+.qstrip .btn.ghost:hover {
+  background: var(--hall-2);
+}
+.qstrip .btn.soft {
+  background: var(--hall-2);
+  border-color: var(--hall-3);
+  border-bottom-color: #000;
+  color: var(--on-hall);
+}
+.qstrip .btn.danger {
+  color: #ef8f78;
+}
+.qstrip-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--on-hall-2);
+  margin-right: auto;
+  padding-left: 4px;
+}
+
 /* маленький цоколь квартала — в шапках и навигации */
 .qmark {
   display: inline-block;
@@ -2224,6 +2385,22 @@ bdi.he,
     grid-row: 1 / 3;
     font-size: 1.7rem;
   }
+}
+
+:root[data-theme="dark"] .city,
+:root[data-theme="dark"] .qhead {
+  outline: 1px solid var(--hall-3);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .city,
+  :root:not([data-theme="light"]) .qhead {
+    outline: 1px solid var(--hall-3);
+  }
+}
+.he-input::placeholder,
+[dir="rtl"]::placeholder,
+textarea.he::placeholder {
+  unicode-bidi: plaintext;
 }
 
 @media (prefers-reduced-motion: reduce) {

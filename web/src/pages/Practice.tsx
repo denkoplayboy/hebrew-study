@@ -60,36 +60,34 @@ export default function Practice() {
       </button>
 
       <h2 className="section-title">Отдельные навыки</h2>
-      <div className="grid grid-auto">
+      <div className="slab" style={{ ["--qc" as string]: "var(--q-practice)", padding: 6 }}>
         {MODES.map((m) => {
           const due = count(m.facets);
           const nw = fresh(m.facets);
           const isLocked = !!m.perk && !perks[m.perk];
           return (
-            <button
-              key={m.id}
-              className="card link col gap-6"
-              style={{ textAlign: "left", cursor: "pointer", background: isLocked ? "var(--surface-2)" : undefined }}
-              onClick={() => nav(isLocked ? "/shop" : `/practice/${m.id}`)}
-            >
-              <div className="row between">
-                <span style={{ color: isLocked ? "var(--muted)" : "var(--q-practice)", display: "grid", placeItems: "center", width: 28, height: 28 }}>
-                  <m.icon size={18} />
-                </span>
-                <div className="row gap-4">
-                  {isLocked && (
-                    <span className="badge gold">
-                      <Lock size={11} /> на поле
-                    </span>
-                  )}
-                  {due > 0 && <span className="badge water">{due}</span>}
-                  {nw > 0 && ["recall", "context", "produce", "conjugate"].includes(m.id) && <span className="badge accent" title="Навыки, которые недавно открылись">+{nw} новых</span>}
-                </div>
-              </div>
-              <div style={{ fontWeight: 500 }}>{m.title}</div>
-              <div className="small text-2">{m.text}</div>
-              <div className="tiny muted">{isLocked ? `откроет: ${m.where}` : `навык: ${m.skill}`}</div>
-              {m.id === "produce" && !ai && <div className="tiny" style={{ color: "var(--clay)" }}>без ИИ — самопроверка</div>}
+            <button key={m.id} className="mode-row" onClick={() => nav(isLocked ? "/shop" : `/practice/${m.id}`)}>
+              <span style={{ color: isLocked ? "var(--muted)" : "var(--q-practice)", display: "grid", placeItems: "center", gridRow: "1 / 3" }}>
+                <m.icon size={20} />
+              </span>
+              <span className="t">{m.title}</span>
+              <span className="s">
+                {m.text} <span className="muted">{isLocked ? `Откроет: ${m.where}.` : `Навык: ${m.skill}.`}</span>
+                {m.id === "produce" && !ai && <span style={{ color: "var(--clay)" }}> Без ИИ — самопроверка.</span>}
+              </span>
+              <span className="m">
+                {isLocked && (
+                  <span className="badge gold">
+                    <Lock size={11} /> на поле
+                  </span>
+                )}
+                {due > 0 && <span className="badge water">{due}</span>}
+                {nw > 0 && ["recall", "context", "produce", "conjugate"].includes(m.id) && (
+                  <span className="badge accent" title="Навыки, которые недавно открылись">
+                    +{nw} новых
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}

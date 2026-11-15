@@ -151,7 +151,7 @@ export default function Carmel() {
     );
 
   const earrings = data.history.some((h) => h.kind === "gift" && h.meta.includes('"earrings"'));
-  const title = data.name ? `${data.name.ru}` : "Незнакомка";
+  const title = data.name ? `${data.name.ru}` : "Девушка у окна";
   const prevMin = [0, 40, 120, 300, 600][data.stage];
   const progress = data.nextAt ? (data.affinity - prevMin) / (data.nextAt - prevMin) : 1;
 
@@ -389,7 +389,8 @@ export default function Carmel() {
               )}
               {data.ai ? (
                 <>
-                  <HebrewInput lang="he" value={msg} onChange={setMsg} multiline rows={2} wordMode={false} onEnter={send} placeholder="כתוב לה משהו… (можно и по-русски)" />
+                  <HebrewInput lang="he" value={msg} onChange={setMsg} multiline rows={2} wordMode={false} onEnter={send} placeholder="כתוב לה משהו…" />
+                  <div className="tiny muted">Можно и по-русски — она ответит на иврите.</div>
                   <button className="btn primary" style={{ alignSelf: "flex-end" }} onClick={send} disabled={busy || !msg.trim()}>
                     {busy ? <span className="spinner" /> : <MessageCircle size={15} />} Сказать
                   </button>
