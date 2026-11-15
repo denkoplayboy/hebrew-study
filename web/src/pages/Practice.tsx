@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Droplet, Layers, ListChecks, Brain, Ear, TextCursorInput, PenLine, Table2, Microscope, Shuffle, GitCompare, Activity, Puzzle, Headphones, Zap, Lock, Telescope } from "lucide-react";
 import { useApp, useData } from "../lib/app";
+import { QuarterHead } from "../components/City";
 
 interface Today {
   dueFacets: number;
@@ -38,12 +39,7 @@ export default function Practice() {
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Практика</h1>
-          <p>У каждого слова несколько навыков — каждый режим «поливает» свои.</p>
-        </div>
-      </div>
+      <QuarterHead quarter="ulpan" color="var(--q-practice)" title="Практика" sub="У каждого слова несколько навыков — каждый режим «поливает» свои." />
 
       <button className="hero card link" style={{ width: "100%", textAlign: "left", cursor: "pointer" }} onClick={() => nav("/practice/mix")}>
         <div className="row between wrap gap-16">
@@ -63,7 +59,7 @@ export default function Practice() {
         </div>
       </button>
 
-      <div className="section-title">Отдельные навыки</div>
+      <h2 className="section-title">Отдельные навыки</h2>
       <div className="grid grid-auto">
         {MODES.map((m) => {
           const due = count(m.facets);
@@ -73,11 +69,11 @@ export default function Practice() {
             <button
               key={m.id}
               className="card link col gap-6"
-              style={{ textAlign: "left", cursor: "pointer", opacity: isLocked ? 0.75 : 1 }}
+              style={{ textAlign: "left", cursor: "pointer", background: isLocked ? "var(--surface-2)" : undefined }}
               onClick={() => nav(isLocked ? "/shop" : `/practice/${m.id}`)}
             >
               <div className="row between">
-                <span className="brand-mark" style={{ background: "var(--surface-2)", color: "var(--accent-strong)", width: 36, height: 36 }}>
+                <span style={{ color: isLocked ? "var(--muted)" : "var(--q-practice)", display: "grid", placeItems: "center", width: 28, height: 28 }}>
                   <m.icon size={18} />
                 </span>
                 <div className="row gap-4">

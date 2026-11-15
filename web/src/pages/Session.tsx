@@ -6,6 +6,7 @@ import { useApp, plural } from "../lib/app";
 import type { ExerciseItem } from "../../../shared/types";
 import { STAGES, facetInfo } from "../../../shared/memory";
 import { Bar, Plant, Empty, WordFace } from "../components/ui";
+import { Course } from "../components/City";
 import type { ExResult } from "../exercises/common";
 import { IntroEx, FlashEx, ChoiceEx, ListenEx } from "../exercises/basic";
 import { RecallEx, ClozeEx, ConjugateEx } from "../exercises/typed";
@@ -168,19 +169,23 @@ export default function Session() {
           <X size={20} />
         </button>
         <div className="grow">
-          <div className="row between small" style={{ marginBottom: 6 }}>
-            <span style={{ fontWeight: 500 }}>
+          <div className="row between small" style={{ marginBottom: 8 }}>
+            <span style={{ fontWeight: 600, fontSize: "1rem" }}>
               {title}
               {effects.dew_x2_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>роса ×2</span>}
               {effects.golden_until > Date.now() && <span className="badge gold" style={{ marginLeft: 8 }}>золотой час</span>}
             </span>
             {queue && queue.length > 0 && mode !== "match" && mode !== "blitz" && (
-              <span className="muted">
+              <span className="muted num">
                 {Math.min(idx + 1, queue.length)} / {queue.length}
               </span>
             )}
           </div>
-          {mode !== "blitz" && <Bar value={progress} thin />}
+          {mode !== "blitz" && mode !== "match" && queue && queue.length > 0 ? (
+            <Course total={queue.length} idx={finished ? queue.length : idx} results={logs.map((l) => l.r.correct)} />
+          ) : (
+            mode !== "blitz" && <Bar value={progress} thin />
+          )}
         </div>
         {effects.skip > 0 && queue && queue.length > 0 && !finished && mode !== "blitz" && mode !== "match" && queue[idx]?.kind !== "intro" && (
           <button className="btn ghost sm" onClick={skip} title="Пропустить упражнение без последствий">

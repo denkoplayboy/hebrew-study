@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { useApp, useData, relTime } from "../lib/app";
 import { He, Loading, Mixed, SpeakBtn, Bar } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
+import { QuarterHead } from "../components/City";
 
 interface GiftDef {
   id: string;
@@ -137,6 +138,7 @@ export default function Carmel() {
   if (!data.open)
     return (
       <div className="page narrow">
+        <QuarterHead quarter="carmel" color="var(--q-carmel)" title="Кафе на Кармеле" sub="Здесь ещё пустой холм." />
         <div className="card pad-lg col gap-16" style={{ alignItems: "center", textAlign: "center" }}>
           <Portrait stage={0} earrings={false} />
           <h2>Кафе на Кармеле закрыто</h2>
@@ -267,9 +269,18 @@ export default function Carmel() {
 
   return (
     <div className="page" style={{ maxWidth: 1000 }}>
-      <Link to="/shop" className="btn ghost sm" style={{ marginBottom: 12 }}>
-        <ArrowLeft size={16} /> На поле
-      </Link>
+      <QuarterHead
+        quarter="carmel"
+        color="var(--q-carmel)"
+        title="Кафе на Кармеле"
+        sub="Столик у окна, вид на море и разговор на иврите."
+        data={{ carmel: true }}
+        actions={
+          <Link to="/shop" className="btn sm">
+            <ArrowLeft size={16} /> На поле
+          </Link>
+        }
+      />
       <div className="carmel-layout">
         <div className="col gap-16">
           <div className="card col gap-6" style={{ alignItems: "center", textAlign: "center" }}>

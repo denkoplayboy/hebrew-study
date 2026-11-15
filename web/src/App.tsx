@@ -39,32 +39,35 @@ import Story from "./pages/Story";
 import Offer from "./pages/Offer";
 import Carmel from "./pages/Carmel";
 import { RelatedPlaque } from "./components/Suggestions";
+import { QuarterMark } from "./components/City";
 
 export const NAV = [
-  { to: "/", label: "Сад", icon: Sprout, end: true },
-  { to: "/practice", label: "Практика", icon: Target },
-  { to: "/words", label: "Словарь", icon: BookOpen },
-  { to: "/verbs", label: "Глаголы", icon: Table2 },
-  { to: "/roots", label: "Корни", icon: TreeDeciduous },
-  { to: "/journal", label: "Дневник", icon: NotebookPen },
-  { to: "/reader", label: "Читалка", icon: ScanText },
-  { to: "/lab", label: "Лаборатория", icon: FlaskConical },
-  { to: "/shop", label: "Лавка", icon: Store },
-  { to: "/stats", label: "Статистика", icon: ChartColumn },
-  { to: "/settings", label: "Настройки", icon: SettingsIcon },
+  { to: "/", label: "Сад", icon: Sprout, end: true, q: "var(--accent)" },
+  { to: "/practice", label: "Практика", icon: Target, q: "var(--q-practice)" },
+  { to: "/words", label: "Словарь", icon: BookOpen, q: "var(--q-lexicon)" },
+  { to: "/verbs", label: "Глаголы", icon: Table2, q: "var(--q-practice)" },
+  { to: "/roots", label: "Корни", icon: TreeDeciduous, q: "var(--accent)" },
+  { to: "/journal", label: "Дневник", icon: NotebookPen, q: "var(--q-lexicon)" },
+  { to: "/reader", label: "Читалка", icon: ScanText, q: "var(--q-lexicon)" },
+  { to: "/lab", label: "Лаборатория", icon: FlaskConical, q: "var(--q-practice)" },
+  { to: "/shop", label: "Лавка", icon: Store, q: "var(--q-shuk)" },
+  { to: "/stats", label: "Статистика", icon: ChartColumn, q: "var(--on-hall-2)" },
+  { to: "/settings", label: "Настройки", icon: SettingsIcon, q: "var(--on-hall-2)" },
 ];
 
-function BrandMark() {
+/** Квартал по адресу: цвет и название для шапки. */
+function quarterOf(path: string) {
+  if (path.startsWith("/carmel")) return { q: "var(--q-carmel)", label: "Кармель" };
+  if (path.startsWith("/stories") || path.startsWith("/offers")) return { q: "var(--q-shuk)", label: "Лавка" };
+  const hit = [...NAV].reverse().find((n) => (n.end ? path === n.to : path.startsWith(n.to)));
+  return hit ? { q: hit.q, label: hit.label } : { q: "var(--accent)", label: "Шореш" };
+}
+
+function BrandMark({ color = "var(--accent)" }: { color?: string }) {
   return (
-    <div className="brand-mark" aria-hidden>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-        <path d="M12 3 V13" />
-        <path d="M12 7 C9 7 7.5 5.5 7.5 3.5 C10 3.5 12 5 12 7Z" fill="currentColor" />
-        <path d="M12 9.5 C15 9.5 16.5 8 16.5 6 C14 6 12 7.5 12 9.5Z" fill="currentColor" />
-        <path d="M4 13 H20" />
-        <path d="M12 13 C11 16 8.5 18 5.5 19 M12 13 C13 16 15.5 18 18.5 19 M12 13 V21" />
-      </svg>
-    </div>
+    <span className="brand-mark" aria-hidden>
+      <QuarterMark color={color} size={30} />
+    </span>
   );
 }
 
@@ -73,6 +76,7 @@ function Shell() {
   const loc = useLocation();
   const nav = useNavigate();
   const inSession = loc.pathname.startsWith("/practice/") || /^\/lab\/.+/.test(loc.pathname);
+  const quarter = quarterOf(loc.pathname);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -101,11 +105,13 @@ function Shell() {
             <BrandMark />
             <div>
               <div className="brand-name">Шореш</div>
-              <div className="brand-sub">сад слов · עברית · English</div>
+              <div className="brand-sub">
+                город слов · <span className="he">עברית</span> · English
+              </div>
             </div>
           </Link>
           <Link to="/shop" className="dew-chip" title="Роса — валюта сада. Тратится в лавке">
-            <Droplets size={16} /> {dew} <span className="muted small">росы</span>
+            <Droplets size={16} /> <span className="num">{dew}</span> <span className="muted small">росы</span>
           </Link>
           <button className="btn soft block" style={{ justifyContent: "flex-start" }} onClick={() => openOmni()}>
             <Search size={17} /> Найти или добавить <span className="kbd-hint" style={{ marginLeft: "auto" }}>/</span>
@@ -114,24 +120,22 @@ function Shell() {
             {NAV.map((n, i) => (
               <div key={n.to}>
                 {(i === 4 || i === 9) && <div className="nav-sep" />}
-                <NavLink to={n.to} end={n.end}>
+                <NavLink to={n.to} end={n.end} style={{ ["--qc" as string]: n.q }}>
                   <n.icon size={18} /> {n.label}
                 </NavLink>
               </div>
             ))}
           </nav>
           <div className="grow" />
-          <div className="tiny muted" style={{ padding: "0 10px" }}>
-            {me.ai.enabled ? `ИИ: ${me.ai.model}` : "ИИ выключен — см. настройки"}
-          </div>
+          <div className="ai-note">{me.ai.enabled ? `ИИ: ${me.ai.model}` : "ИИ выключен — см. настройки"}</div>
         </aside>
       )}
       <main className="main" style={inSession ? { marginLeft: 0 } : undefined}>
         {!inSession && (
           <div className="topbar">
             <Link to="/" className="brand" style={{ padding: 0 }}>
-              <BrandMark />
-              <div className="brand-name">Шореш</div>
+              <BrandMark color={quarter.q} />
+              <div className="brand-name">{loc.pathname === "/" ? "Шореш" : quarter.label}</div>
             </Link>
             <div className="row gap-6">
               <Link to="/shop" className="dew-chip" title="Роса">
@@ -169,13 +173,13 @@ function Shell() {
       {!inSession && (
         <nav className="tabbar">
           {NAV.slice(0, 4).map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end}>
-              <n.icon size={21} />
+            <NavLink key={n.to} to={n.to} end={n.end} style={{ ["--qc" as string]: n.q }}>
+              <n.icon size={22} />
               {n.label}
             </NavLink>
           ))}
-          <NavLink to="/more">
-            <Ellipsis size={21} />
+          <NavLink to="/more" style={{ ["--qc" as string]: "var(--q-shuk)" }}>
+            <Ellipsis size={22} />
             Ещё
           </NavLink>
         </nav>

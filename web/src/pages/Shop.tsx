@@ -37,6 +37,7 @@ import { BUILDINGS, CELLS, DISTRICTS, EFFECTS, cellGridPos, type Cell, type Perk
 import { He, Loading, Modal, Mixed, Collapsible } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
 import { DesignPickers } from "../components/DesignPickers";
+import { QuarterHead } from "../components/City";
 
 interface Q {
   kind: "word" | "verb";
@@ -405,15 +406,18 @@ export default function Shop() {
 
   return (
     <div className="page" style={{ maxWidth: 1180 }}>
-      <div className="page-head">
-        <div>
-          <h1>Лавка · игра «Шук»</h1>
-          <p>Роса за уроки → броски кубика → участки и здания, которые открывают новое для учёбы и оформления.</p>
-        </div>
-        <Link to="/practice" className="btn soft">
-          Заработать росу <ArrowRight size={15} />
-        </Link>
-      </div>
+      <QuarterHead
+        quarter="shuk"
+        color="var(--q-shuk)"
+        title="Лавка «Шук»"
+        sub="Роса за уроки → броски кубика → участки и здания, которые открывают новое для учёбы и оформления."
+        data={{ shuk: Object.values(pk.levels || {}).map((v) => Number(v) || 0) }}
+        actions={
+          <Link to="/practice" className="btn sm">
+            Заработать росу <ArrowRight size={15} />
+          </Link>
+        }
+      />
 
       <div className="game-layout">
         {/* ───────── поле ───────── */}
@@ -478,7 +482,7 @@ export default function Shop() {
         <div className="col gap-16">
           <div className="card col gap-6">
             <div className="row between">
-              <h3>{here.name}</h3>
+              <h2 className="h3">{here.name}</h2>
               <span className="he muted">{here.he}</span>
             </div>
             {events.length > 0 && (
@@ -501,7 +505,7 @@ export default function Shop() {
 
           {(fx.dew_x2_until || fx.golden_until || fx.hint || fx.retry || view.upgradeDiscount) > 0 && (
             <div className="card col gap-6">
-              <h3>Активные эффекты</h3>
+              <h2 className="h3">Активные эффекты</h2>
               <div className="chips">
                 {fx.dew_x2_until > 0 && (
                   <span className="chip static on">
@@ -522,7 +526,7 @@ export default function Shop() {
 
           <div className="card col gap-6">
             <div className="card-title" style={{ marginBottom: 4 }}>
-              <h3>Мои здания</h3>
+              <h2 className="h3">Мои здания</h2>
               <span className="small muted">
                 {owned.length} из 10 участков · круг {view.laps}
               </span>
@@ -555,7 +559,7 @@ export default function Shop() {
           {/* активности зданий */}
           {(pk.dewBonus > 0 || pk.hostelIncome > 0) && (
             <div className="card col gap-6">
-              <h3>Доходы города</h3>
+              <h2 className="h3">Доходы города</h2>
               {pk.dewBonus > 0 && (
                 <div className="row small">
                   <Anchor size={15} /> <span className="grow">Порт Яффо: роса за все уроки</span> <b style={{ fontWeight: 500 }}>+{Math.round(pk.dewBonus * 100)}%</b>
@@ -587,9 +591,9 @@ export default function Shop() {
             const disc = shop === "cafe" ? pk.cafeDiscount : pk.blackDiscount;
             return (
               <div key={shop} className="card col gap-6" style={shop === "black" ? { background: "color-mix(in srgb, var(--text) 6%, var(--surface))" } : undefined}>
-                <h3 className="row gap-6">
+                <h2 className="row gap-6">
                   {shop === "cafe" ? <Coffee size={16} /> : <Skull size={16} />} {shop === "cafe" ? "Кафе «Ход» — эффекты для уроков" : "Чёрный рынок — сильнодействующее"}
-                </h3>
+                </h2>
                 {shop === "cafe" && pk.morningCoffee && <div className="tiny muted">Утренний кофе: первый урок дня сам включает двойную росу на 20 минут.</div>}
                 {list.map((e) => {
                   const price = Math.round(e.price * (1 - disc));
@@ -610,9 +614,9 @@ export default function Shop() {
           })}
           {(pk.storyPrice != null || pk.seedsPrice != null) && (
             <div className="card col gap-6">
-              <h3 className="row gap-6">
+              <h2 className="row gap-6">
                 <Sparkles size={16} /> Сказки и архив
-              </h3>
+              </h2>
               {!ai && <p className="small" style={{ color: "var(--clay)" }}>Нужен ключ ИИ (ANTHROPIC_API_KEY).</p>}
               {pk.storyPrice != null && (
                 <div className="col gap-6">
@@ -666,7 +670,7 @@ export default function Shop() {
       <div className="grid grid-2 stack-sm mt-24">
         <div className="card">
           <div className="card-title">
-            <h3>Журнал поля</h3>
+            <h2 className="h3">Журнал поля</h2>
           </div>
           <div className="col gap-4" style={{ maxHeight: 280, overflowY: "auto" }}>
             {view.log.length === 0 && <p className="small muted">Здесь будут ходы, покупки и постройки.</p>}
@@ -687,7 +691,7 @@ export default function Shop() {
           </div>
         </div>
         <div className="card small text-2 col gap-6">
-          <h3 style={{ color: "var(--text)" }}>Правила</h3>
+          <h2 className="h3" style={{ color: "var(--text)" }}>Правила</h2>
           <div>
             <b>Роса</b> капает только за уроки: повторение в срок, рост слов, самостоятельное употребление, полностью политый сад.
           </div>
@@ -912,9 +916,9 @@ function WheelCard({ wheel, onDone }: { wheel: GameView["wheel"]; onDone: (v: Ga
   return (
     <div className="card col gap-6">
       <div className="row between">
-        <h3 className="row gap-6">
+        <h2 className="row gap-6">
           <Disc3 size={16} /> Колесо Цфата
-        </h3>
+        </h2>
         <span className="small muted">
           оборотов сегодня: {left} из {wheel.perDay}
         </span>

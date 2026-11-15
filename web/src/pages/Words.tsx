@@ -7,6 +7,7 @@ import { Plant, Thirst, Empty, Loading, mainProgress, He } from "../components/u
 import { POS, posLabel } from "../../../shared/lang";
 import { STAGES } from "../../../shared/memory";
 import type { WordSummary } from "../../../shared/types";
+import { QuarterHead } from "../components/City";
 
 type Sort = "new" | "alpha" | "weak" | "thirsty";
 
@@ -31,12 +32,7 @@ export default function Words() {
 
   return (
     <div className="page">
-      <div className="page-head">
-        <div>
-          <h1>Словарь</h1>
-          <p>Одна карточка — три языка. Ищи на любом, в любой форме.</p>
-        </div>
-      </div>
+      <QuarterHead quarter="archive" color="var(--q-lexicon)" title="Словарь" sub="Одна карточка — три языка. Ищи на любом, в любой форме." data={{ total: 60 }} />
       <Omnibox />
 
       <div className="col gap-6 mt-24">

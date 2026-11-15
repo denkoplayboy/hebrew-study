@@ -74,7 +74,7 @@ export default function Stats() {
 
       <div className="card">
         <div className="card-title">
-          <h3>Сад сейчас и через неделю без полива</h3>
+          <h2 className="h3">Сад сейчас и через неделю без полива</h2>
           <span className="small muted">
             {g.total} {plural(g.total, "слово", "слова", "слов")}
           </span>
@@ -118,7 +118,7 @@ export default function Stats() {
       <div className="grid grid-2 stack-sm mt-16">
         <div className="card">
           <div className="card-title">
-            <h3>Навыки по всему саду</h3>
+            <h2 className="h3">Навыки по всему саду</h2>
           </div>
           <div className="facet-list">
             {FACETS.map((f) => {
@@ -139,7 +139,7 @@ export default function Stats() {
         </div>
         <div className="card">
           <div className="card-title">
-            <h3>Калибровка уверенности</h3>
+            <h2 className="h3">Калибровка уверенности</h2>
           </div>
           <div className="col gap-6">
             {data.calibration.map((c) => (
@@ -158,7 +158,7 @@ export default function Stats() {
 
       <div className="card mt-16">
         <div className="card-title">
-          <h3>16 недель</h3>
+          <h2 className="h3">16 недель</h2>
           <span className="small muted">
             {Math.round(data.heat.consistency * 100)}% дней с практикой · ~{totalMin} мин · {data.totals.reviews} ответов
           </span>
@@ -177,7 +177,7 @@ export default function Stats() {
       <div className="grid grid-2 stack-sm mt-16">
         <div className="card">
           <div className="card-title">
-            <h3>Капризные слова</h3>
+            <h2 className="h3">Капризные слова</h2>
           </div>
           {data.leeches.length ? (
             <div className="col gap-4">
@@ -198,7 +198,7 @@ export default function Stats() {
         </div>
         <div className="card">
           <div className="card-title">
-            <h3>Медленные</h3>
+            <h2 className="h3">Медленные</h2>
           </div>
           {data.slow.length ? (
             <div className="col gap-4">
@@ -222,7 +222,7 @@ export default function Stats() {
       <div className="grid grid-2 stack-sm mt-16">
         <div className="card">
           <div className="card-title">
-            <h3>Близнецы (путаница)</h3>
+            <h2 className="h3">Близнецы (путаница)</h2>
           </div>
           {data.confusions.length ? (
             <div className="col gap-4">
@@ -249,7 +249,7 @@ export default function Stats() {
         </div>
         <div className="card">
           <div className="card-title">
-            <h3>Хроника</h3>
+            <h2 className="h3">Хроника</h2>
           </div>
           {data.moments.length ? (
             <div className="timeline">
@@ -272,7 +272,7 @@ export default function Stats() {
       {data.modes.length > 0 && (
         <div className="card mt-16">
           <div className="card-title">
-            <h3>Режимы за 30 дней</h3>
+            <h2 className="h3">Режимы за 30 дней</h2>
           </div>
           <div className="chips">
             {data.modes.map((m) => (
