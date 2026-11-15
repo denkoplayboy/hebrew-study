@@ -50,3 +50,8 @@
 - Ктив мале без огласовок в `he`/`form`, огласовки — в `he_nikud`/`nikud`. Ответы сравниваются без огласовок, разница י/ו = «почти верно».
 - Интерфейс и все пояснения — по-русски. Дизайн: мягкие углы, нейтральные цвета, без эмодзи и геймификации в стиле Duolingo.
 - Проверка перед коммитом: `npm run typecheck && npm run build`.
+
+## Дизайн: impeccable
+- Скилл `/impeccable` (`.claude/skills/impeccable`, агенты в `.claude/agents`, хуки детектора в `.claude/settings.json`). Контекст продукта — `PRODUCT.md`.
+- Движок: бинарник в `scripts/bin/` не коммитится, лаунчер берёт глобальный `impeccable` (ставится скриптом облачной среды: `npm i -g impeccable@4.9.1`).
+- Полная проверка — по запущенному приложению: `AI_MOCK=1 DATA_DIR=/tmp/shoresh PORT=8099 node dist/server/src/index.js`, затем Chromium с `--headless=new --no-sandbox --remote-debugging-port=9222` и `.claude/skills/impeccable/scripts/impeccable detect --cdp 9222 --target localhost`.
