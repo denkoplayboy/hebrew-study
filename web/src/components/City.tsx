@@ -136,7 +136,7 @@ function Label({ at, title, sub, accent, below, align = "center" }: { at: P; tit
 
 function Quarter({ to, label, children, off }: { to: string; label: string; children: ReactNode; off?: boolean }) {
   const nav = useNavigate();
-  const go = () => nav(to);
+  const go = () => nav(to, { viewTransition: true });
   if (off) return <g>{children}</g>;
   return (
     <g

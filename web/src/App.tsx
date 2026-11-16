@@ -120,7 +120,7 @@ function Shell() {
             {NAV.map((n, i) => (
               <div key={n.to}>
                 {(i === 4 || i === 9) && <div className="nav-sep" />}
-                <NavLink to={n.to} end={n.end} style={{ ["--qc" as string]: n.q }}>
+                <NavLink to={n.to} end={n.end} viewTransition style={{ ["--qc" as string]: n.q }}>
                   <n.icon size={18} /> {n.label}
                 </NavLink>
               </div>
@@ -173,13 +173,14 @@ function Shell() {
       {!inSession && (
         <nav className="tabbar">
           {NAV.slice(0, 4).map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} style={{ ["--qc" as string]: n.q }}>
+            <NavLink key={n.to} to={n.to} end={n.end} viewTransition style={{ ["--qc" as string]: n.q }}>
               <n.icon size={22} />
               {n.label}
             </NavLink>
           ))}
           <NavLink
             to="/more"
+            viewTransition
             className={({ isActive }) => (isActive || !NAV.slice(0, 4).some((n) => (n.end ? loc.pathname === n.to : loc.pathname.startsWith(n.to))) ? "active" : "")}
             style={{ ["--qc" as string]: loc.pathname === "/more" ? "var(--on-hall)" : quarter.q }}
           >

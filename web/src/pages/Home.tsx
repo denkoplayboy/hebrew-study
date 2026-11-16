@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Droplet, Sprout, ArrowRight, Leaf, NotebookPen, Table2 } from "lucide-react";
 import { useApp, useData, plural, relTime } from "../lib/app";
@@ -45,6 +45,25 @@ export default function Home() {
   const heDay = new Intl.DateTimeFormat("he-IL", { weekday: "long" }).format(new Date());
   const ruDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date());
 
+  // дома строятся из цоколя один раз за сессию, а не при каждом возвращении на главную
+  const [built] = useState(() => {
+    try {
+      const seen = sessionStorage.getItem("city-built") === "1";
+      sessionStorage.setItem("city-built", "1");
+      return seen;
+    } catch {
+      return false;
+    }
+  });
+  const cityRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = cityRef.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => el.toggleAttribute("data-visible", e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [data]);
+
   if (!data)
     return (
       <div className="page">
@@ -66,7 +85,7 @@ export default function Home() {
 
   return (
     <div className="page">
-      <section className="city">
+      <section className="city" ref={cityRef} data-visible="">
         <div className="city-head">
           <div>
             <h1>{greeting()}</h1>
@@ -87,7 +106,7 @@ export default function Home() {
           )}
         </div>
         <CityModel
-          reduced={reduced}
+          reduced={reduced || built}
           data={{ stages: g.stages, total: g.total, thirsty: g.today.thirstyWords, due: t.dueFacets, newRoom: t.newRoom, shuk, carmel: !!perks.girl, dew }}
         />
         <div style={{ height: 30 }} />
