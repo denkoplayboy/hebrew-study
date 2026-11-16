@@ -1,6 +1,8 @@
-import { useMemo, type KeyboardEvent, type ReactNode } from "react";
+import { createContext, useContext, useMemo, type KeyboardEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { plural } from "../lib/app";
+import { faceLight, useDaylight, type Daylight } from "../lib/daylight";
+import { HallLight } from "./HallLight";
 
 /* Изометрический макет «Шореша». Всё рисуется из живых данных:
    дом в квартале «Сад» — слово (или группа слов), высота — стадия, горящее окно — слово хочет пить;
@@ -23,6 +25,76 @@ const PLINTH = { top: "#dcd5c7", left: "#bfb6a5", right: "#9f9583" };
 const WIN_OFF = "#6d665a";
 const WIN_ON = "#f3c24f";
 
+/* свет макета: множители граней от солнца, тёплый тон заката, тени */
+interface Light {
+  top: number;
+  left: number;
+  right: number;
+  warm: number; // 0..1 — сила тёплого тона на освещённых гранях
+  night: boolean;
+  shadow: { dx: number; dy: number } | null;
+}
+const NOON: Light = { top: 1, left: 0.92, right: 0.8, warm: 0, night: false, shadow: null };
+const LightCtx = createContext<Light>(NOON);
+
+function lightFrom(d: Daylight): Light {
+  const f = faceLight(d);
+  let shadow = f.shadow;
+  if (shadow) {
+    const len = Math.hypot(shadow.dx, shadow.dy);
+    if (len > 2.4) shadow = { dx: (shadow.dx / len) * 2.4, dy: (shadow.dy / len) * 2.4 };
+  }
+  return {
+    top: f.top,
+    left: f.left,
+    right: f.right,
+    warm: d.phase === "golden" ? 0.22 : d.phase === "twilight" ? 0.16 : 0,
+    night: d.phase === "night",
+    shadow,
+  };
+}
+
+/** затемнение грани: чем меньше света, тем плотнее синеватая тень */
+function Shade({ points, f, warm }: { points: string; f: number; warm?: number }) {
+  return (
+    <>
+      {f < 0.995 && <polygon points={points} fill="#0d1420" opacity={Math.min(0.78, (1 - f) * 0.95)} pointerEvents="none" />}
+      {!!warm && <polygon points={points} fill="#ffb25a" opacity={warm} style={{ mixBlendMode: "soft-light" }} pointerEvents="none" />}
+    </>
+  );
+}
+
+function hull(points: P[]): P[] {
+  const ps = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o: P, a: P, b: P) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo: P[] = [];
+  for (const p of ps) {
+    while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop();
+    lo.push(p);
+  }
+  const up: P[] = [];
+  for (const p of [...ps].reverse()) {
+    while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop();
+    up.push(p);
+  }
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+
+/** тень дома на поверхности цоколя: основание + основание, сдвинутое от солнца на высоту */
+function Shadow({ x, y, z = 0, w, d, h }: { x: number; y: number; z?: number; w: number; d: number; h: number }) {
+  const L = useContext(LightCtx);
+  if (!L.shadow || h < 0.1) return null;
+  const { dx, dy } = L.shadow;
+  const base: [number, number][] = [
+    [x, y],
+    [x + w, y],
+    [x + w, y + d],
+    [x, y + d],
+  ];
+  const all = base.flatMap(([bx, by]) => [pt(bx, by, z), pt(bx + dx * h, by + dy * h, z)]);
+  return <polygon points={poly(hull(all))} fill="#1a1208" opacity={L.warm ? 0.3 : 0.22} pointerEvents="none" />;
+}
+
 interface BoxProps {
   x: number;
   y: number;
@@ -38,6 +110,7 @@ interface BoxProps {
 }
 
 function Box({ x, y, z = 0, w, d, h, roof, faces = STONE, windows, cls, delay }: BoxProps) {
+  const L = useContext(LightCtx);
   const zt = z + h;
   const top = [pt(x, y, zt), pt(x + w, y, zt), pt(x + w, y + d, zt), pt(x, y + d, zt)];
   // грань +x (справа, в тени) и грань +y (слева, на свету)
@@ -62,7 +135,7 @@ function Box({ x, y, z = 0, w, d, h, roof, faces = STONE, windows, cls, delay }:
             key={`l${f}-${k}`}
             className={on ? "lit" : undefined}
             points={poly([pt(x0, y + d, zz + wh), pt(x1, y + d, zz + wh), pt(x1, y + d, zz), pt(x0, y + d, zz)])}
-            fill={on ? WIN_ON : WIN_OFF}
+            fill={on ? WIN_ON : L.night ? "#262a33" : WIN_OFF}
             style={on ? { animationDelay: `${(f * 7 + k * 3) % 11 * 0.27}s` } : undefined}
           />,
         );
@@ -75,7 +148,7 @@ function Box({ x, y, z = 0, w, d, h, roof, faces = STONE, windows, cls, delay }:
           <polygon
             key={`r${f}-${k}`}
             points={poly([pt(x + w, y0, zz + wh), pt(x + w, y1, zz + wh), pt(x + w, y1, zz), pt(x + w, y0, zz)])}
-            fill={WIN_OFF}
+            fill={L.night ? "#1f232b" : WIN_OFF}
             opacity={0.8}
           />,
         );
@@ -85,9 +158,12 @@ function Box({ x, y, z = 0, w, d, h, roof, faces = STONE, windows, cls, delay }:
   return (
     <g className={cls} style={delay !== undefined ? { animationDelay: `${delay}ms` } : undefined}>
       <polygon points={poly(left)} fill={faces.left} />
+      <Shade points={poly(left)} f={L.left / 0.92} warm={L.left > 0.75 ? L.warm : 0} />
       <polygon points={poly(right)} fill={faces.right} />
+      <Shade points={poly(right)} f={L.right / 0.8 > 1 ? 1 : L.right / 0.8} warm={L.right > 0.7 ? L.warm : 0} />
       {wins}
       <polygon points={poly(top)} fill={roof || faces.top} stroke={STONE.line} strokeWidth={0.6} />
+      <Shade points={poly(top)} f={L.top} warm={L.warm} />
     </g>
   );
 }
@@ -186,6 +262,8 @@ function focusBox(q: QuarterId) {
 }
 
 export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: boolean; focus?: QuarterId }) {
+  const day = useDaylight();
+  const light = useMemo(() => lightFrom(day), [day]);
   const { stages, total, thirsty } = data;
   const show = (q: QuarterId) => !focus || focus === q;
 
@@ -222,7 +300,9 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
   const archiveFloors = Math.max(1, Math.min(4, Math.ceil(total / 40)));
 
   return (
+    <LightCtx.Provider value={light}>
     <svg
+      data-phase={day.phase}
       viewBox={focus ? focusBox(focus) : `0 0 ${W} ${H}`}
       role="img"
       aria-label={focus ? "Квартал на макете города" : `Макет сада: ${total} ${plural(total, "слово", "слова", "слов")}, ${thirsty} хотят пить`}
@@ -235,6 +315,9 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
       <Quarter off={!!focus} to="/words" label="Словарь">
         <Box x={7} y={0} w={5} d={4.3} h={0.35} faces={PLINTH} />
         {[0, 1, 2, 3].map((r) => (
+          <Shadow key={r} x={7.45} y={0.35 + r * 0.98} z={0.35} w={4.1} d={0.62} h={0.35 + archiveFloors * 0.32 + (r % 2) * 0.18} />
+        ))}
+        {[0, 1, 2, 3].map((r) => (
           <Box key={r} x={7.45} y={0.35 + r * 0.98} w={4.1} d={0.62} h={0.35 + archiveFloors * 0.32 + (r % 2) * 0.18} z={0.35} roof={lapis} windows={{ floors: archiveFloors, lit: 0 }} cls={reduced ? undefined : "rise"} delay={200 + r * 60} />
         ))}
       </Quarter>
@@ -245,6 +328,9 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
       <Quarter off={!!focus} to="/words" label={`Сад: ${total} слов`}>
         <Box x={0} y={0} w={6.2} d={6.2} h={0.4} faces={PLINTH} />
         <Box x={0.15} y={0.15} w={5.9} d={5.9} h={0.04} z={0.4} faces={{ top: "#9fb27c", left: "#8a9c69", right: "#77885a" }} />
+        {gardenHouses.map((hh) => (
+          <Shadow key={`s${hh.slot[0]}-${hh.slot[1]}`} x={0.42 + hh.slot[0] * 0.95} y={0.42 + hh.slot[1] * 0.95} z={0.44} w={0.62} d={0.62} h={STAGE_H[hh.s]} />
+        ))}
         {gardenHouses.map((hh, i) => {
           const [gx, gy] = hh.slot;
           const h = STAGE_H[hh.s];
@@ -272,6 +358,8 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
       {show("ulpan") && (
       <Quarter off={!!focus} to="/practice" label="Практика">
         <Box x={7} y={5} w={5} d={2.6} h={0.35} faces={PLINTH} />
+        <Shadow x={7.4} y={5.4} z={0.35} w={2.6} d={1.8} h={1.5} />
+        <Shadow x={10.3} y={5.5} z={0.35} w={1.3} d={1.6} h={0.9} />
         <Box x={7.4} y={5.4} w={2.6} d={1.8} h={1.5} z={0.35} roof={patina} windows={{ floors: 3, lit: Math.ceil(ulpanLit / 3) }} cls={reduced ? undefined : "rise"} delay={260} />
         <Box x={10.3} y={5.5} w={1.3} d={1.6} h={0.9} z={0.35} roof={patina} windows={{ floors: 2, lit: ulpanLit > 6 ? 1 : 0 }} cls={reduced ? undefined : "rise"} delay={320} />
       </Quarter>
@@ -281,6 +369,9 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
       {show("shuk") && (
       <Quarter off={!!focus} to="/shop" label="Лавка «Шук»">
         <Box x={0} y={7} w={6.2} d={5} h={0.35} faces={PLINTH} />
+        {data.shuk.slice(0, 10).map((lvl, i) =>
+          lvl > 0 ? <Shadow key={i} x={0.35 + (i % 5) * 1.17} y={7.5 + Math.floor(i / 5) * 2.1} z={0.35} w={0.85} d={1.5} h={0.4 + lvl * 0.45} /> : null,
+        )}
         {data.shuk.slice(0, 10).map((lvl, i) => {
           const gx = i % 5;
           const gy = Math.floor(i / 5);
@@ -300,6 +391,7 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
       <Quarter off={!!focus} to={data.carmel ? "/carmel" : "/shop"} label="Кармель">
         <Box x={7} y={8.4} w={5} d={3.6} h={0.55} faces={PLINTH} />
         <Box x={7.6} y={9.1} w={3.6} d={2.6} h={0.5} z={0.55} faces={{ top: "#a9b48c", left: "#929d77", right: "#7a8463" }} />
+        <Shadow x={8.5} y={9.6} z={1.05} w={1.9} d={1.4} h={0.95} />
         <Box x={8.5} y={9.6} w={1.9} d={1.4} h={0.95} z={1.05} roof={copper} windows={{ floors: 2, lit: data.carmel ? 2 : 0 }} cls={reduced ? undefined : "rise"} delay={460} />
         <Tree x={8.0} y={11.3} z={1.05} />
         <Tree x={11.0} y={9.5} z={1.05} r={0.28} />
@@ -332,6 +424,7 @@ export function CityModel({ data, reduced, focus }: { data: CityData; reduced?: 
         </text>
       )}
     </svg>
+    </LightCtx.Provider>
   );
 }
 
@@ -365,6 +458,7 @@ export function QuarterHead({ title, sub, quarter, color, data, actions }: { tit
   const full: CityData = { stages: [0, 0, 0, 0, 0, 0], total: 0, thirsty: 0, due: 0, newRoom: 0, shuk: [], carmel: false, dew: 0, ...data };
   return (
     <section className="qhead" style={{ ["--qc" as string]: color }}>
+      <HallLight />
       <div className="qhead-text">
         <h1>{title}</h1>
         {sub && <p>{sub}</p>}

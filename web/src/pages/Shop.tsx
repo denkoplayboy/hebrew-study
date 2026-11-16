@@ -37,7 +37,9 @@ import { BUILDINGS, CELLS, DISTRICTS, EFFECTS, cellGridPos, type Cell, type Perk
 import { He, Loading, Modal, Mixed, Collapsible } from "../components/ui";
 import { HebrewInput } from "../components/HebrewInput";
 import { DesignPickers } from "../components/DesignPickers";
-import { QuarterHead } from "../components/City";
+import { CityModel } from "../components/City";
+import { HallLight } from "../components/HallLight";
+import { faceLight, useDaylight } from "../lib/daylight";
 
 interface Q {
   kind: "word" | "verb";
@@ -115,14 +117,37 @@ const DIE_DOTS: Record<number, [number, number][]> = {
   6: [[28, 22], [72, 22], [28, 50], [72, 50], [28, 78], [72, 78]],
 };
 
+/** Настоящий кубик: шесть граней в 3D; при броске кувыркается, потом ложится нужной гранью вверх к зрителю. */
+const FACE_ROT: Record<number, [number, number]> = { 1: [0, 0], 2: [0, -90], 5: [0, 90], 3: [-90, 0], 4: [90, 0], 6: [0, 180] };
+const FACE_POS: Record<number, string> = {
+  1: "translateZ(var(--half))",
+  6: "rotateY(180deg) translateZ(var(--half))",
+  2: "rotateY(90deg) translateZ(var(--half))",
+  5: "rotateY(-90deg) translateZ(var(--half))",
+  3: "rotateX(90deg) translateZ(var(--half))",
+  4: "rotateX(-90deg) translateZ(var(--half))",
+};
 function Die({ value, rolling }: { value: number; rolling: boolean }) {
+  const spins = useRef(0);
+  const prev = useRef(value);
+  if (prev.current !== value && !rolling) {
+    spins.current += 1;
+    prev.current = value;
+  }
+  const [rx, ry] = FACE_ROT[value];
+  const turn = spins.current * 360;
   return (
-    <svg width="56" height="56" viewBox="0 0 100 100" className={rolling ? "die rolling" : "die"} aria-label={`Кубик: ${value}`}>
-      <rect x="4" y="4" width="92" height="92" rx="22" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="3" />
-      {DIE_DOTS[value].map(([x, y], k) => (
-        <circle key={k} cx={x} cy={y} r="8.5" fill="var(--text)" />
-      ))}
-    </svg>
+    <div className={"die3d" + (rolling ? " rolling" : "")} role="img" aria-label={`Кубик: ${value}`}>
+      <div className="die3d-body" style={rolling ? undefined : { transform: `rotateX(${rx - 18 + turn}deg) rotateY(${ry + 24 + turn}deg)` }}>
+        {[1, 2, 3, 4, 5, 6].map((f) => (
+          <svg key={f} className="die3d-face" viewBox="0 0 100 100" style={{ transform: FACE_POS[f] }}>
+            {DIE_DOTS[f].map(([x, y], k) => (
+              <circle key={k} cx={x} cy={y} r="9" />
+            ))}
+          </svg>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -149,6 +174,7 @@ export default function Shop() {
   const [topic, setTopic] = useState("");
   const [storyTheme, setStoryTheme] = useState("");
   const timer = useRef<number[]>([]);
+  const day = useDaylight();
 
   useEffect(() => {
     if (view && token === null) setToken(view.pos);
@@ -275,6 +301,20 @@ export default function Shop() {
   const owned = view.cells.filter((c) => c.owned);
   const fx = view.effects;
   const pk = view.perks;
+  // свет на столе: грани зданий и их тени — от солнца над Иерусалимом (север — дальний край поля)
+  const fl = faceLight(day);
+  const cosEl = Math.cos((Math.max(0, day.el) * Math.PI) / 180);
+  const westF = Math.min(1, (day.phase === "night" ? 0.32 : 0.6) + (day.phase === "night" ? 0 : 0.5 * Math.max(0, -Math.sin((day.az * Math.PI) / 180)) * cosEl));
+  const sh = fl.shadow ? { x: Math.max(-2.2, Math.min(2.2, fl.shadow.dx)), y: Math.max(-2.2, Math.min(2.2, fl.shadow.dy)) } : { x: 0, y: 0 };
+  const sunVars = {
+    ["--sun-top" as string]: fl.top.toFixed(2),
+    ["--sun-front" as string]: fl.left.toFixed(2),
+    ["--sun-east" as string]: fl.right.toFixed(2),
+    ["--sun-west" as string]: westF.toFixed(2),
+    ["--shadow-x" as string]: sh.x.toFixed(2),
+    ["--shadow-y" as string]: sh.y.toFixed(2),
+    ["--shadow-a" as string]: fl.shadow ? "0.32" : "0",
+  };
 
   const onCell = (i: number) => {
     if (p?.type === "airport" && i !== view.pos) {
@@ -406,22 +446,20 @@ export default function Shop() {
 
   return (
     <div className="page" style={{ maxWidth: 1180 }}>
-      <QuarterHead
-        quarter="shuk"
-        color="var(--q-shuk)"
-        title="Лавка «Шук»"
-        sub="Роса за уроки → броски кубика → участки и здания, которые открывают новое для учёбы и оформления."
-        data={{ shuk: Object.values(pk.levels || {}).map((v) => Number(v) || 0) }}
-        actions={
-          <Link to="/practice" className="btn sm">
-            Заработать росу <ArrowRight size={15} />
-          </Link>
-        }
-      />
+      <section className="shuk-stage" style={sunVars} data-phase={day.phase}>
+        <HallLight />
+        <div className="shuk-head">
+          <div>
+            <h1>Лавка «Шук»</h1>
+            <p>Роса за уроки → бросок кубика → участки и здания, которые открывают новое для учёбы и оформления.</p>
+          </div>
+          <div className="shuk-dew">
+            <Droplets size={18} /> <b className="num">{view.balance}</b> <span>росы · сегодня +{view.today}</span>
+          </div>
+        </div>
 
-      <div className="game-layout">
-        {/* ───────── поле ───────── */}
-        <div className="board">
+        <div className="board3d">
+          <div className="board">
           {view.cells.map((c) => {
             const { row, col } = cellGridPos(c.i);
             const d = district(c.district);
@@ -448,38 +486,53 @@ export default function Shop() {
                     )}
                   </span>
                 )}
+                {c.owned && c.level > 0 && (
+                  <span className="gb" style={{ ["--lv" as string]: c.level }} aria-hidden>
+                    <i className="gb-shadow" />
+                    <i className="f-left" />
+                    <i className="f-right" />
+                    <i className="f-front" />
+                    <i className="f-top" />
+                  </span>
+                )}
                 {token === c.i && (
-                  <span className="gtoken">
+                  <span className="gtoken" aria-label="Ты здесь">
                     <Sprout size={14} />
                   </span>
                 )}
               </button>
             );
           })}
-          <div className="gcenter">
-            <div className="he gtitle">שׁוּק</div>
-            <div className="row" style={{ justifyContent: "center", gap: 14 }}>
-              <Die value={die} rolling={rolling} />
-              <div className="col gap-4" style={{ alignItems: "flex-start" }}>
-                <span className="row gap-4" style={{ fontWeight: 500, fontSize: "1.25rem" }}>
-                  <Droplets size={18} className="drop" /> {view.balance}
-                </span>
-                <span className="tiny muted">сегодня за уроки +{view.today}</span>
+            <div className="gcenter">
+              <div className="gcenter-model" aria-hidden>
+                <CityModel data={{ stages: [0, 0, 0, 0, 0, 0], total: 0, thirsty: 0, due: 0, newRoom: 0, shuk: Object.values(pk.levels || {}).map((v) => Number(v) || 0), carmel: false, dew: 0 }} focus="shuk" reduced />
               </div>
-            </div>
-            <button className="btn primary lg" onClick={doRoll} disabled={rolling || busy || mustResolve || (!view.roll.free && view.balance < view.roll.paidCost)}>
-              <Dice5 size={19} /> {view.roll.free ? "Бросить бесплатно" : `Бросить · ${view.roll.cost}`}
-            </button>
-            <div className="tiny muted center">
-              {view.roll.freeRolls > 0 && `бесплатных бросков: ${view.roll.freeRolls} · `}
-              {view.roll.dailyFree && "ежедневный бросок банка доступен · "}
-              {!view.roll.free && view.balance < view.roll.paidCost ? "не хватает росы — пора на урок" : `платных бросков сегодня: ${view.roll.rollsToday}`}
+              <div className="he gtitle">שׁוּק</div>
             </div>
           </div>
         </div>
 
+        <div className="shuk-dock">
+          <Die value={die} rolling={rolling} />
+          <div className="col gap-6" style={{ alignItems: "flex-start", minWidth: 0 }}>
+              <button className="btn primary lg" onClick={doRoll} disabled={rolling || busy || mustResolve || (!view.roll.free && view.balance < view.roll.paidCost)}>
+                <Dice5 size={19} /> {view.roll.free ? "Бросить бесплатно" : `Бросить · ${view.roll.cost}`}
+              </button>
+              <div className="tiny muted center">
+              {view.roll.freeRolls > 0 && `бесплатных бросков: ${view.roll.freeRolls} · `}
+              {view.roll.dailyFree && "ежедневный бросок банка доступен · "}
+              {!view.roll.free && view.balance < view.roll.paidCost ? "не хватает росы — пора на урок" : `платных бросков сегодня: ${view.roll.rollsToday}`}
+              </div>
+          </div>
+        </div>
+        <div className="shuk-time">
+          {day.label} в Иерусалиме · {day.clock}
+        </div>
+      </section>
+
+      <div className="shuk-panels">
         {/* ───────── ход и решения ───────── */}
-        <div className="col gap-16">
+        <div className="shuk-col">
           <div className="card col gap-6">
             <div className="row between">
               <h2 className="h3">{here.name}</h2>

@@ -2500,3 +2500,292 @@ textarea.he::placeholder {
     display: inline;
   }
 }
+
+/* ───────── музейный свет (WebGL) над панелями зала ───────── */
+.hall-light {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+}
+.qhead > :not(.hall-light),
+.city > :not(.hall-light) {
+  position: relative;
+}
+/* ночью горящие окна светятся сильнее */
+svg[data-phase="night"] .lit {
+  filter: drop-shadow(0 0 2.5px #f3c24f);
+}
+
+/* ───────── Шук: стол с наклонённым полем ───────── */
+.shuk-stage {
+  position: relative;
+  background: var(--hall);
+  color: var(--on-hall);
+  border-radius: var(--r-xl);
+  border-bottom: 8px solid #07090a;
+  box-shadow: var(--lift-lg);
+  overflow: hidden;
+  padding: 20px 20px 16px;
+  margin-bottom: 26px;
+}
+.shuk-stage > :not(.hall-light) {
+  position: relative;
+}
+.shuk-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+}
+.shuk-head h1 {
+  color: var(--on-hall);
+}
+.shuk-head p {
+  color: var(--on-hall-2);
+  margin-top: 6px;
+  max-width: 52ch;
+}
+.shuk-dew {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--on-hall-2);
+  font-size: 0.875rem;
+}
+.shuk-dew svg {
+  color: #8cbbe0;
+  align-self: center;
+}
+.shuk-dew b {
+  color: var(--on-hall);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.shuk-time {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--on-hall-2);
+  font-variant: all-small-caps;
+  letter-spacing: 0.03em;
+  margin-top: 6px;
+}
+
+/* поле лежит на столе: наклон и перспектива; клетки и здания — настоящий 3D */
+.board3d {
+  perspective: 1100px;
+  perspective-origin: 50% 0%;
+  margin: 8px auto 0;
+  max-width: 640px;
+}
+.shuk-stage .board {
+  transform: rotateX(34deg);
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  background: #2a3135;
+  border-bottom: 0;
+  box-shadow: 0 30px 40px -24px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  max-width: 100%;
+  min-width: 0;
+}
+.shuk-stage .gcell {
+  transform-style: preserve-3d;
+  overflow: visible;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.shuk-stage .gcell:hover {
+  transform: translateZ(6px);
+}
+.shuk-stage .gcell.owned {
+  justify-content: flex-end;
+  padding-bottom: 3px;
+}
+.shuk-stage .gcell.owned .gicon {
+  display: none;
+}
+/* здание на участке: куб, высота по уровню; грани освещены по солнцу */
+.gb {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+  pointer-events: none;
+  --h: calc(10px + var(--lv) * 11px);
+}
+.gb > i {
+  position: absolute;
+  display: block;
+}
+.gb .f-top {
+  inset: 0;
+  transform: translateZ(var(--h));
+  background: var(--q-shuk);
+  filter: brightness(calc(0.45 + var(--sun-top) * 0.7));
+  border-radius: 2px;
+}
+.gb .f-front {
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: var(--h);
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  background: repeating-linear-gradient(0deg, #e7e1d4 0 7px, #c9c0ae 7px 8px);
+  filter: brightness(calc(0.4 + var(--sun-front) * 0.75));
+}
+.gb .f-right {
+  top: 0;
+  left: 100%;
+  width: var(--h);
+  height: 100%;
+  transform-origin: 0 50%;
+  transform: rotateY(-90deg);
+  background: #d6cfbf;
+  filter: brightness(calc(0.4 + var(--sun-east) * 0.75));
+}
+.gb .f-left {
+  top: 0;
+  right: 100%;
+  width: var(--h);
+  height: 100%;
+  transform-origin: 100% 50%;
+  transform: rotateY(90deg);
+  background: #d6cfbf;
+  filter: brightness(calc(0.4 + var(--sun-west) * 0.75));
+}
+.gb .gb-shadow {
+  inset: 0;
+  background: #1a1208;
+  opacity: var(--shadow-a);
+  filter: blur(1.5px);
+  /* тень растёт от основания в сторону от солнца и остаётся привязанной к дому */
+  transform: translate(calc(var(--shadow-x) * var(--h) * 0.22), calc(var(--shadow-y) * var(--h) * 0.22)) scale(calc(1 + (var(--shadow-x) * var(--shadow-x) + var(--shadow-y) * var(--shadow-y)) * 0.08));
+  transform-origin: 50% 50%;
+  border-radius: 2px;
+}
+.shuk-stage .gtoken {
+  top: 26%;
+  right: auto;
+  left: 50%;
+  margin: -12px 0 0 -12px;
+  transform: translateZ(22px) rotateX(-34deg);
+  animation: hop3d 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 10px 8px -4px rgba(0, 0, 0, 0.45);
+}
+@keyframes hop3d {
+  45% {
+    transform: translateZ(40px) rotateX(-34deg);
+  }
+}
+.shuk-stage .gcenter {
+  transform-style: preserve-3d;
+  justify-content: flex-end;
+  padding-bottom: 6%;
+}
+.gcenter-model {
+  width: 74%;
+  transform: translateZ(1px);
+}
+.gcenter-model svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(8px 14px 12px rgba(0, 0, 0, 0.5));
+}
+.shuk-stage .gtitle {
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+}
+
+/* док: кубик и бросок — у большого пальца, под полем */
+.shuk-dock {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 22px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+}
+.shuk-dock .tiny {
+  color: var(--on-hall-2);
+}
+.die3d {
+  --s: 58px;
+  --half: 29px;
+  width: var(--s);
+  height: var(--s);
+  perspective: 300px;
+  flex-shrink: 0;
+}
+.die3d-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.die3d.rolling .die3d-body {
+  animation: tumble 0.55s linear infinite;
+}
+@keyframes tumble {
+  from {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(360deg) rotateY(720deg) rotateZ(180deg);
+  }
+}
+.die3d-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #f6f3ec;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 -4px 8px rgba(0, 0, 0, 0.12);
+  backface-visibility: hidden;
+  fill: #1b2023;
+}
+
+/* под столом — панели хода, зданий и журнала */
+.shuk-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.shuk-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 600px) {
+  .shuk-stage {
+    padding: 16px 10px 12px;
+    margin-inline: -4px;
+  }
+  .shuk-stage .board {
+    transform: rotateX(28deg);
+  }
+  .shuk-stage .gtoken {
+    transform: translateZ(16px) rotateX(-28deg);
+  }
+  .shuk-dock {
+    gap: 14px;
+    padding: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .die3d.rolling .die3d-body {
+    animation: none;
+  }
+  .die3d-body {
+    transition: none;
+  }
+}

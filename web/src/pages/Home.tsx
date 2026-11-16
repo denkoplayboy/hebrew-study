@@ -6,6 +6,7 @@ import { Omnibox } from "../components/Omnibox";
 import { Forecast } from "../components/Forecast";
 import { Plant, Thirst, WordFace, Loading, mainProgress } from "../components/ui";
 import { CityModel } from "../components/City";
+import { HallLight } from "../components/HallLight";
 import { STAGES } from "../../../shared/memory";
 import type { WordSummary } from "../../../shared/types";
 
@@ -86,6 +87,7 @@ export default function Home() {
   return (
     <div className="page">
       <section className="city" ref={cityRef} data-visible="">
+        <HallLight />
         <div className="city-head">
           <div>
             <h1>{greeting()}</h1>
