@@ -1,0 +1,880 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T00:02:13.283Z",
+  "title": "Design System: Шореш",
+  "extensions": {
+    "colorMeta": {
+      "lamp": {
+        "role": "primary",
+        "displayName": "Золото лампы",
+        "canonical": "#e0a93a",
+        "dark": "#e6b14a",
+        "tonalRamp": [
+          "oklch(15% 0.065 80)",
+          "oklch(25% 0.065 80)",
+          "oklch(35% 0.130 80)",
+          "oklch(45% 0.130 80)",
+          "oklch(58% 0.130 80)",
+          "oklch(70% 0.130 80)",
+          "oklch(82% 0.130 80)",
+          "oklch(95% 0.065 80)"
+        ]
+      },
+      "lamp-side": {
+        "role": "primary",
+        "displayName": "Грань лампы",
+        "canonical": "#a8781c",
+        "dark": "#8a6315",
+        "tonalRamp": [
+          "oklch(15% 0.060 80)",
+          "oklch(25% 0.060 80)",
+          "oklch(35% 0.120 80)",
+          "oklch(45% 0.120 80)",
+          "oklch(58% 0.120 80)",
+          "oklch(70% 0.120 80)",
+          "oklch(82% 0.120 80)",
+          "oklch(95% 0.060 80)"
+        ]
+      },
+      "lamp-ink": {
+        "role": "primary",
+        "displayName": "Чернила лампы",
+        "canonical": "#1b1508",
+        "tonalRamp": [
+          "oklch(15% 0.015 80)",
+          "oklch(25% 0.015 80)",
+          "oklch(35% 0.030 80)",
+          "oklch(45% 0.030 80)",
+          "oklch(58% 0.030 80)",
+          "oklch(70% 0.030 80)",
+          "oklch(82% 0.030 80)",
+          "oklch(95% 0.015 80)"
+        ]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Глухое золото",
+        "canonical": "#6f4f0c",
+        "dark": "#e6b955",
+        "tonalRamp": [
+          "oklch(15% 0.055 80)",
+          "oklch(25% 0.055 80)",
+          "oklch(35% 0.110 80)",
+          "oklch(45% 0.110 80)",
+          "oklch(58% 0.110 80)",
+          "oklch(70% 0.110 80)",
+          "oklch(82% 0.110 80)",
+          "oklch(95% 0.055 80)"
+        ]
+      },
+      "gold-soft": {
+        "role": "primary",
+        "displayName": "Золото, мягкое",
+        "canonical": "#f3e6c4",
+        "dark": "#3b3220",
+        "tonalRamp": [
+          "oklch(15% 0.025 85)",
+          "oklch(25% 0.025 85)",
+          "oklch(35% 0.050 85)",
+          "oklch(45% 0.050 85)",
+          "oklch(58% 0.050 85)",
+          "oklch(70% 0.050 85)",
+          "oklch(82% 0.050 85)",
+          "oklch(95% 0.025 85)"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Олива сада (меняется data-accent)",
+        "canonical": "#557a2c",
+        "dark": "#9cc06a",
+        "tonalRamp": [
+          "oklch(15% 0.055 130)",
+          "oklch(25% 0.055 130)",
+          "oklch(35% 0.110 130)",
+          "oklch(45% 0.110 130)",
+          "oklch(58% 0.110 130)",
+          "oklch(70% 0.110 130)",
+          "oklch(82% 0.110 130)",
+          "oklch(95% 0.055 130)"
+        ]
+      },
+      "accent-strong": {
+        "role": "secondary",
+        "displayName": "Олива, глубокая",
+        "canonical": "#3f5d1f",
+        "dark": "#b6d38b",
+        "tonalRamp": [
+          "oklch(15% 0.050 130)",
+          "oklch(25% 0.050 130)",
+          "oklch(35% 0.100 130)",
+          "oklch(45% 0.100 130)",
+          "oklch(58% 0.100 130)",
+          "oklch(70% 0.100 130)",
+          "oklch(82% 0.100 130)",
+          "oklch(95% 0.050 130)"
+        ]
+      },
+      "accent-soft": {
+        "role": "secondary",
+        "displayName": "Олива, мягкая",
+        "canonical": "#e2e9d6",
+        "dark": "#2c3622",
+        "tonalRamp": [
+          "oklch(15% 0.015 130)",
+          "oklch(25% 0.015 130)",
+          "oklch(35% 0.030 130)",
+          "oklch(45% 0.030 130)",
+          "oklch(58% 0.030 130)",
+          "oklch(70% 0.030 130)",
+          "oklch(82% 0.030 130)",
+          "oklch(95% 0.015 130)"
+        ]
+      },
+      "accent-ink": {
+        "role": "secondary",
+        "displayName": "Текст на оливе",
+        "canonical": "#ffffff",
+        "dark": "#121a0b",
+        "tonalRamp": [
+          "oklch(15% 0.010 130)",
+          "oklch(25% 0.010 130)",
+          "oklch(35% 0.020 130)",
+          "oklch(45% 0.020 130)",
+          "oklch(58% 0.020 130)",
+          "oklch(70% 0.020 130)",
+          "oklch(82% 0.020 130)",
+          "oklch(95% 0.010 130)"
+        ]
+      },
+      "q-practice": {
+        "role": "secondary",
+        "displayName": "Патина Практики",
+        "canonical": "#23726b",
+        "dark": "#5fb8ad",
+        "tonalRamp": [
+          "oklch(15% 0.040 185)",
+          "oklch(25% 0.040 185)",
+          "oklch(35% 0.080 185)",
+          "oklch(45% 0.080 185)",
+          "oklch(58% 0.080 185)",
+          "oklch(70% 0.080 185)",
+          "oklch(82% 0.080 185)",
+          "oklch(95% 0.040 185)"
+        ]
+      },
+      "q-lexicon": {
+        "role": "secondary",
+        "displayName": "Лазурит Словаря",
+        "canonical": "#36549a",
+        "dark": "#8fa9e4",
+        "tonalRamp": [
+          "oklch(15% 0.055 265)",
+          "oklch(25% 0.055 265)",
+          "oklch(35% 0.110 265)",
+          "oklch(45% 0.110 265)",
+          "oklch(58% 0.110 265)",
+          "oklch(70% 0.110 265)",
+          "oklch(82% 0.110 265)",
+          "oklch(95% 0.055 265)"
+        ]
+      },
+      "q-shuk": {
+        "role": "secondary",
+        "displayName": "Охра Шука",
+        "canonical": "#a3660f",
+        "dark": "#e3aa52",
+        "tonalRamp": [
+          "oklch(15% 0.060 65)",
+          "oklch(25% 0.060 65)",
+          "oklch(35% 0.120 65)",
+          "oklch(45% 0.120 65)",
+          "oklch(58% 0.120 65)",
+          "oklch(70% 0.120 65)",
+          "oklch(82% 0.120 65)",
+          "oklch(95% 0.060 65)"
+        ]
+      },
+      "q-carmel": {
+        "role": "secondary",
+        "displayName": "Медь-роза Кармеля",
+        "canonical": "#a54b40",
+        "dark": "#e58e80",
+        "tonalRamp": [
+          "oklch(15% 0.055 30)",
+          "oklch(25% 0.055 30)",
+          "oklch(35% 0.110 30)",
+          "oklch(45% 0.110 30)",
+          "oklch(58% 0.110 30)",
+          "oklch(70% 0.110 30)",
+          "oklch(82% 0.110 30)",
+          "oklch(95% 0.055 30)"
+        ]
+      },
+      "water": {
+        "role": "tertiary",
+        "displayName": "Вода (роса)",
+        "canonical": "#275f8c",
+        "dark": "#8cbbe0",
+        "tonalRamp": [
+          "oklch(15% 0.045 245)",
+          "oklch(25% 0.045 245)",
+          "oklch(35% 0.090 245)",
+          "oklch(45% 0.090 245)",
+          "oklch(58% 0.090 245)",
+          "oklch(70% 0.090 245)",
+          "oklch(82% 0.090 245)",
+          "oklch(95% 0.045 245)"
+        ]
+      },
+      "water-soft": {
+        "role": "tertiary",
+        "displayName": "Вода, мягкая",
+        "canonical": "#d9e6f0",
+        "dark": "#1e2f3c",
+        "tonalRamp": [
+          "oklch(15% 0.015 245)",
+          "oklch(25% 0.015 245)",
+          "oklch(35% 0.030 245)",
+          "oklch(45% 0.030 245)",
+          "oklch(58% 0.030 245)",
+          "oklch(70% 0.030 245)",
+          "oklch(82% 0.030 245)",
+          "oklch(95% 0.015 245)"
+        ]
+      },
+      "clay": {
+        "role": "tertiary",
+        "displayName": "Глина",
+        "canonical": "#8e5636",
+        "dark": "#d49a78",
+        "tonalRamp": [
+          "oklch(15% 0.040 50)",
+          "oklch(25% 0.040 50)",
+          "oklch(35% 0.080 50)",
+          "oklch(45% 0.080 50)",
+          "oklch(58% 0.080 50)",
+          "oklch(70% 0.080 50)",
+          "oklch(82% 0.080 50)",
+          "oklch(95% 0.040 50)"
+        ]
+      },
+      "clay-soft": {
+        "role": "tertiary",
+        "displayName": "Глина, мягкая",
+        "canonical": "#f1e1d6",
+        "dark": "#3c2b22",
+        "tonalRamp": [
+          "oklch(15% 0.015 50)",
+          "oklch(25% 0.015 50)",
+          "oklch(35% 0.030 50)",
+          "oklch(45% 0.030 50)",
+          "oklch(58% 0.030 50)",
+          "oklch(70% 0.030 50)",
+          "oklch(82% 0.030 50)",
+          "oklch(95% 0.015 50)"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Верно",
+        "canonical": "#45702a",
+        "dark": "#a3c97d",
+        "tonalRamp": [
+          "oklch(15% 0.050 135)",
+          "oklch(25% 0.050 135)",
+          "oklch(35% 0.100 135)",
+          "oklch(45% 0.100 135)",
+          "oklch(58% 0.100 135)",
+          "oklch(70% 0.100 135)",
+          "oklch(82% 0.100 135)",
+          "oklch(95% 0.050 135)"
+        ]
+      },
+      "ok-soft": {
+        "role": "tertiary",
+        "displayName": "Верно, мягкое",
+        "canonical": "#e0ebd5",
+        "dark": "#26331f",
+        "tonalRamp": [
+          "oklch(15% 0.015 135)",
+          "oklch(25% 0.015 135)",
+          "oklch(35% 0.030 135)",
+          "oklch(45% 0.030 135)",
+          "oklch(58% 0.030 135)",
+          "oklch(70% 0.030 135)",
+          "oklch(82% 0.030 135)",
+          "oklch(95% 0.015 135)"
+        ]
+      },
+      "bad": {
+        "role": "tertiary",
+        "displayName": "Ошибка-кирпич",
+        "canonical": "#ad3b26",
+        "dark": "#ef8f78",
+        "tonalRamp": [
+          "oklch(15% 0.070 35)",
+          "oklch(25% 0.070 35)",
+          "oklch(35% 0.140 35)",
+          "oklch(45% 0.140 35)",
+          "oklch(58% 0.140 35)",
+          "oklch(70% 0.140 35)",
+          "oklch(82% 0.140 35)",
+          "oklch(95% 0.070 35)"
+        ]
+      },
+      "bad-soft": {
+        "role": "tertiary",
+        "displayName": "Ошибка, мягкая",
+        "canonical": "#f5ddd6",
+        "dark": "#43251e",
+        "tonalRamp": [
+          "oklch(15% 0.015 35)",
+          "oklch(25% 0.015 35)",
+          "oklch(35% 0.030 35)",
+          "oklch(45% 0.030 35)",
+          "oklch(58% 0.030 35)",
+          "oklch(70% 0.030 35)",
+          "oklch(82% 0.030 35)",
+          "oklch(95% 0.015 35)"
+        ]
+      },
+      "hall": {
+        "role": "neutral",
+        "displayName": "Графит зала",
+        "canonical": "#1e2326",
+        "dark": "#0e1113",
+        "tonalRamp": [
+          "oklch(15% 0.005 220)",
+          "oklch(25% 0.005 220)",
+          "oklch(35% 0.010 220)",
+          "oklch(45% 0.010 220)",
+          "oklch(58% 0.010 220)",
+          "oklch(70% 0.010 220)",
+          "oklch(82% 0.010 220)",
+          "oklch(95% 0.005 220)"
+        ]
+      },
+      "hall-2": {
+        "role": "neutral",
+        "displayName": "Графит, второй",
+        "canonical": "#2b3135",
+        "dark": "#1b2023",
+        "tonalRamp": [
+          "oklch(15% 0.005 220)",
+          "oklch(25% 0.005 220)",
+          "oklch(35% 0.010 220)",
+          "oklch(45% 0.010 220)",
+          "oklch(58% 0.010 220)",
+          "oklch(70% 0.010 220)",
+          "oklch(82% 0.010 220)",
+          "oklch(95% 0.005 220)"
+        ]
+      },
+      "hall-3": {
+        "role": "neutral",
+        "displayName": "Графит, третий",
+        "canonical": "#394045",
+        "dark": "#2a3135",
+        "tonalRamp": [
+          "oklch(15% 0.005 220)",
+          "oklch(25% 0.005 220)",
+          "oklch(35% 0.010 220)",
+          "oklch(45% 0.010 220)",
+          "oklch(58% 0.010 220)",
+          "oklch(70% 0.010 220)",
+          "oklch(82% 0.010 220)",
+          "oklch(95% 0.005 220)"
+        ]
+      },
+      "on-hall": {
+        "role": "neutral",
+        "displayName": "Текст на графите",
+        "canonical": "#eef0ee",
+        "tonalRamp": [
+          "oklch(15% 0.002 150)",
+          "oklch(25% 0.002 150)",
+          "oklch(35% 0.004 150)",
+          "oklch(45% 0.004 150)",
+          "oklch(58% 0.004 150)",
+          "oklch(70% 0.004 150)",
+          "oklch(82% 0.004 150)",
+          "oklch(95% 0.002 150)"
+        ]
+      },
+      "on-hall-2": {
+        "role": "neutral",
+        "displayName": "Текст на графите, второй",
+        "canonical": "#b3bcbf",
+        "tonalRamp": [
+          "oklch(15% 0.005 210)",
+          "oklch(25% 0.005 210)",
+          "oklch(35% 0.010 210)",
+          "oklch(45% 0.010 210)",
+          "oklch(58% 0.010 210)",
+          "oklch(70% 0.010 210)",
+          "oklch(82% 0.010 210)",
+          "oklch(95% 0.005 210)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Туманный пол",
+        "canonical": "#dce2e3",
+        "dark": "#15191b",
+        "tonalRamp": [
+          "oklch(15% 0.003 210)",
+          "oklch(25% 0.003 210)",
+          "oklch(35% 0.006 210)",
+          "oklch(45% 0.006 210)",
+          "oklch(58% 0.006 210)",
+          "oklch(70% 0.006 210)",
+          "oklch(82% 0.006 210)",
+          "oklch(95% 0.003 210)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Камень",
+        "canonical": "#f3f3ef",
+        "dark": "#272c2f",
+        "tonalRamp": [
+          "oklch(15% 0.003 100)",
+          "oklch(25% 0.003 100)",
+          "oklch(35% 0.005 100)",
+          "oklch(45% 0.005 100)",
+          "oklch(58% 0.005 100)",
+          "oklch(70% 0.005 100)",
+          "oklch(82% 0.005 100)",
+          "oklch(95% 0.003 100)"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Камень, ниша",
+        "canonical": "#e8e8e2",
+        "dark": "#202528",
+        "tonalRamp": [
+          "oklch(15% 0.003 100)",
+          "oklch(25% 0.003 100)",
+          "oklch(35% 0.006 100)",
+          "oklch(45% 0.006 100)",
+          "oklch(58% 0.006 100)",
+          "oklch(70% 0.006 100)",
+          "oklch(82% 0.006 100)",
+          "oklch(95% 0.003 100)"
+        ]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Камень, дорожка",
+        "canonical": "#dbdbd3",
+        "dark": "#333a3e",
+        "tonalRamp": [
+          "oklch(15% 0.004 100)",
+          "oklch(25% 0.004 100)",
+          "oklch(35% 0.008 100)",
+          "oklch(45% 0.008 100)",
+          "oklch(58% 0.008 100)",
+          "oklch(70% 0.008 100)",
+          "oklch(82% 0.008 100)",
+          "oklch(95% 0.004 100)"
+        ]
+      },
+      "stone-side": {
+        "role": "neutral",
+        "displayName": "Грань камня",
+        "canonical": "#bdb8aa",
+        "dark": "#0c0f10",
+        "tonalRamp": [
+          "oklch(15% 0.007 90)",
+          "oklch(25% 0.007 90)",
+          "oklch(35% 0.015 90)",
+          "oklch(45% 0.015 90)",
+          "oklch(58% 0.015 90)",
+          "oklch(70% 0.015 90)",
+          "oklch(82% 0.015 90)",
+          "oklch(95% 0.007 90)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Шов",
+        "canonical": "#d8d3c9",
+        "dark": "#353c40",
+        "tonalRamp": [
+          "oklch(15% 0.005 80)",
+          "oklch(25% 0.005 80)",
+          "oklch(35% 0.010 80)",
+          "oklch(45% 0.010 80)",
+          "oklch(58% 0.010 80)",
+          "oklch(70% 0.010 80)",
+          "oklch(82% 0.010 80)",
+          "oklch(95% 0.005 80)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Шов, сильный",
+        "canonical": "#b6ae9f",
+        "dark": "#4c555a",
+        "tonalRamp": [
+          "oklch(15% 0.007 80)",
+          "oklch(25% 0.007 80)",
+          "oklch(35% 0.015 80)",
+          "oklch(45% 0.015 80)",
+          "oklch(58% 0.015 80)",
+          "oklch(70% 0.015 80)",
+          "oklch(82% 0.015 80)",
+          "oklch(95% 0.007 80)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Тушь",
+        "canonical": "#1b2023",
+        "dark": "#eceeea",
+        "tonalRamp": [
+          "oklch(15% 0.004 220)",
+          "oklch(25% 0.004 220)",
+          "oklch(35% 0.008 220)",
+          "oklch(45% 0.008 220)",
+          "oklch(58% 0.008 220)",
+          "oklch(70% 0.008 220)",
+          "oklch(82% 0.008 220)",
+          "oklch(95% 0.004 220)"
+        ]
+      },
+      "text-2": {
+        "role": "neutral",
+        "displayName": "Тушь, вторая",
+        "canonical": "#3e474b",
+        "dark": "#c4c9c6",
+        "tonalRamp": [
+          "oklch(15% 0.005 220)",
+          "oklch(25% 0.005 220)",
+          "oklch(35% 0.010 220)",
+          "oklch(45% 0.010 220)",
+          "oklch(58% 0.010 220)",
+          "oklch(70% 0.010 220)",
+          "oklch(82% 0.010 220)",
+          "oklch(95% 0.005 220)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Тушь, приглушённая",
+        "canonical": "#566064",
+        "dark": "#9ea7aa",
+        "tonalRamp": [
+          "oklch(15% 0.006 220)",
+          "oklch(25% 0.006 220)",
+          "oklch(35% 0.012 220)",
+          "oklch(45% 0.012 220)",
+          "oklch(58% 0.012 220)",
+          "oklch(70% 0.012 220)",
+          "oklch(82% 0.012 220)",
+          "oklch(95% 0.006 220)"
+        ]
+      }
+    },
+    "accentThemes": {
+      "note": ":root[data-accent=...] меняет только --accent/--accent-strong/--accent-soft; у каждой темы свой тёмный вариант. По умолчанию (sage) атрибута нет.",
+      "light": {
+        "olive": "#6a6a2c",
+        "sea": "#2f6f8f",
+        "negev": "#9c5531",
+        "lavender": "#6c5c93",
+        "rimon": "#933544",
+        "night": "#7a5f22"
+      },
+      "dark": {
+        "olive": "#c2bb7e",
+        "sea": "#8dbbd3",
+        "negev": "#e09d78",
+        "lavender": "#b6a8d9",
+        "rimon": "#e58d9a",
+        "night": "#dcbc66"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Слово на иврите",
+        "purpose": "Карточка упражнения и страница слова (big-he); 3rem на телефоне. Шрифт меняется через --font-he."
+      },
+      "headline": {
+        "displayName": "Заголовок раздела",
+        "purpose": "h1 в шапке квартала; 1.55rem до 860px."
+      },
+      "title": {
+        "displayName": "Заголовок плашки",
+        "purpose": "h2 1.3rem, h3/section-title 1.05rem."
+      },
+      "metric": {
+        "displayName": "Метрика",
+        "purpose": "Честные метрики и счётчики, табличные цифры."
+      },
+      "body": {
+        "displayName": "Текст",
+        "purpose": "Весь интерфейс; абзацы до 72ch."
+      },
+      "hebrew-reading": {
+        "displayName": "Чтение на иврите",
+        "purpose": "Читалка (line-height 2) и предложения с пропуском."
+      },
+      "label": {
+        "displayName": "Подпись поля",
+        "purpose": "Подписи полей; small 0.875rem, tiny 0.78rem."
+      },
+      "caption": {
+        "displayName": "Музейная этикетка",
+        "purpose": "Подписи кварталов на макете, капитель."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 1px 0 rgba(255,255,255,.75) inset, 6px 10px 18px -10px rgba(20,26,30,.42), 2px 2px 4px -2px rgba(20,26,30,.18)",
+        "dark": "0 1px 0 rgba(255,255,255,.06) inset, 6px 12px 20px -10px rgba(0,0,0,.7), 2px 2px 4px -2px rgba(0,0,0,.5)",
+        "purpose": "Обычный каменный блок, плиты, on-plinth."
+      },
+      {
+        "name": "lift-lg",
+        "value": "0 1px 0 rgba(255,255,255,.75) inset, 10px 22px 40px -16px rgba(20,26,30,.5), 3px 4px 10px -4px rgba(20,26,30,.2)",
+        "dark": "0 1px 0 rgba(255,255,255,.06) inset, 10px 24px 44px -16px rgba(0,0,0,.8), 3px 4px 10px -4px rgba(0,0,0,.5)",
+        "purpose": "Шапки кварталов, макет, модалки, карточка упражнения, hover ссылки-карточки."
+      },
+      {
+        "name": "carve",
+        "value": "inset 0 2px 3px rgba(20,26,30,.1), inset 0 -1px 0 rgba(255,255,255,.6)",
+        "dark": "inset 0 2px 4px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.04)",
+        "purpose": "Вырезанные ниши: поля, вложенные карточки, дорожки, ряд урока."
+      },
+      {
+        "name": "museum-beam",
+        "value": "radial-gradient(120% 70% at 45% 0%, rgba(255,244,220,.12), transparent 65%)",
+        "purpose": "Луч света на графитовых сценах (макет, шапка квартала)."
+      }
+    ],
+    "depth": {
+      "lightSource": "сверху слева: тени вправо-вниз, грань снизу, левая изометрическая грань светлее правой",
+      "faceScale": [
+        {
+          "weight": "чип, btn.sm",
+          "value": "2px"
+        },
+        {
+          "weight": "кнопка, вариант, клавиша",
+          "value": "3px"
+        },
+        {
+          "weight": "карточка, плита, поповер (--face)",
+          "value": "4px"
+        },
+        {
+          "weight": "модалка, ex-card, hero, water-plate, qhead",
+          "value": "6px"
+        },
+        {
+          "weight": "макет города, стол поля",
+          "value": "8px #07090a"
+        }
+      ],
+      "pressed": "translateY(2px), грань 1px, тень снимается",
+      "plinth": ".on-plinth: ::after — камень блока (--blk-bg/--blk-border/--blk-face, --lift); ::before — цоколь шире на 7px, высота 27px, верх 17px --pl-top (qc 50% + surface), фронт --pl-face (qc 78% + #000); в тёмной теме qc 32% + hall-2 / 30% + #000",
+      "detectorIgnore": "border-accent-on-rounded в web/src/styles.css — намеренно (.impeccable/config.json)"
+    },
+    "motion": [
+      {
+        "name": "ease-stone",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Подъём/появление блоков, переключатель, полосы."
+      },
+      {
+        "name": "ease-rise",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Подъём домов макета из цоколя при входе, 0.9s, один раз."
+      },
+      {
+        "name": "press",
+        "value": "0.08s",
+        "purpose": "Проседание кнопки и варианта."
+      },
+      {
+        "name": "pop",
+        "value": "0.18–0.28s",
+        "purpose": "Появление модалки, карточки упражнения, отклика, плашки."
+      },
+      {
+        "name": "lit",
+        "value": "3.2s ease-in-out infinite alternate",
+        "purpose": "Мерцание окна жаждущего слова; отключается при prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xs",
+        "value": "430px"
+      },
+      {
+        "name": "sm",
+        "value": "460px"
+      },
+      {
+        "name": "md",
+        "value": "560px"
+      },
+      {
+        "name": "tablet",
+        "value": "720px"
+      },
+      {
+        "name": "shell",
+        "value": "860px"
+      },
+      {
+        "name": "game",
+        "value": "1060px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Главная кнопка",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Золото лампы: единственное главное действие экрана.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Полить сад</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border-radius:11px;border:1px solid var(--border,#d8d3c9);border-bottom:3px solid var(--stone-side,#bdb8aa);background:var(--surface,#f3f3ef);color:var(--text,#1b2023);font:500 .95rem 'Golos Text',system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 10px -8px rgba(20,26,30,.45);transition:background .15s,transform .08s,border-bottom-width .08s}.ds-btn-primary{background:var(--lamp,#e0a93a);border-color:var(--lamp,#e0a93a);border-bottom-color:var(--lamp-side,#a8781c);color:var(--lamp-ink,#1b1508);font-weight:600}.ds-btn-primary:hover{background:color-mix(in srgb,var(--lamp,#e0a93a) 88%,#fff)}.ds-btn:active{transform:translateY(2px);border-bottom-width:1px;margin-bottom:2px;box-shadow:none}.ds-btn:focus-visible{outline:2px solid var(--lamp,#e0a93a);outline-offset:2px}"
+    },
+    {
+      "name": "Каменная кнопка",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "Обычное действие: камень с гранью.",
+      "html": "<button class=\"ds-btn-stone\">Отложить</button>",
+      "css": ".ds-btn-stone{height:44px;padding:0 16px;border-radius:11px;border:1px solid var(--border,#d8d3c9);border-bottom:3px solid var(--stone-side,#bdb8aa);background:var(--surface,#f3f3ef);color:var(--text,#1b2023);font:500 .95rem 'Golos Text',system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 10px -8px rgba(20,26,30,.45);transition:background .15s,transform .08s}.ds-btn-stone:hover{background:var(--surface-2,#e8e8e2)}.ds-btn-stone:active{transform:translateY(2px);border-bottom-width:1px;margin-bottom:2px;box-shadow:none}.ds-btn-stone:focus-visible{outline:2px solid var(--lamp,#e0a93a);outline-offset:2px}"
+    },
+    {
+      "name": "Чип",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Фильтр; включённый — олива сада.",
+      "html": "<span class=\"ds-chip\">глаголы</span> <span class=\"ds-chip ds-chip-on\">все</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:34px;padding:0 13px;border-radius:8px;border:1px solid var(--border,#d8d3c9);border-bottom:2px solid var(--stone-side,#bdb8aa);background:var(--surface,#f3f3ef);color:var(--text-2,#3e474b);font:.875rem 'Golos Text',system-ui,sans-serif;cursor:pointer}.ds-chip:hover{background:var(--surface-2,#e8e8e2)}.ds-chip-on{background:var(--accent,#557a2c);border-color:var(--accent,#557a2c);border-bottom-color:var(--accent-strong,#3f5d1f);color:var(--accent-ink,#fff)}"
+    },
+    {
+      "name": "Поле ввода",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Вырезанная ниша; фокус — ореол лампы.",
+      "html": "<input class=\"ds-input\" placeholder=\"Найти или добавить\">",
+      "css": ".ds-input{width:100%;border:1px solid var(--border-strong,#b6ae9f);background:var(--surface,#f3f3ef);border-radius:10px;padding:11px 14px;font:1rem 'Golos Text',system-ui,sans-serif;color:var(--text,#1b2023);outline:none;box-shadow:inset 0 2px 3px rgba(20,26,30,.1),inset 0 -1px 0 rgba(255,255,255,.6);transition:border-color .15s,box-shadow .15s}.ds-input::placeholder{color:var(--muted,#566064)}.ds-input:focus{border-color:var(--text-2,#3e474b);box-shadow:inset 0 2px 3px rgba(20,26,30,.1),0 0 0 3px color-mix(in srgb,var(--lamp,#e0a93a) 45%,transparent)}"
+    },
+    {
+      "name": "Нижняя панель",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "Графит зала; активная вкладка — полоса цвета квартала.",
+      "html": "<nav class=\"ds-tabbar\"><a class=\"ds-on\" style=\"--qc:#557a2c\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M12 21v-9M12 12c0-4 3-6 7-6 0 4-3 6-7 6zM12 14c0-3-2-5-6-5 0 3 2 5 6 5z\"/></svg>Сад</a><a style=\"--qc:#23726b\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>Практика</a><a style=\"--qc:#36549a\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z\"/></svg>Словарь</a></nav>",
+      "css": ".ds-tabbar{display:grid;grid-template-columns:repeat(3,1fr);background:var(--hall,#1e2326);padding:0 4px}.ds-tabbar a{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:60px;padding:10px 2px;font:.72rem 'Golos Text',system-ui,sans-serif;color:var(--on-hall-2,#b3bcbf);border-top:3px solid transparent;cursor:pointer}.ds-tabbar a:hover{color:var(--on-hall,#eef0ee)}.ds-tabbar a.ds-on{color:var(--on-hall,#eef0ee);border-top-color:var(--qc)}.ds-tabbar a.ds-on svg{color:var(--qc)}.ds-tabbar a:focus-visible{outline:2px solid var(--lamp,#e0a93a);outline-offset:-2px}"
+    },
+    {
+      "name": "Блок на цоколе",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Каменная плита с гранью на двухцветном цоколе своего квартала.",
+      "html": "<section class=\"ds-plinth\" style=\"--qc:#557a2c\"><h3 class=\"ds-h\">Что ты знаешь на самом деле</h3><p class=\"ds-p\">17 — пассивный запас</p></section>",
+      "css": ".ds-plinth{position:relative;isolation:isolate;padding:18px 18px 22px;border-radius:14px;margin:8px 8px 26px;font-family:'Golos Text',system-ui,sans-serif;color:var(--text,#1b2023);--pl-top:color-mix(in srgb,var(--qc) 50%,var(--surface,#f3f3ef));--pl-face:color-mix(in srgb,var(--qc) 78%,#000)}.ds-plinth::after{content:'';position:absolute;inset:0;z-index:-1;background:var(--surface,#f3f3ef);border:1px solid var(--border,#d8d3c9);border-bottom:4px solid var(--stone-side,#bdb8aa);border-radius:inherit;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,6px 10px 18px -10px rgba(20,26,30,.42),2px 2px 4px -2px rgba(20,26,30,.18)}.ds-plinth::before{content:'';position:absolute;z-index:-1;left:-7px;right:-7px;bottom:-15px;height:27px;border-radius:5px 5px 9px 9px;background:linear-gradient(to bottom,var(--pl-top) 0 17px,var(--pl-face) 17px 100%);box-shadow:6px 9px 14px -8px rgba(20,26,30,.5)}.ds-h{margin:0 0 8px;font-size:1rem;font-weight:600}.ds-p{margin:0;color:var(--text-2,#3e474b)}"
+    },
+    {
+      "name": "Шапка квартала",
+      "kind": "custom",
+      "refersTo": "quarter-head",
+      "description": "Графитовый блок раздела с чертой цвета квартала и фрагментом макета.",
+      "html": "<section class=\"ds-qhead\" style=\"--qc:#23726b\"><div><h1>Практика</h1><p>У каждого слова несколько навыков.</p></div><svg width=\"96\" height=\"80\" viewBox=\"0 0 24 24\"><polygon points=\"12,2 21,6.5 12,11 3,6.5\" fill=\"#23726b\"/><polygon points=\"3,6.5 12,11 12,22 3,17.5\" fill=\"#d2cabb\"/><polygon points=\"21,6.5 12,11 12,22 21,17.5\" fill=\"#a79e8d\"/></svg></section>",
+      "css": ".ds-qhead{position:relative;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;background:var(--hall,#1e2326);color:var(--on-hall,#eef0ee);border-radius:18px;border-bottom:6px solid #07090a;padding:22px 22px 18px;overflow:hidden;font-family:'Golos Text',system-ui,sans-serif;box-shadow:0 1px 0 rgba(255,255,255,.75) inset,10px 22px 40px -16px rgba(20,26,30,.5)}.ds-qhead::before{content:'';position:absolute;inset:0;background:radial-gradient(90% 90% at 85% 0%,rgba(255,244,220,.1),transparent 60%);pointer-events:none}.ds-qhead h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:-.015em}.ds-qhead h1::after{content:'';display:block;width:36px;height:4px;border-radius:2px;margin-top:10px;background:var(--qc)}.ds-qhead p{margin:10px 0 0;color:var(--on-hall-2,#b3bcbf);max-width:52ch}"
+    },
+    {
+      "name": "Ряд урока",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Прогресс урока блоками: олива — верно, кирпич — ошибка, патина — сейчас.",
+      "html": "<div class=\"ds-course\"><i class=\"ok\"></i><i class=\"ok\"></i><i class=\"bad\"></i><i class=\"now\"></i><i></i><i></i><i></i></div>",
+      "css": ".ds-course{display:flex;gap:3px;align-items:flex-end;min-height:22px;width:280px}.ds-course i{flex:1 0 14px;max-width:44px;height:8px;border-radius:2px 2px 1px 1px;background:var(--surface-3,#dbdbd3);box-shadow:inset 0 2px 3px rgba(20,26,30,.1);transition:height .35s cubic-bezier(.2,.8,.2,1)}.ds-course i.ok{height:18px;background:var(--ok,#45702a);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22)}.ds-course i.bad{height:13px;background:var(--bad,#ad3b26);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22)}.ds-course i.now{height:22px;background:var(--surface,#f3f3ef);box-shadow:inset 0 4px 0 var(--q-practice,#23726b),inset 0 -3px 0 var(--stone-side,#bdb8aa),2px 3px 6px -3px rgba(0,0,0,.4)}"
+    },
+    {
+      "name": "Отклик «Верно»",
+      "kind": "card",
+      "refersTo": "feedback-ok",
+      "description": "Сплошная заливка состояния со своей гранью.",
+      "html": "<div class=\"ds-fb\">Верно <span class=\"ds-he\">לְהִתְלַבֵּשׁ</span></div>",
+      "css": ".ds-fb{--fb:var(--ok,#45702a);background:var(--fb);color:var(--state-ink,#fff);border-radius:12px;padding:14px 16px;border-bottom:5px solid color-mix(in srgb,var(--fb) 62%,#000);font:500 1rem 'Golos Text',system-ui,sans-serif;box-shadow:6px 10px 18px -10px rgba(20,26,30,.42)}.ds-he{display:block;margin-top:6px;font-family:'Frank Ruhl Libre',serif;font-size:2rem;direction:rtl;unicode-bidi:isolate;text-align:left}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Макет города под музейным светом",
+    "overview": "«Шореш» — архитектурный макет одного города (по мотивам макета Иерусалима в Израильском музее). Рама приложения — графитовый зал музея: шапка, нижняя панель, боковая колонна, шапки разделов и стол игрового поля. Пол зала — туманно-серый днём и графитовый ночью. Всё содержимое — каменные блоки с видимой нижней гранью и мягкой тенью; свет падает сверху слева. Каждый раздел — квартал на своём цоколе, окрашенный материалом макета: олива — Сад, патина — Практика, лазурит — Словарь, охра — Лавка «Шук», медь-роза — Кармель.\n\nГлавный экран открывается изометрическим макетом, нарисованным из живых данных: дом в Саду — слово, высота — стадия, горящее окно — навык хочет пить. Шапка каждого раздела несёт фрагмент этого же макета, поэтому все экраны собираются в один город. Объём рисуется кодом (SVG-изометрия и CSS-грани), растровых изображений нет.\n\nПлотность спокойная: одна главная задача на экран, крупные цели касания, телефон — основная поверхность. Отвергнуто: стопки кремовых карточек и полоски прогресса (прежний крем-и-шалфей), геймификация в стиле Duolingo, эмодзи.",
+    "keyCharacteristics": [
+      "Графитовая рама зала вокруг светлого каменного содержимого.",
+      "Каждый блок имеет нижнюю грань (экструзию) и тень вправо-вниз — свет сверху слева.",
+      "Цвет квартала метит раздел: полоса активной вкладки, цоколь блока, черта под заголовком.",
+      "Золото лампы — только то, что можно нажать.",
+      "Иврит — главный материал страницы: Frank Ruhl Libre, RTL, огласовки отдельным слоем."
+    ],
+    "rules": [
+      {
+        "name": "The Lamp Rule",
+        "body": "Золото лампы (`--lamp`) получает только то, что нажимают: главная кнопка, фишка, фокус. На экране одна золотая кнопка.",
+        "section": "colors"
+      },
+      {
+        "name": "The Quarter Colour Rule",
+        "body": "Цвет раздела задаётся одной переменной `--qc` (из `--q-*`) и проявляется только в метках: цоколь, полоса вкладки, черта под заголовком, крыша на макете. Фоны карточек цвет квартала не заливает.",
+        "section": "colors"
+      },
+      {
+        "name": "The Garden Follows the Accent Rule",
+        "body": "Всё садовое берёт `--accent`, никогда литерал оливы: купленная тема должна перекрасить сад целиком, в обеих темах.",
+        "section": "colors"
+      },
+      {
+        "name": "The Hebrew Is Bigger Rule",
+        "body": "Иврит внутри русского текста набирается на 1.14em крупнее окружения; в строках списка — 1.4rem, в вариантах ответа — 1.5rem.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Все счётчики, роса, цены и метрики — `font-variant-numeric: tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Top-Left Light Rule",
+        "body": "Тень всегда уходит вправо-вниз, грань — снизу, на изометрии левая грань светлее правой. Ни одной тени вверх или влево.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Stone Has a Face Rule",
+        "body": "Блок без нижней грани — это ниша (`card.soft`, `card.flat`, вложенный блок), а не плоская карточка. Новых плоских карточек с одной лишь тенью не бывает.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** давать каждому новому блоку нижнюю грань из шкалы 2 / 3 / 4 / 6 / 8px и тень `--lift` или `--lift-lg`; вложенное — вырезать `--carve`.",
+      "**Do** окрашивать раздел через `--qc` и метки квартала (цоколь `.on-plinth`, вкладка, черта под заголовком), а сам блок оставлять каменным.",
+      "**Do** брать для садового и выбранного только `--accent` / `--accent-strong` / `--accent-soft`, чтобы темы `data-accent` работали в обеих темах.",
+      "**Do** добавлять каждое новое значение цвета сразу в три места: `:root`, блок `prefers-color-scheme: dark` под `:root:not([data-theme=\"light\"])` и `:root[data-theme=\"dark\"]`.",
+      "**Do** набирать иврит через `He` / класс `.he`: Frank Ruhl через `--font-he`, RTL-изоляция, огласовки показываются из `he_nikud` по настройке и никогда не смешиваются с `he`.",
+      "**Do** держать одну золотую кнопку на экране и все цели касания не меньше 44px.",
+      "**Do** отключать анимации подъёма, мерцания и появления при `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "**Don't** возвращать крем-и-шалфей: стопки плоских кремовых карточек и полоски прогресса вместо блоков.",
+      "**Don't** красить золотом лампы то, что нельзя нажать.",
+      "**Don't** заливать фон карточек цветом квартала или ставить тень вверх/влево — свет только сверху слева.",
+      "**Don't** «исправлять» толстые нижние границы со скруглением: это экструзия камня, правило детектора отключено для `web/src/styles.css` намеренно.",
+      "**Don't** использовать эмодзи, награды за вход, серии и стрики в визуале.",
+      "**Don't** опускать `muted`-текст ниже AA ради «лёгкости»: приглушённые подписи держат 4.5:1 на камне в обеих темах."
+    ]
+  }
+}
