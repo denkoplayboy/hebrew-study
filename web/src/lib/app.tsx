@@ -76,8 +76,6 @@ export interface Settings {
 }
 
 export interface Me {
-  /** приложение не достучалось до сервера */
-  offline?: string;
   authed: boolean;
   needsPassword: boolean;
   ai: { enabled: boolean; model: string; defaultModel?: string; models?: { id: string; name: string; note: string }[] };
@@ -151,14 +149,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const tid = useRef(0);
 
   const refreshMe = useCallback(async () => {
-    let m: Me;
-    try {
-      m = await api.get<Me>("/api/me");
-    } catch (e) {
-      // приложение без сервера или без сети: показываем вход с адресом сервера, а не пустой экран
-      if (!isNative) throw e;
-      m = { authed: false, needsPassword: true, ai: { enabled: false, model: "" }, settings: null, offline: (e as Error).message || "нет связи" };
-    }
+    const m = await api.get<Me>("/api/me");
     setMe(m);
     if (m.authed) setDew({ balance: m.dew || 0, perks: m.perks || NO_PERKS, effects: m.effects || NO_EFFECTS });
   }, []);

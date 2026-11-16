@@ -40,7 +40,7 @@ import Offer from "./pages/Offer";
 import Carmel from "./pages/Carmel";
 import { RelatedPlaque } from "./components/Suggestions";
 import { QuarterMark } from "./components/City";
-import { initNative, isNative, serverAddress, setAuthToken, setServer } from "./lib/native";
+import { initNative } from "./lib/native";
 
 export const NAV = [
   { to: "/", label: "Сад", icon: Sprout, end: true, q: "var(--accent)" },
@@ -212,21 +212,15 @@ function Shell() {
 }
 
 function Login() {
-  const { me, refreshMe } = useApp();
+  const { refreshMe } = useApp();
   const [pw, setPw] = useState("");
-  const [server, setServerField] = useState(serverAddress());
-  const [err, setErr] = useState(me?.offline ? `Сервер не ответил: ${me.offline}` : "");
+  const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async () => {
     setBusy(true);
     setErr("");
     try {
-      if (isNative) {
-        if (!/^https?:\/\//.test(server.trim())) throw new Error("Адрес сервера начинается с https://");
-        setServer(server);
-      }
-      const r = await api.post<{ ok: boolean; token?: string | null }>("/api/login", { password: pw });
-      setAuthToken(r.token);
+      await api.post("/api/login", { password: pw });
       await refreshMe();
     } catch (e) {
       setErr((e as Error).message);
@@ -246,37 +240,14 @@ function Login() {
             </div>
           </div>
         </div>
-        {isNative && (
-          <label className="field">
-            <span className="label">Адрес сервера</span>
-            <input
-              className="input"
-              type="url"
-              inputMode="url"
-              autoCapitalize="off"
-              autoCorrect="off"
-              placeholder="https://hebrew-study.fly.dev"
-              value={server}
-              onChange={(e) => setServerField(e.target.value)}
-            />
-          </label>
-        )}
         <label className="field">
           <span className="label">Пароль</span>
-          <input
-            className="input"
-            type="password"
-            value={pw}
-            autoFocus={!isNative}
-            onChange={(e) => setPw(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+          <input className="input" type="password" value={pw} autoFocus onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
         </label>
         {err && <div className="small" style={{ color: "var(--bad)" }}>{err}</div>}
         <button className="btn primary" onClick={submit} disabled={busy}>
           Войти
         </button>
-        {isNative && <p className="tiny muted">Ключ Claude хранится только на сервере — в приложении его нет.</p>}
       </div>
     </div>
   );

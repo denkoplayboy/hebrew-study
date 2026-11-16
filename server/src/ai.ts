@@ -28,8 +28,22 @@ const PRICES: Record<string, { in: number; write: number; read: number; out: num
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
-  if (!client) client = new Anthropic({ maxRetries: 2, timeout: 120_000 });
+  // В приложении ключ вводит сам пользователь, и он уходит прямо в Claude API с телефона
+  // (поэтому dangerouslyAllowBrowser): чужих людей между телефоном и API нет.
+  if (!client)
+    client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || null,
+      authToken: process.env.ANTHROPIC_AUTH_TOKEN || null,
+      maxRetries: 2,
+      timeout: 120_000,
+      dangerouslyAllowBrowser: true,
+    });
   return client;
+}
+
+/** Ключ поменялся (ввели в настройках приложения) — следующий запрос создаст клиента заново. */
+export function resetAIClient() {
+  client = null;
 }
 
 export function aiEnabled(): boolean {
@@ -111,7 +125,7 @@ async function ask<T extends z.ZodType>(opts: {
   tag?: string;
   onUsage?: (u: UsageInfo) => void;
 }): Promise<z.infer<T>> {
-  if (!aiEnabled()) throw new AIError("ИИ не подключён: добавь ANTHROPIC_API_KEY в секреты fly.io");
+  if (!aiEnabled()) throw new AIError("ИИ не подключён: добавь ключ Claude в Настройках");
   const cfg = configFor(opts.op, opts.override);
   const isHaiku = cfg.model.startsWith("claude-haiku");
   const t0 = Date.now();
@@ -144,7 +158,7 @@ async function ask<T extends z.ZodType>(opts: {
     return res.parsed_output as z.infer<T>;
   } catch (e) {
     if (e instanceof AIError) throw e;
-    if (e instanceof Anthropic.AuthenticationError) throw new AIError("Неверный ANTHROPIC_API_KEY");
+    if (e instanceof Anthropic.AuthenticationError) throw new AIError("Ключ Claude не подошёл — проверь его в Настройках");
     if (e instanceof Anthropic.RateLimitError) throw new AIError("Слишком много запросов к ИИ — подожди минуту");
     if (e instanceof Anthropic.BadRequestError) throw new AIError("ИИ отклонил запрос: " + e.message);
     if (e instanceof Anthropic.APIConnectionError) throw new AIError("Нет связи с ИИ, попробуй позже");

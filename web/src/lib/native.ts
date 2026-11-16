@@ -5,52 +5,22 @@ import { Capacitor } from "@capacitor/core";
 
 export const isNative = Capacitor.isNativePlatform();
 
-const SERVER_KEY = "server";
-const TOKEN_KEY = "token";
-const DEFAULT_SERVER = (import.meta.env.VITE_API_BASE as string | undefined) || "";
-
-function ls(key: string): string {
+/** Выгрузка из приложения: файл сохраняется во временную папку и отдаётся в меню «Поделиться»
+    (сохранить в Файлы, отправить себе в Telegram, на диск и т. п.). */
+export async function shareExport(path: string, name: string): Promise<string | null> {
   try {
-    return localStorage.getItem(key) || "";
-  } catch {
-    return "";
+    const { api } = await import("./api");
+    const data = await api.get<unknown>(path);
+    const text = typeof data === "string" ? data : JSON.stringify(data);
+    const { Filesystem, Directory, Encoding } = await import("@capacitor/filesystem");
+    const { Share } = await import("@capacitor/share");
+    const w = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
+    await Share.share({ title: name, files: [w.uri] });
+    return null;
+  } catch (e) {
+    const m = (e as Error).message || "";
+    return /cancel/i.test(m) ? null : m || "Не удалось выгрузить";
   }
-}
-function lsSet(key: string, v: string) {
-  try {
-    if (v) localStorage.setItem(key, v);
-    else localStorage.removeItem(key);
-  } catch {
-    /* приватный режим */
-  }
-}
-
-/** Адрес сервера: на сайте — тот же домен, в приложении — сохранённый или из сборки. */
-export function apiBase(): string {
-  if (!isNative) return "";
-  return (ls(SERVER_KEY) || DEFAULT_SERVER).replace(/\/+$/, "");
-}
-export function setServer(url: string) {
-  lsSet(SERVER_KEY, url.trim().replace(/\/+$/, ""));
-}
-export function serverAddress(): string {
-  return ls(SERVER_KEY) || DEFAULT_SERVER;
-}
-
-/** Токен входа приложения (на сайте вход держит cookie). */
-export function authToken(): string {
-  return isNative ? ls(TOKEN_KEY) : "";
-}
-export function setAuthToken(t: string | null | undefined) {
-  if (isNative) lsSet(TOKEN_KEY, t || "");
-}
-
-/** Полный адрес для прямых ссылок (экспорт): в приложении — с токеном в запросе. */
-export function apiHref(path: string): string {
-  const base = apiBase();
-  const t = authToken();
-  if (!t) return base + path;
-  return base + path + (path.includes("?") ? "&" : "?") + "t=" + encodeURIComponent(t);
 }
 
 // ───────── тактильный отклик ─────────

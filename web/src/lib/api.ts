@@ -1,4 +1,4 @@
-import { apiBase, authToken } from "./native";
+import { getLocal } from "./local-client";
 
 export class ApiError extends Error {
   status: number;
@@ -18,14 +18,10 @@ export function setUnauthorizedHandler(fn: () => void) {
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const token = authToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(apiBase() + url, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    credentials: "same-origin",
-  });
+  const init: RequestInit = { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined, credentials: "same-origin" };
+  const local = getLocal();
+  // в приложении запрос не уходит в сеть: его обрабатывают те же маршруты прямо на телефоне
+  const res = local ? await (await local).fetch(new Request("http://shoresh.local" + url, init)) : await fetch(url, init);
   let data: any = null;
   const text = await res.text();
   try {

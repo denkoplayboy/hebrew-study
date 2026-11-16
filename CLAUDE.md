@@ -56,9 +56,19 @@
 - Движок: бинарник в `scripts/bin/` не коммитится, лаунчер берёт глобальный `impeccable` (ставится скриптом облачной среды: `npm i -g impeccable@4.9.1`).
 - Полная проверка — по запущенному приложению: `AI_MOCK=1 DATA_DIR=/tmp/shoresh PORT=8099 node dist/server/src/index.js`, затем Chromium с `--headless=new --no-sandbox --remote-debugging-port=9222` и `.claude/skills/impeccable/scripts/impeccable detect --cdp 9222 --target localhost`.
 
-## Мобильное приложение (Capacitor)
-- Та же сборка `web/` в нативной оболочке: `capacitor.config.ts`, проекты `android/` и `ios/`, исходники иконки и заставки — `resources/` (`npx @capacitor/assets generate`).
-- Ключ Claude в приложение НЕ кладётся никогда: ИИ и данные идут через сервер. Приложение логинится паролем, сервер отдаёт токен (`/api/login` → `token`), дальше `Authorization: Bearer`. CORS на сервере открыт только для `capacitor://localhost`, `https://localhost`, `http://localhost`.
-- Адрес сервера по умолчанию задаётся при сборке: `VITE_API_BASE=https://<приложение>.fly.dev npm run build:app`; в приложении его можно поменять на экране входа.
-- Всё нативное — в `web/src/lib/native.ts` (вибрация, системная озвучка, статусная строка, кнопка «назад», напоминание). На сайте эти функции ничего не делают.
-- Сборка APK: `cd android && ./gradlew assembleDebug` (нужен Android SDK, `ANDROID_HOME`). iOS собирается только на Mac в Xcode: `npm run app:ios`.
+## Мобильное приложение (Capacitor) — автономное
+- Сайт отключён, основной продукт — приложение. Сервер не нужен: `vite build --mode app` (`npm run build:app`) собирает
+  маршруты `server/src/app.ts` прямо в приложение. Node-модули подменяются в `vite.config.ts`:
+  `better-sqlite3` → `web/src/local/sqlite.ts` (тот же синхронный API поверх sql.js/WASM), `node:fs` / `node:crypto` / `node:path` →
+  заглушки в `web/src/local/`; `process.env` → `globalThis.__shoreshEnv`. Запросы клиента (`lib/api.ts`) в режиме app идут в `app.fetch`
+  без сети (`lib/local-client.ts`, `local/backend.ts`).
+- База: `shoresh.db` в личной папке приложения (Capacitor Filesystem, `Directory.Data`), сохраняется через 1 с после записи и при уходе
+  в фон; перед импортом копии — `shoresh.db.before-import`. Папка `content/` встраивается в сборку (`import.meta.glob`).
+- Ключ Claude: каждый вводит свой в Настройках → Keychain/Keystore (`@aparajita/capacitor-secure-storage`), запросы прямо в
+  `api.anthropic.com` (`dangerouslyAllowBrowser`). В сборку ключ не вшивается никогда.
+- Серверный код пишем так, чтобы он работал и в Node, и в приложении: без новых Node-модулей (иначе — заглушка в `web/src/local/`),
+  без `Buffer` в путях, которые вызываются без пароля.
+- Нативное — `web/src/lib/native.ts` (вибрация, озвучка, статусная строка, «назад», напоминание, выгрузка через «Поделиться»).
+- Проверка локального бэкенда без телефона: `npx vite build --mode app && npx vite preview --mode app` — плагины Capacitor
+  работают и в браузере (файлы — в IndexedDB).
+- APK: `npm run build:app && cd android && ./gradlew assembleDebug` (нужен Android SDK, `ANDROID_HOME`). iOS — на Mac: `npm run app:ios`.

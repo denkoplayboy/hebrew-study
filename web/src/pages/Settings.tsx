@@ -5,7 +5,8 @@ import { useApp, speak, hasVoice } from "../lib/app";
 import { Switch } from "../components/ui";
 import { AISection } from "../components/AISection";
 import { DesignPickers } from "../components/DesignPickers";
-import { apiHref, isNative, setDailyReminder } from "../lib/native";
+import { isNative, setDailyReminder, shareExport } from "../lib/native";
+import { LOCAL, getLocal } from "../lib/local-client";
 
 export default function SettingsPage() {
   const { me, settings, updateSettings, toast, refreshMe, touch } = useApp();
@@ -33,7 +34,7 @@ export default function SettingsPage() {
   };
 
   const doImport = async (f: File) => {
-    if (!confirm("Восстановить из копии? Текущие данные будут заменены (на сервере сохранится запасная копия базы).")) return;
+    if (!confirm(`Восстановить из копии? Текущие данные будут заменены (${LOCAL ? "на телефоне" : "на сервере"} сохранится запасная копия базы).`)) return;
     try {
       const data = JSON.parse(await f.text());
       await api.post("/api/import", data);
@@ -43,6 +44,11 @@ export default function SettingsPage() {
     } catch (e) {
       toast((e as Error).message, true);
     }
+  };
+
+  const shareOut = async (path: string, name: string) => {
+    const err = await shareExport(path, name);
+    if (err) toast(err, true);
   };
 
   return (
@@ -122,9 +128,10 @@ export default function SettingsPage() {
       </div>
 
       <div className="section-title">ИИ</div>
+      {LOCAL && <ApiKeyCard />}
       {me?.ai.enabled ? (
         <AISection />
-      ) : (
+      ) : LOCAL ? null : (
         <div className="card col gap-6">
           <p>ИИ не подключён. Приложение работает, но слова придётся заполнять вручную, а проверка фраз станет самопроверкой.</p>
           <p className="small text-2">
@@ -137,23 +144,46 @@ export default function SettingsPage() {
 
       <div className="section-title">Данные</div>
       <div className="card col gap-16">
-        <p className="small text-2">Всё хранится в базе SQLite на томе fly.io. Время от времени скачивай резервную копию — это один JSON-файл.</p>
+        <p className="small text-2">
+          {LOCAL
+            ? "Сад хранится только на этом телефоне. Время от времени сохраняй резервную копию — это один JSON-файл; из него же переносится сад с сайта."
+            : "Всё хранится в базе SQLite на томе fly.io. Время от времени скачивай резервную копию — это один JSON-файл."}
+        </p>
         <div className="row wrap">
-          <a className="btn" href={apiHref("/api/export")} download>
-            <Download size={16} /> Скачать копию
-          </a>
+          {LOCAL ? (
+            <button className="btn" onClick={() => void shareOut("/api/export", `shoresh-${new Date().toISOString().slice(0, 10)}.json`)}>
+              <Download size={16} /> Сохранить копию
+            </button>
+          ) : (
+            <a className="btn" href="/api/export" download>
+              <Download size={16} /> Скачать копию
+            </a>
+          )}
           <button className="btn" onClick={() => file.current?.click()}>
             <Upload size={16} /> Восстановить из копии
           </button>
           <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
         </div>
         <div className="row wrap">
-          <a className="btn soft" href={apiHref("/api/export/words?format=csv")}>
-            Словарь в CSV
-          </a>
-          <a className="btn soft" href={apiHref("/api/export/words?format=tsv")}>
-            Словарь в TSV для Anki
-          </a>
+          {LOCAL ? (
+            <>
+              <button className="btn soft" onClick={() => void shareOut("/api/export/words?format=csv", "shoresh-words.csv")}>
+                Словарь в CSV
+              </button>
+              <button className="btn soft" onClick={() => void shareOut("/api/export/words?format=tsv", "shoresh-words.tsv")}>
+                Словарь в TSV для Anki
+              </button>
+            </>
+          ) : (
+            <>
+              <a className="btn soft" href="/api/export/words?format=csv">
+                Словарь в CSV
+              </a>
+              <a className="btn soft" href="/api/export/words?format=tsv">
+                Словарь в TSV для Anki
+              </a>
+            </>
+          )}
         </div>
       </div>
 
@@ -233,5 +263,62 @@ function ReminderCard() {
         <p className="small muted">Одно уведомление в выбранный час. Пропуск дня ничего не сбрасывает.</p>
       </div>
     </>
+  );
+}
+
+/** Свой ключ Claude: хранится в защищённом хранилище телефона, запросы идут прямо в Claude API. */
+function ApiKeyCard() {
+  const { me, refreshMe, toast } = useApp();
+  const [key, setKey] = useState("");
+  const [busy, setBusy] = useState(false);
+  const has = !!me?.ai.enabled;
+  const save = async (value: string) => {
+    const local = getLocal();
+    if (!local) return;
+    setBusy(true);
+    try {
+      const k = value.trim();
+      if (k && !/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(k)) throw new Error("Ключ Claude начинается с sk-ant-");
+      await (await local).setApiKey(k);
+      setKey("");
+      await refreshMe();
+      toast(k ? "Ключ сохранён на телефоне" : "Ключ удалён");
+    } catch (e) {
+      toast((e as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="card col gap-6" style={{ marginBottom: 14 }}>
+      <div className="row between">
+        <h2 className="h3">Ключ Claude</h2>
+        <span className={"badge " + (has ? "accent" : "")}>{has ? "подключён" : "нет ключа"}</span>
+      </div>
+      <p className="small text-2">
+        Ключ хранится только в защищённом хранилище этого телефона, и приложение отправляет запросы прямо в Claude API. Взять ключ — на console.anthropic.com
+        (раздел API Keys). Там же стоит выставить лимит трат.
+      </p>
+      <div className="row">
+        <input
+          className="input grow"
+          type="password"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          placeholder={has ? "•••••••• заменить ключ" : "sk-ant-…"}
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+        />
+        <button className="btn primary" disabled={busy || !key.trim()} onClick={() => void save(key)}>
+          Сохранить
+        </button>
+      </div>
+      {has && (
+        <button className="btn ghost sm danger" style={{ alignSelf: "flex-start" }} disabled={busy} onClick={() => void save("")}>
+          Удалить ключ с телефона
+        </button>
+      )}
+    </div>
   );
 }
