@@ -1,3 +1,5 @@
+import { apiBase, authToken } from "./native";
+
 export class ApiError extends Error {
   status: number;
   data: any;
@@ -14,9 +16,13 @@ export function setUnauthorizedHandler(fn: () => void) {
 }
 
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
-  const res = await fetch(url, {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const token = authToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(apiBase() + url, {
     method,
-    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
     credentials: "same-origin",
   });

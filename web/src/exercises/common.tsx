@@ -7,6 +7,7 @@ import { posLabel } from "../../../shared/lang";
 import { He, SpeakBtn } from "../components/ui";
 import { useApp } from "../lib/app";
 import { api } from "../lib/api";
+import { buzz } from "../lib/native";
 
 export interface ExResult {
   grade: Grade;
@@ -143,6 +144,7 @@ export function CheckButtons({ onCheck, disabled }: { onCheck: (c: 1 | 2 | 3 | n
 }
 
 export function Feedback({ kind, title, children }: { kind: "ok" | "bad" | "close"; title: string; children?: ReactNode }) {
+  useEffect(() => void buzz(kind === "ok" ? "ok" : kind === "bad" ? "bad" : "tap"), [kind]);
   return (
     <div className={"feedback " + kind}>
       <div style={{ fontWeight: 500 }}>{title}</div>

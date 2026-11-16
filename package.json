@@ -10,7 +10,10 @@
     "dev:web": "vite",
     "build": "vite build && tsc -p tsconfig.server.json",
     "start": "node dist/server/src/index.js",
-    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit"
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "build:app": "vite build && cap sync",
+    "app:android": "npm run build:app && cap open android",
+    "app:ios": "npm run build:app && cap open ios"
   },
   "engines": {
     "node": ">=22"
@@ -23,6 +26,18 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@fontsource/frank-ruhl-libre": "^5.3.0",
     "@fontsource/golos-text": "^5.3.0",
     "@types/better-sqlite3": "^9.6.0",

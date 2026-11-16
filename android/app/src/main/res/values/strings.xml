@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Шореш</string>
+    <string name="title_activity_main">Шореш</string>
+    <string name="package_name">app.shoresh.garden</string>
+    <string name="custom_url_scheme">app.shoresh.garden</string>
+</resources>

@@ -2789,3 +2789,24 @@ svg[data-phase="night"] .lit {
     transition: none;
   }
 }
+
+/* ───────── приложение: вход и безопасные отступы ───────── */
+.login-hall {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  background: var(--hall);
+}
+.native body {
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.native input,
+.native textarea,
+.native .he,
+.native .reader-text {
+  user-select: text;
+  -webkit-user-select: text;
+}

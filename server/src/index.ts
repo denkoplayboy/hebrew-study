@@ -1,4 +1,5 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
+import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
@@ -84,10 +85,33 @@ const PASSWORD = process.env.APP_PASSWORD || "";
 const SECRET = process.env.SESSION_SECRET || crypto.createHash("sha256").update("shoresh:" + PASSWORD).digest("hex");
 const TOKEN = crypto.createHmac("sha256", SECRET).update("ok").digest("hex");
 
+// Мобильное приложение (Capacitor) живёт на своём адресе и присылает токен в заголовке
+const APP_ORIGINS = ["capacitor://localhost", "https://localhost", "http://localhost", "ionic://localhost"];
+app.use(
+  "/api/*",
+  cors({
+    origin: (o) => (o && APP_ORIGINS.includes(o) ? o : null),
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    maxAge: 86400,
+  }),
+);
+
+/** Вход подтверждён: cookie сайта или токен приложения в заголовке Authorization. */
+function authed(c: Context): boolean {
+  if (!PASSWORD) return true;
+  if (getCookie(c, "shoresh") === TOKEN) return true;
+  const h = c.req.header("authorization") || "";
+  // прямые ссылки на выгрузку из приложения несут токен в запросе
+  const q = c.req.method === "GET" && c.req.path.startsWith("/api/export") ? c.req.query("t") || "" : "";
+  const t = h.startsWith("Bearer ") ? h.slice(7) : q;
+  return t.length === TOKEN.length && crypto.timingSafeEqual(Buffer.from(t), Buffer.from(TOKEN));
+}
+
 app.use("/api/*", async (c, next) => {
   const p = c.req.path;
-  if (!PASSWORD || p === "/api/login" || p === "/api/me" || p === "/api/health") return next();
-  if (getCookie(c, "shoresh") !== TOKEN) return c.json({ error: "auth" }, 401);
+  if (c.req.method === "OPTIONS" || !PASSWORD || p === "/api/login" || p === "/api/me" || p === "/api/health") return next();
+  if (!authed(c)) return c.json({ error: "auth" }, 401);
   return next();
 });
 
@@ -106,7 +130,8 @@ app.post("/api/login", async (c) => {
   if (!PASSWORD || (a.length === b.length && crypto.timingSafeEqual(a, b))) {
     const https = c.req.url.startsWith("https") || c.req.header("x-forwarded-proto") === "https";
     setCookie(c, "shoresh", TOKEN, { httpOnly: true, sameSite: "Lax", secure: https, maxAge: 60 * 60 * 24 * 400, path: "/" });
-    return c.json({ ok: true });
+    // приложению cookie чужого домена недоступен — отдаём токен, оно хранит его само
+    return c.json({ ok: true, token: PASSWORD ? TOKEN : null });
   }
   await new Promise((r) => setTimeout(r, 600));
   return c.json({ error: "Неверный пароль" }, 401);
@@ -118,15 +143,15 @@ app.post("/api/logout", (c) => {
 });
 
 app.get("/api/me", (c) => {
-  const authed = !PASSWORD || getCookie(c, "shoresh") === TOKEN;
+  const ok = authed(c);
   return c.json({
-    authed,
+    authed: ok,
     needsPassword: !!PASSWORD,
     ai: aiInfo(),
-    settings: authed ? getSettings() : null,
-    dew: authed ? balance() : 0,
-    perks: authed ? perks() : null,
-    effects: authed ? activeEffects() : null,
+    settings: ok ? getSettings() : null,
+    dew: ok ? balance() : 0,
+    perks: ok ? perks() : null,
+    effects: ok ? activeEffects() : null,
   });
 });
 

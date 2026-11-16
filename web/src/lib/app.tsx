@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
+import { isNative, speakNative } from "./native";
 import type { RelatedSuggestion } from "../../../shared/types";
 import { HE_FONTS, type ActiveEffects, type Perks } from "../../../shared/board";
 
@@ -75,6 +76,8 @@ export interface Settings {
 }
 
 export interface Me {
+  /** приложение не достучалось до сервера */
+  offline?: string;
   authed: boolean;
   needsPassword: boolean;
   ai: { enabled: boolean; model: string; defaultModel?: string; models?: { id: string; name: string; note: string }[] };
@@ -148,7 +151,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const tid = useRef(0);
 
   const refreshMe = useCallback(async () => {
-    const m = await api.get<Me>("/api/me");
+    let m: Me;
+    try {
+      m = await api.get<Me>("/api/me");
+    } catch (e) {
+      // приложение без сервера или без сети: показываем вход с адресом сервера, а не пустой экран
+      if (!isNative) throw e;
+      m = { authed: false, needsPassword: true, ai: { enabled: false, model: "" }, settings: null, offline: (e as Error).message || "нет связи" };
+    }
     setMe(m);
     if (m.authed) setDew({ balance: m.dew || 0, perks: m.perks || NO_PERKS, effects: m.effects || NO_EFFECTS });
   }, []);
@@ -281,7 +291,17 @@ export function hasVoice(lang: "he" | "en") {
 }
 
 export function speak(text: string, lang: "he" | "en", rate = 0.9) {
-  if (typeof speechSynthesis === "undefined" || !text) return;
+  if (!text) return;
+  // в приложении — системный синтез речи телефона (в WebView голосов иврита часто нет)
+  if (isNative) {
+    void speakNative(text, lang, rate).then((ok) => ok || speakWeb(text, lang, rate));
+    return;
+  }
+  speakWeb(text, lang, rate);
+}
+
+function speakWeb(text: string, lang: "he" | "en", rate: number) {
+  if (typeof speechSynthesis === "undefined") return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang === "he" ? "he-IL" : "en-US";

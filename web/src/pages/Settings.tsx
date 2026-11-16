@@ -5,6 +5,7 @@ import { useApp, speak, hasVoice } from "../lib/app";
 import { Switch } from "../components/ui";
 import { AISection } from "../components/AISection";
 import { DesignPickers } from "../components/DesignPickers";
+import { apiHref, isNative, setDailyReminder } from "../lib/native";
 
 export default function SettingsPage() {
   const { me, settings, updateSettings, toast, refreshMe, touch } = useApp();
@@ -132,11 +133,13 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {isNative && <ReminderCard />}
+
       <div className="section-title">Данные</div>
       <div className="card col gap-16">
         <p className="small text-2">Всё хранится в базе SQLite на томе fly.io. Время от времени скачивай резервную копию — это один JSON-файл.</p>
         <div className="row wrap">
-          <a className="btn" href="/api/export" download>
+          <a className="btn" href={apiHref("/api/export")} download>
             <Download size={16} /> Скачать копию
           </a>
           <button className="btn" onClick={() => file.current?.click()}>
@@ -145,10 +148,10 @@ export default function SettingsPage() {
           <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
         </div>
         <div className="row wrap">
-          <a className="btn soft" href="/api/export/words?format=csv">
+          <a className="btn soft" href={apiHref("/api/export/words?format=csv")}>
             Словарь в CSV
           </a>
-          <a className="btn soft" href="/api/export/words?format=tsv">
+          <a className="btn soft" href={apiHref("/api/export/words?format=tsv")}>
             Словарь в TSV для Anki
           </a>
         </div>
@@ -181,5 +184,54 @@ function Row({ title, hint, children }: { title: string; hint: string; children:
       </div>
       {children}
     </div>
+  );
+}
+
+/** Одно спокойное напоминание в день — только в приложении. Без серий и наград за вход. */
+function ReminderCard() {
+  const { toast } = useApp();
+  const [hour, setHour] = useState<number | null>(() => {
+    try {
+      const v = localStorage.getItem("remindHour");
+      return v === null ? null : Number(v);
+    } catch {
+      return null;
+    }
+  });
+  const apply = async (h: number | null) => {
+    const err = await setDailyReminder(h);
+    if (err) return toast(err, true);
+    setHour(h);
+    try {
+      if (h === null) localStorage.removeItem("remindHour");
+      else localStorage.setItem("remindHour", String(h));
+    } catch {
+      /* без памяти */
+    }
+    toast(h === null ? "Напоминание выключено" : `Напомню в ${h}:00`);
+  };
+  return (
+    <>
+      <div className="section-title">Напоминание</div>
+      <div className="card col gap-6">
+        <div className="row between">
+          <span>Напомнить о поливе раз в день</span>
+          <Switch on={hour !== null} onChange={(v) => void apply(v ? 19 : null)} label="Напоминание о поливе" />
+        </div>
+        {hour !== null && (
+          <label className="row gap-6 small text-2">
+            Время
+            <select className="select" style={{ width: "auto" }} value={hour} onChange={(e) => void apply(Number(e.target.value))}>
+              {Array.from({ length: 17 }, (_, i) => i + 6).map((h) => (
+                <option key={h} value={h}>
+                  {h}:00
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <p className="small muted">Одно уведомление в выбранный час. Пропуск дня ничего не сбрасывает.</p>
+      </div>
+    </>
   );
 }

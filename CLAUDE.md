@@ -55,3 +55,10 @@
 - Скилл `/impeccable` (`.claude/skills/impeccable`, агенты в `.claude/agents`, хуки детектора в `.claude/settings.json`). Контекст продукта — `PRODUCT.md`.
 - Движок: бинарник в `scripts/bin/` не коммитится, лаунчер берёт глобальный `impeccable` (ставится скриптом облачной среды: `npm i -g impeccable@4.9.1`).
 - Полная проверка — по запущенному приложению: `AI_MOCK=1 DATA_DIR=/tmp/shoresh PORT=8099 node dist/server/src/index.js`, затем Chromium с `--headless=new --no-sandbox --remote-debugging-port=9222` и `.claude/skills/impeccable/scripts/impeccable detect --cdp 9222 --target localhost`.
+
+## Мобильное приложение (Capacitor)
+- Та же сборка `web/` в нативной оболочке: `capacitor.config.ts`, проекты `android/` и `ios/`, исходники иконки и заставки — `resources/` (`npx @capacitor/assets generate`).
+- Ключ Claude в приложение НЕ кладётся никогда: ИИ и данные идут через сервер. Приложение логинится паролем, сервер отдаёт токен (`/api/login` → `token`), дальше `Authorization: Bearer`. CORS на сервере открыт только для `capacitor://localhost`, `https://localhost`, `http://localhost`.
+- Адрес сервера по умолчанию задаётся при сборке: `VITE_API_BASE=https://<приложение>.fly.dev npm run build:app`; в приложении его можно поменять на экране входа.
+- Всё нативное — в `web/src/lib/native.ts` (вибрация, системная озвучка, статусная строка, кнопка «назад», напоминание). На сайте эти функции ничего не делают.
+- Сборка APK: `cd android && ./gradlew assembleDebug` (нужен Android SDK, `ANDROID_HOME`). iOS собирается только на Mac в Xcode: `npm run app:ios`.

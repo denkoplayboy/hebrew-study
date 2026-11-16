@@ -40,6 +40,7 @@ import Offer from "./pages/Offer";
 import Carmel from "./pages/Carmel";
 import { RelatedPlaque } from "./components/Suggestions";
 import { QuarterMark } from "./components/City";
+import { initNative, isNative, serverAddress, setAuthToken, setServer } from "./lib/native";
 
 export const NAV = [
   { to: "/", label: "Сад", icon: Sprout, end: true, q: "var(--accent)" },
@@ -93,6 +94,17 @@ function Shell() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [loc.pathname]);
+
+  useEffect(() => {
+    void initNative(() => {
+      if (window.history.length > 1 && location.pathname !== "/") {
+        nav(-1);
+        return true;
+      }
+      return false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!me) return <div className="page" />;
   if (!me.authed) return <Login />;
@@ -200,15 +212,21 @@ function Shell() {
 }
 
 function Login() {
-  const { refreshMe } = useApp();
+  const { me, refreshMe } = useApp();
   const [pw, setPw] = useState("");
-  const [err, setErr] = useState("");
+  const [server, setServerField] = useState(serverAddress());
+  const [err, setErr] = useState(me?.offline ? `Сервер не ответил: ${me.offline}` : "");
   const [busy, setBusy] = useState(false);
   const submit = async () => {
     setBusy(true);
     setErr("");
     try {
-      await api.post("/api/login", { password: pw });
+      if (isNative) {
+        if (!/^https?:\/\//.test(server.trim())) throw new Error("Адрес сервера начинается с https://");
+        setServer(server);
+      }
+      const r = await api.post<{ ok: boolean; token?: string | null }>("/api/login", { password: pw });
+      setAuthToken(r.token);
       await refreshMe();
     } catch (e) {
       setErr((e as Error).message);
@@ -217,28 +235,48 @@ function Login() {
     }
   };
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16 }}>
+    <div className="login-hall">
       <div className="card pad-lg col gap-16" style={{ width: "min(380px, 100%)" }}>
         <div className="brand" style={{ padding: 0 }}>
           <BrandMark />
           <div>
             <div className="brand-name">Шореш</div>
-            <div className="brand-sub">твой сад слов</div>
+            <div className="brand-sub" style={{ color: "var(--muted)" }}>
+              твой город слов
+            </div>
           </div>
         </div>
-        <input
-          className="input"
-          type="password"
-          placeholder="Пароль"
-          value={pw}
-          autoFocus
-          onChange={(e) => setPw(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-        />
+        {isNative && (
+          <label className="field">
+            <span className="label">Адрес сервера</span>
+            <input
+              className="input"
+              type="url"
+              inputMode="url"
+              autoCapitalize="off"
+              autoCorrect="off"
+              placeholder="https://hebrew-study.fly.dev"
+              value={server}
+              onChange={(e) => setServerField(e.target.value)}
+            />
+          </label>
+        )}
+        <label className="field">
+          <span className="label">Пароль</span>
+          <input
+            className="input"
+            type="password"
+            value={pw}
+            autoFocus={!isNative}
+            onChange={(e) => setPw(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+        </label>
         {err && <div className="small" style={{ color: "var(--bad)" }}>{err}</div>}
         <button className="btn primary" onClick={submit} disabled={busy}>
           Войти
         </button>
+        {isNative && <p className="tiny muted">Ключ Claude хранится только на сервере — в приложении его нет.</p>}
       </div>
     </div>
   );

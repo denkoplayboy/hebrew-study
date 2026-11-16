@@ -40,6 +40,7 @@ import { DesignPickers } from "../components/DesignPickers";
 import { CityModel } from "../components/City";
 import { HallLight } from "../components/HallLight";
 import { faceLight, useDaylight } from "../lib/daylight";
+import { buzz } from "../lib/native";
 
 interface Q {
   kind: "word" | "verb";
@@ -197,6 +198,7 @@ export default function Shop() {
   const doRoll = async () => {
     if (rolling || busy) return;
     setRolling(true);
+    void buzz("roll");
     setRevealed(null);
     setAnswers([]);
     const spin = window.setInterval(() => setDie(1 + Math.floor(Math.random() * 6)), 80);
@@ -205,6 +207,7 @@ export default function Shop() {
       await new Promise((res) => setTimeout(res, 450));
       clearInterval(spin);
       setDie(r.die);
+      void buzz("tap");
       // фишка шагает по клеткам
       r.path.forEach((cell, k) => timer.current.push(window.setTimeout(() => setToken(cell), 180 * (k + 1))));
       timer.current.push(
